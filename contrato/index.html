@@ -69,7 +69,7 @@
       '<div class="bloco"><h2>Quem assina pelo cliente</h2><div class="campos">' +
         '<div class="campo cheio"><label for="sig">Responsável</label><select id="sig">' + e.responsaveis.map(function(r, i){ return '<option value="' + i + '"' + (i === si ? ' selected' : '') + '>' + esc(r.nome || 'Sem nome') + '</option>'; }).join('') + '</select></div>' +
         campo('s_nome', 'Nome completo', sig.nome, 'data-s="nome"', true) + campo('s_cpf', 'CPF', sig.cpf, 'data-s="cpf"') + campo('s_email', 'E-mail', sig.email, 'data-s="email" type="email"') + '</div></div>' +
-      '<div class="bloco"><h2>Aberto Digital (contratada)</h2><p class="dica">Preencha uma vez: vale para todos os contratos.</p><div class="campos">' +
+      '<div class="bloco"><h2>abertodigital (contratada)</h2><p class="dica">Preencha uma vez: vale para todos os contratos.</p><div class="campos">' +
         campo('k_razao', 'Razão social ou nome do MEI', K.razao, 'data-k="razao"', true) + campo('k_cnpj', 'CNPJ', K.cnpj, 'data-k="cnpj"') + campo('k_email', 'E-mail', K.email, 'data-k="email" type="email"') +
         campo('k_end', 'Endereço', K.endereco, 'data-k="endereco"', true) + '</div></div>' +
       '<div class="bloco"><h2>Contrato</h2><div class="campos">' +
@@ -106,7 +106,7 @@
     var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>aberto <b>digital</b></div>' +
       '<div class="meta">' + (P.numero ? 'Referente à proposta ' + esc(P.numero) + '<br>' : '') + Core.dataBR(CT.data) + '</div></div>' +
       '<h1 style="font-size:1.55rem">Contrato de prestação de serviços digitais</h1>' +
-      '<h2>1. Partes</h2><p><b>CONTRATADA:</b> ' + v(K.razao, 'razão social da Aberto Digital') + ', nome fantasia Aberto Digital, CNPJ ' + v(K.cnpj, 'CNPJ da Aberto Digital') + ', com endereço em ' + v(K.endereco, 'endereço da Aberto Digital') + ', representada por Julio Romanelli, e-mail ' + v(K.email, 'e-mail da Aberto Digital') + ', WhatsApp (11) 99123-3627.</p>' +
+      '<h2>1. Partes</h2><p><b>CONTRATADA:</b> ' + v(K.razao, 'razão social da abertodigital') + ', nome fantasia abertodigital, CNPJ ' + v(K.cnpj, 'CNPJ da abertodigital') + ', com endereço em ' + v(K.endereco, 'endereço da abertodigital') + ', representada por Julio Romanelli, e-mail ' + v(K.email, 'e-mail da abertodigital') + ', WhatsApp (11) 99123-3627.</p>' +
       '<p><b>CONTRATANTE:</b> ' + v(e.razao, 'razão social do cliente') + ', nome fantasia ' + esc(emp) + ', CNPJ/CPF ' + v(e.cnpj, 'CNPJ do cliente') + ', com endereço em ' + v(e.endereco, 'endereço do cliente') + (e.cidade ? ', ' + esc(e.cidade) : '') + ', representada por ' + v(sig.nome, 'nome de quem assina') + ', CPF ' + v(sig.cpf, 'CPF de quem assina') + ', e-mail ' + v(sig.email, 'e-mail de quem assina') + ', WhatsApp ' + v(sig.tel || c.tel, 'WhatsApp de quem assina') + '.</p>' +
       '<h2>2. Objeto</h2><p>2.1. A CONTRATADA prestará à CONTRATANTE os seguintes serviços' + (P.numero ? ', conforme a proposta ' + esc(P.numero) + ' de ' + Core.dataBR(P.data) : '') + ':</p><ul>' + objeto + '</ul>' +
       (P.obs ? '<p>2.2. Ajustes combinados: ' + esc(P.obs) + '</p>' : '') +
@@ -130,7 +130,7 @@
       '<h2>9. Vigência e rescisão</h2><p>9.1. Este contrato começa na data da assinatura e vale por prazo indeterminado, sem fidelidade. 9.2. Qualquer parte pode encerrá-lo com aviso por escrito de 30 dias, inclusive por e-mail ou WhatsApp; a mensalidade do período de aviso é devida. 9.3. A implantação não é reembolsável depois que o trabalho começou; se o contrato terminar antes da entrega, a CONTRATADA entrega o que já foi feito e devolve a parte proporcional ao que não foi executado. 9.4. O contrato pode ser encerrado na hora em caso de descumprimento grave ou de atraso no pagamento por mais de 30 dias. 9.5. No fim do contrato, a CONTRATADA transfere todos os acessos do item 7.1 para a CONTRATANTE em até 5 dias úteis.</p>' +
       '<h2>10. Disposições gerais e foro</h2><p>10.1. Mudanças neste contrato valem apenas por escrito, aceitas pelas duas partes. 10.2. As partes aceitam a assinatura eletrônica deste contrato. 10.3. Fica eleito o foro da Comarca de Arujá/SP.</p>' +
       '<p style="margin-top:18px">Arujá/SP, ' + Core.dataExtenso(CT.data) + '.</p>' +
-      '<div class="assin"><div>CONTRATADA: Aberto Digital<br>Julio Romanelli</div><div>CONTRATANTE: ' + esc(emp) + '<br>' + esc(sig.nome || '') + '</div>' +
+      '<div class="assin"><div>CONTRATADA: abertodigital<br>Julio Romanelli</div><div>CONTRATANTE: ' + esc(emp) + '<br>' + esc(sig.nome || '') + '</div>' +
       (CT.testemunhas ? CT.testemunhas.split(';').map(function(t, i){ return '<div>Testemunha ' + (i + 1) + ': ' + esc(t.trim()) + '</div>'; }).join('') : '') + '</div>';
     if (faltas.length) h = '<div class="faltas so-tela"><b>Faltam ' + faltas.length + ' dados para o contrato ficar completo:</b>' + faltas.map(esc).join(', ') + '.</div><br>' + h;
     $('#doc').innerHTML = h;

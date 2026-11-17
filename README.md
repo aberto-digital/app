@@ -1,6 +1,6 @@
 # AbertoCore
 
-Sistema integrado de atendimento da **Aberto Digital**. Ele junta mensagens, funil de vendas, agenda, follow-up, assistente de IA, produtos e relatórios num lugar só.
+Sistema integrado de atendimento da **abertodigital**. Ele junta mensagens, funil de vendas, agenda, follow-up, assistente de IA, produtos e relatórios num lugar só.
 
 - **No ar:** https://app.abertodigital.com
 - **Status:** protótipo navegável (fase 1). Usa dados de exemplo e roda só no navegador, sem servidor.
@@ -49,7 +49,7 @@ A auditoria, o briefing, a proposta e o contrato são páginas próprias que lee
 
 - No CRM, o painel do contato mostra o bloco "Empresa e documentos", com o status de cada documento e um botão para abrir.
 - Cada documento salvo também deixa um registro na conversa do contato.
-- Os dados da Aberto Digital usados no contrato (razão social, CNPJ, endereço) são preenchidos uma vez e valem para todos.
+- Os dados da abertodigital usados no contrato (razão social, CNPJ, endereço) são preenchidos uma vez e valem para todos.
 - O código comum está em `core/dados.js`: catálogo de produtos, pacotes e o que cada um inclui, além das funções de leitura e gravação. O estilo comum está em `core/estilo.css`.
 - Cada item da auditoria aponta para a solução que o resolve (campo `sol`). A recomendação escolhe o menor pacote que cobre os itens fracos e soma os módulos que faltam.
 

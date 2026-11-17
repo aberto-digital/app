@@ -19,35 +19,47 @@
   /* Catálogo base. O CRM pode mudar preços em Produtos; aqui só garantimos que
      cada solução usada pela auditoria exista no catálogo. */
   var PRODUTOS_BASE = [
-    {nome:'Start', tipo:'Pacote', setup:650, mensal:49, prazo:7, ds:'Perfil no Google otimizado, site de 1 página, domínio no 1º ano'},
-    {nome:'Presença', tipo:'Pacote', setup:850, mensal:49, prazo:10, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business com catálogo, saudação e respostas rápidas'},
-    {nome:'Completo', tipo:'Pacote', setup:1500, mensal:150, prazo:14, ds:'Tudo do Presença, chatbot de IA no WhatsApp, 1 mês de acompanhamento'},
-    {nome:'Enterprise', tipo:'Pacote', setup:3000, mensal:150, prazo:30, ds:'Sistema integrado AbertoCore: WhatsApp, Instagram, Facebook e e-mail numa caixa só, assistente de IA, funil, agenda, follow-up e relatórios'},
-    {nome:'Agendamento online', tipo:'Módulo', setup:null, mensal:null, ds:'Link de agenda com lembrete automático'},
-    {nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:null, mensal:null, ds:'A IA sugere, o cliente aprova'},
-    {nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:null, mensal:null, ds:'Para restaurantes, padarias e lojas'},
-    {nome:'Pós-venda que pede avaliação', tipo:'Módulo', setup:null, mensal:null, ds:'Mensagem com link direto para o Google'},
-    {nome:'Calendário mensal de conteúdo', tipo:'Módulo', setup:null, mensal:null, ds:'Posts, legendas e roteiros de Reels'},
-    {nome:'Fotos e vídeos curtos com IA', tipo:'Módulo', setup:null, mensal:null, ds:'Edição, legendas e cortes para Instagram e TikTok'},
-    {nome:'Gestão mensal do perfil no Google', tipo:'Módulo', setup:null, mensal:null, ds:'Novidades, ofertas e fotos novas no Google todo mês'},
-    {nome:'Instagram profissional', tipo:'Módulo', setup:null, mensal:null, ds:'Conta profissional, bio com cidade e link de WhatsApp, destaques organizados'},
+    {nome:'Start', tipo:'Pacote', setup:650, mensal:49, prazo:7, ds:'Perfil no Google otimizado e verificado, site de 1 página com botão de WhatsApp, domínio .com.br no 1º ano, hospedagem e 1 alteração por mês'},
+    {nome:'Presença', tipo:'Pacote', setup:990, mensal:99, prazo:10, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business configurado com catálogo e respostas rápidas, 1º mês de acompanhamento com relatório e reunião, relatório mensal do Google a partir do 2º mês'},
+    {nome:'Completo', tipo:'Pacote', setup:1900, mensal:249, prazo:15, ds:'Tudo do Presença, AbertoCore com o WhatsApp e até 2 usuários, chatbot de menu que faz a triagem dos contatos, assistente de IA que sugere respostas e lembra os follow-ups, funil de vendas e agenda'},
+    {nome:'Enterprise', tipo:'Pacote', setup:3500, mensal:450, prazo:30, ds:'Tudo do Completo, Instagram + Facebook + e-mail na mesma caixa de mensagens, atendimento com IA 24h que responde e qualifica e agenda sozinho, CRM completo com follow-up automático, agendamento online, usuários ilimitados, e-mail com o domínio da empresa, painel de resultados e ajustes sob medida'},
+    {nome:'Chatbot de menu (triagem)', tipo:'Módulo', setup:600, mensal:199, ds:'Menu numerado no WhatsApp que responde as perguntas frequentes e separa os interessados dos curiosos'},
+    {nome:'Gestão mensal do perfil no Google', tipo:'Módulo', setup:0, mensal:149, ds:'4 postagens por mês, fotos novas, horários de feriado e respostas às avaliações'},
+    {nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:0, mensal:79, ds:'A IA sugere a resposta e nós revisamos e publicamos em até 48h'},
+    {nome:'Pós-venda que pede avaliação', tipo:'Módulo', setup:200, mensal:0, ds:'Mensagem modelo, QR Code e cartão de balcão com link direto para avaliar no Google'},
+    {nome:'Instagram profissional', tipo:'Módulo', setup:290, mensal:0, ds:'Conta comercial, bio com cidade e link de WhatsApp, destaques organizados e 9 posts iniciais'},
+    {nome:'Calendário mensal de conteúdo', tipo:'Módulo', setup:0, mensal:390, ds:'12 artes com legenda por mês prontas para o cliente publicar'},
+    {nome:'Fotos e vídeos curtos com IA', tipo:'Módulo', setup:290, mensal:0, ds:'Sessão de 1h no local com 10 fotos tratadas e 3 vídeos curtos editados'},
+    {nome:'Agendamento online', tipo:'Módulo', setup:250, mensal:0, ds:'Link de agenda no site e no WhatsApp com lembrete automático'},
+    {nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:350, mensal:0, ds:'Página com cardápio ou catálogo e QR Code impresso para o balcão e as mesas'},
     {nome:'Auditoria gratuita', tipo:'Serviço', setup:0, mensal:0, ds:'Relatório com nota e o que falta no Google, site, WhatsApp e redes'}
   ];
+  var CATALOGO_VERSAO = 2;
   var ORDEM_PACOTES = ['Start', 'Presença', 'Completo', 'Enterprise'];
+  /* Planos de contratação: desconto na mensalidade em troca de prazo mínimo. */
+  var PLANOS = [
+    {nome:'Mensal', meses:0, desconto:0, txt:'sem fidelidade'},
+    {nome:'6 meses', meses:6, desconto:0.15, txt:'15% de desconto na mensalidade'},
+    {nome:'12 meses', meses:12, desconto:0.30, txt:'30% de desconto na mensalidade'}
+  ];
+  function plano(nome){ return PLANOS.filter(function(p){ return p.nome === nome; })[0] || PLANOS[0]; }
+  function mensalPlano(valor, nome){ if (valor == null) return null; return Math.round(valor * (1 - plano(nome).desconto) * 100) / 100; }
   /* O que cada pacote já inclui (além dos pacotes abaixo dele). */
-  var INCLUSOS = {Enterprise:['Agendamento online']};
+  var INCLUSOS = {Completo:['Chatbot de menu (triagem)'], Enterprise:['Agendamento online']};
 
   function maxId(L){ return L.reduce(function(m, x){ return Math.max(m, x.id || 0); }, 0); }
   function garante(S){
     S.contatos = S.contatos || []; S.eventos = S.eventos || []; S.produtos = S.produtos || [];
     S.msgsCanal = S.msgsCanal || {}; S.prox = S.prox || {c:1, e:1, p:1};
     if (S.msgsCanal.Presencial == null) S.msgsCanal.Presencial = 0;
+    var migra = (S.catalogoV || 1) < CATALOGO_VERSAO;
     PRODUTOS_BASE.forEach(function(p){
       var ex = S.produtos.filter(function(x){ return x.nome === p.nome; })[0];
       if (!ex){ var n = JSON.parse(JSON.stringify(p)); n.id = maxId(S.produtos) + 1; n.ativo = true; S.produtos.push(n); }
+      else if (migra){ ex.setup = p.setup; ex.mensal = p.mensal; ex.ds = p.ds; if (p.prazo) ex.prazo = p.prazo; }
       else if (ex.prazo == null && p.prazo) ex.prazo = p.prazo;
-      if (ex && ex.nome === 'Enterprise' && ex.setup == null && !S.enterpriseMigrado){ ex.setup = p.setup; ex.mensal = p.mensal; S.enterpriseMigrado = true; }
     });
+    S.catalogoV = CATALOGO_VERSAO;
     S.prox.p = maxId(S.produtos) + 1;
     return S;
   }
@@ -91,7 +103,7 @@
   function aviso(t){ var d = document.createElement('div'); d.className = 'aviso'; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 2800); }
 
   window.Core = {CHAVE:CHAVE, carrega:carrega, salva:salva, garante:garante, contato:contato, novoContato:novoContato, empresa:empresa,
-    signatario:signatario, produto:produto, pacotes:pacotes, modulos:modulos, incluso:incluso, ORDEM_PACOTES:ORDEM_PACOTES,
+    signatario:signatario, produto:produto, PLANOS:PLANOS, plano:plano, mensalPlano:mensalPlano, pacotes:pacotes, modulos:modulos, incluso:incluso, ORDEM_PACOTES:ORDEM_PACOTES,
     contratada:contratada, salvaContratada:salvaContratada, esc:esc, brl:brl, dataBR:dataBR, dataExtenso:dataExtenso, hoje:hoje,
     maisDias:maisDias, param:param, aviso:aviso};
 })();

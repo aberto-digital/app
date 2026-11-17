@@ -61,8 +61,9 @@
     P = c.proposta ? JSON.parse(JSON.stringify(c.proposta)) : {
       numero:'AD-' + new Date().getFullYear() + '-' + ('000' + c.id).slice(-3), data:Core.hoje(), validade:Core.maisDias(Core.hoje(), 15),
       pacote:rec.pacote, modulos:rec.modulos.slice(), setup:null, mensal:null, manual:false, prazo:null,
-      pagamento:PAGAMENTOS[1], vencimento:10, para:0, obs:'', mover:true
+      pagamento:PAGAMENTOS[1], vencimento:10, para:0, obs:'', mover:true, plano:'12 meses'
     };
+    if (!P.plano) P.plano = 'Mensal';
     if (!P.manual) calculaValores();
   }
   function calculaValores(){
@@ -85,12 +86,13 @@
         '<div class="campo"><select id="pacote"><option value="">Só módulos avulsos</option>' + pacs.map(function(p){ return '<option' + (p.nome === P.pacote ? ' selected' : '') + '>' + esc(p.nome) + '</option>'; }).join('') + '</select></div>' +
         '<h2 style="margin-top:14px">Módulos</h2><div class="mods">' + mods.map(function(m){
           var inc = P.pacote && Core.incluso(P.pacote, m.nome);
-          return '<label><input type="checkbox" data-mod="' + esc(m.nome) + '"' + (P.modulos.indexOf(m.nome) >= 0 ? ' checked' : '') + (inc ? ' disabled' : '') + '><span>' + esc(m.nome) + (rec.modulos.indexOf(m.nome) >= 0 ? '<span class="rec">auditoria</span>' : '') + (inc ? ' <span class="nao-l">(incluso)</span>' : '') + '</span><span class="pr">' + (m.setup == null ? 'sem preço' : brl(m.setup)) + '</span></label>';
+          return '<label><input type="checkbox" data-mod="' + esc(m.nome) + '"' + (P.modulos.indexOf(m.nome) >= 0 ? ' checked' : '') + (inc ? ' disabled' : '') + '><span>' + esc(m.nome) + (rec.modulos.indexOf(m.nome) >= 0 ? '<span class="rec">auditoria</span>' : '') + (inc ? ' <span class="nao-l">(incluso)</span>' : '') + '</span><span class="pr">' + (m.setup == null ? 'sem preço' : ([m.setup ? brl(m.setup) : '', m.mensal ? brl(m.mensal) + '/mês' : ''].filter(Boolean).join(' + ') || 'R$ 0')) + '</span></label>';
         }).join('') + '</div></div>' +
       '<div class="bloco"><h2>Valores e prazo</h2><p class="dica">Calculados pelos preços cadastrados em Produtos. Pode ajustar à mão.</p><div class="campos">' +
         '<div class="campo' + (P.setup == null ? ' falta' : '') + '"><label for="setup">Implantação (R$)</label><input id="setup" type="number" min="0" step="50" value="' + (P.setup == null ? '' : P.setup) + '" placeholder="a definir"></div>' +
         '<div class="campo"><label for="mensal">Mensalidade (R$)</label><input id="mensal" type="number" min="0" step="10" value="' + (P.mensal == null ? '' : P.mensal) + '"></div>' +
         '<div class="campo"><label for="prazo">Prazo (dias úteis)</label><input id="prazo" type="number" min="1" value="' + P.prazo + '"></div>' +
+        '<div class="campo"><label for="plano">Plano de contratação</label><select id="plano">' + Core.PLANOS.map(function(p){ return '<option value="' + p.nome + '"' + (p.nome === P.plano ? ' selected' : '') + '>' + p.nome + (p.desconto ? ' (−' + Math.round(p.desconto * 100) + '%)' : '') + '</option>'; }).join('') + '</select></div>' +
         '<div class="campo"><label for="venc">Vencimento da mensalidade (dia)</label><input id="venc" type="number" min="1" max="28" value="' + P.vencimento + '"></div>' +
         '<div class="campo cheio"><label for="pag">Pagamento da implantação</label><select id="pag">' + PAGAMENTOS.map(function(p){ return '<option' + (p === P.pagamento ? ' selected' : '') + '>' + p + '</option>'; }).join('') + '</select></div>' +
         '<div class="campo"><label for="dt">Data</label><input id="dt" type="date" value="' + P.data + '"></div>' +
@@ -107,6 +109,7 @@
     if (t.id === 'pacote'){ P.pacote = t.value; P.modulos = P.modulos.filter(function(m){ return !P.pacote || !Core.incluso(P.pacote, m); }); P.manual = false; P.prazoManual = false; calculaValores(); desenhaForm(); }
     else if (t.hasAttribute('data-mod')){ var n = t.getAttribute('data-mod'); P.modulos = t.checked ? P.modulos.concat([n]) : P.modulos.filter(function(m){ return m !== n; }); P.prazoManual = false; if (P.manual){ var sm = P.setup, mm = P.mensal; calculaValores(); P.setup = sm; P.mensal = mm; } else calculaValores(); desenhaForm(); }
     else if (t.id === 'pag') P.pagamento = t.value;
+    else if (t.id === 'plano') P.plano = t.value;
     else if (t.id === 'dt') P.data = t.value;
     else if (t.id === 'val') P.validade = t.value;
     else if (t.id === 'para') P.para = +t.value;
@@ -133,8 +136,8 @@
     var primeiro = (r.nome || c.nome || '').split(' ')[0];
     var itens = (P.pacote ? [P.pacote] : []).concat(P.modulos).map(function(n){ return Core.produto(S, n); }).filter(Boolean);
     var resumoPac = P.pacote ? 'o pacote <b>' + esc(P.pacote) + '</b>' + (P.modulos.length ? ' com ' + P.modulos.length + (P.modulos.length > 1 ? ' módulos' : ' módulo') : '') : (P.modulos.length ? P.modulos.length + ' módulos' : falta('[escolha o pacote]'));
-    var valorTxt = (P.setup == null ? falta('R$ a definir') : '<b>' + brl(P.setup) + '</b>' + (P.faltaPreco && !P.manual ? ' ' + falta('+ itens a definir') : '')) + ' de implantação' + (P.mensal ? ' + <b>' + brl(P.mensal) + '/mês</b>' : '');
-    var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>aberto <b>digital</b></div>' +
+    var valorTxt = (P.setup == null ? falta('R$ a definir') : '<b>' + brl(P.setup) + '</b>' + (P.faltaPreco && !P.manual ? ' ' + falta('+ itens a definir') : '')) + ' de implantação' + (P.mensal ? ' + <b>' + brl(Core.mensalPlano(P.mensal, P.plano)) + '/mês</b>' + (Core.plano(P.plano).desconto ? ' no plano de ' + P.plano : '') : '');
+    var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
       '<div class="meta">Proposta ' + esc(P.numero) + '<br>' + Core.dataBR(P.data) + '<br>Válida até ' + Core.dataBR(P.validade) + '</div></div>';
     h += '<h1>Proposta para ' + esc(emp) + '</h1><p style="color:var(--sec)">Para ' + esc(r.nome || c.nome) + (r.cargo ? ', ' + esc(r.cargo) : '') + '. De Julio Romanelli, abertodigital.</p>';
     h += '<div class="destaque">' + esc(primeiro || 'Olá') + ', obrigado pela conversa. Propomos ' + resumoPac + ' para que a ' + esc(emp) + ' seja encontrada no Google, passe confiança e responda todos os clientes rápido. O investimento é ' + valorTxt + ', e tudo fica pronto em até <b>' + P.prazo + ' dias úteis</b>.</div>';
@@ -158,7 +161,10 @@
     h += '<h2>Investimento</h2><table><thead><tr><th>Item</th><th style="text-align:right">Implantação</th><th style="text-align:right">Mensalidade</th></tr></thead><tbody>' +
       itens.map(function(p){ return '<tr><td>' + (p.tipo === 'Pacote' ? 'Pacote ' : '') + esc(p.nome) + '</td><td class="num">' + (P.manual ? '' : p.setup == null ? falta('a definir') : brl(p.setup)) + '</td><td class="num">' + (P.manual ? '' : p.mensal ? brl(p.mensal) : '-') + '</td></tr>'; }).join('') +
       '<tr class="total"><td>Total</td><td class="num">' + (P.setup == null ? falta('a definir') : brl(P.setup) + (P.faltaPreco && !P.manual ? ' + ' + falta('itens a definir') : '')) + '</td><td class="num">' + (P.mensal ? brl(P.mensal) + '/mês' : '-') + '</td></tr></tbody></table>' +
-      '<p><b>Pagamento:</b> implantação ' + esc(P.pagamento.charAt(0).toLowerCase() + P.pagamento.slice(1)) + ', por Pix ou boleto. Mensalidade todo dia ' + P.vencimento + ', a partir do mês seguinte à entrega. Sem fidelidade: cancele com 30 dias de aviso.</p>' +
+      (P.mensal ? '<h3>Escolha o plano da mensalidade</h3><table><thead><tr><th>Plano</th><th>Condição</th><th style="text-align:right">Mensalidade</th></tr></thead><tbody>' +
+        Core.PLANOS.map(function(pl){ var sel = pl.nome === P.plano; return '<tr' + (sel ? ' class="total"' : '') + '><td>' + pl.nome + (sel ? ' (proposto)' : '') + '</td><td>' + pl.txt + '</td><td class="num">' + brl(Core.mensalPlano(P.mensal, pl.nome)) + '/mês</td></tr>'; }).join('') + '</tbody></table>' : '') +
+      '<p><b>Pagamento:</b> implantação ' + esc(P.pagamento.charAt(0).toLowerCase() + P.pagamento.slice(1)) + ', por Pix ou boleto. Mensalidade todo dia ' + P.vencimento + ', a partir do mês seguinte à entrega. ' +
+        (Core.plano(P.plano).desconto ? 'No plano de ' + P.plano + ', o desconto vale durante todo o prazo. Se cancelar antes, paga a diferença do desconto já recebido.' : 'Sem fidelidade: cancele com 30 dias de aviso.') + '</p>' +
       '<p><b>Fica no seu nome:</b> domínio, perfil no Google, contas e conteúdos são da ' + esc(emp) + ', mesmo se cancelar.</p>';
     var mats = [['logo_arq','logo em boa qualidade'],['fotos','10 a 20 fotos do local e dos serviços'],['precos','lista de produtos e preços'],['acesso_google','acesso ao perfil do Google'],['acesso_meta','acesso ao Instagram e Facebook'],['dominio','acesso ao domínio, se já tiver']];
     var faltam = mats.filter(function(m){ return !(b.materiais && b.materiais[m[0]]); }).map(function(m){ return m[1]; });
@@ -179,7 +185,7 @@
     if (P.mover && ['Novo contato', 'Qualificado'].indexOf(alvo.etapa) >= 0){ alvo.etapa = 'Proposta enviada'; alvo.status = alvo.status === 'finalizado' ? 'esperando' : alvo.status; }
     if (P.setup != null) alvo.valor = P.setup;
     if (!alvo.followup) alvo.followup = Core.maisDias(Core.hoje(), 3);
-    if (novo) alvo.msgs.push({de:'eq', txt:'Proposta ' + P.numero + ': ' + (P.pacote ? 'pacote ' + P.pacote : 'módulos') + (P.modulos.length ? ' + ' + P.modulos.join(', ') : '') + ', ' + (P.setup == null ? 'implantação a definir' : brl(P.setup) + ' de implantação') + (P.mensal ? ' + ' + brl(P.mensal) + '/mês' : '') + '.', ts:Date.now()});
+    if (novo) alvo.msgs.push({de:'eq', txt:'Proposta ' + P.numero + ': ' + (P.pacote ? 'pacote ' + P.pacote : 'módulos') + (P.modulos.length ? ' + ' + P.modulos.join(', ') : '') + ', ' + (P.setup == null ? 'implantação a definir' : brl(P.setup) + ' de implantação') + (P.mensal ? ' + ' + brl(Core.mensalPlano(P.mensal, P.plano)) + '/mês (plano ' + P.plano + ')' : '') + '.', ts:Date.now()});
     Core.salva(atual); S = atual; c = alvo;
     if (!silencioso) Core.aviso('Proposta salva no contato ' + (c.negocio || c.nome) + '.');
     return true;

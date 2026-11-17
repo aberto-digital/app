@@ -433,7 +433,7 @@
     /* Respostas do assistente: a primeira regra que bater com a mensagem responde.
        {nome} = primeiro nome do contato, {oi} = "Nome, " ou vazio, {resp} = responsável. */
     regrasIA: [
-      {se: /pre[cç]o|valor|quanto|custa|or[cç]amento/, diz: 'Claro{, nome}! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 850 + R$ 49/mês e Completo por R$ 1.500 + R$ 150/mês. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.'},
+      {se: /pre[cç]o|valor|quanto|custa|or[cç]amento/, diz: 'Claro{, nome}! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 990 + R$ 99/mês, Completo por R$ 1.900 + R$ 249/mês e Enterprise por R$ 3.500 + R$ 450/mês. Nos planos de 6 e 12 meses a mensalidade tem 15% e 30% de desconto. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.'},
       {se: /agend|marcar|hor[aá]rio|reuni|demonstra/, diz: 'Posso marcar uma conversa de 15 minutos. Tenho amanhã às 10h ou às 15h. Qual fica melhor para você?'},
       {se: /automat|chatbot|\bia\b|rob[oô]|responder sozinho|whats/, diz: '{oi}dá sim! O assistente de IA responde preço, horário e endereço na hora, pré-agenda e só chama você quando precisa. Ele vem no pacote Completo e no Enterprise.'},
       {se: /crm|sistema|funil|enterprise|equipe|v[aá]rios atendentes/, diz: 'No Enterprise, WhatsApp, Instagram, Facebook e e-mail chegam numa caixa só, cada contato vira um card no funil, e a agenda e o follow-up ficam no mesmo lugar. Quer ver uma demonstração?'},
@@ -562,22 +562,11 @@
       {id:5, contato:3, titulo:'Revisão mensal de resultados', data:addDias(5), hora:'11:00', tipo:'Ligação'},
       {id:6, contato:8, titulo:'Retorno sobre proposta', data:addDias(3), hora:'17:00', tipo:'Ligação'}
     ];
-    var P = [
-      {id:1, nome:'Start', tipo:'Pacote', setup:650, mensal:49, ds:'Perfil no Google otimizado, site de 1 página, domínio no 1º ano', ativo:true},
-      {id:2, nome:'Presença', tipo:'Pacote', setup:850, mensal:49, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business com catálogo', ativo:true},
-      {id:3, nome:'Completo', tipo:'Pacote', setup:1500, mensal:150, ds:'Tudo do Presença, chatbot de IA no WhatsApp, 1 mês de acompanhamento', ativo:true},
-      {id:4, nome:'Enterprise', tipo:'Pacote', setup:3000, mensal:150, ds:'Sistema integrado: assistente de IA, WhatsApp, Instagram, Facebook e e-mail numa caixa só, funil, agenda, follow-up e relatórios', ativo:true, destaque:true},
-      {id:5, nome:'Agendamento online', tipo:'Módulo', setup:null, mensal:null, ds:'Link de agenda com lembrete automático', ativo:true},
-      {id:6, nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:null, mensal:null, ds:'A IA sugere, o cliente aprova', ativo:true},
-      {id:7, nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:null, mensal:null, ds:'Para restaurantes, padarias e lojas', ativo:true},
-      {id:8, nome:'Pós-venda que pede avaliação', tipo:'Módulo', setup:null, mensal:null, ds:'Mensagem com link direto para o Google', ativo:true},
-      {id:9, nome:'Calendário mensal de conteúdo', tipo:'Módulo', setup:null, mensal:null, ds:'Posts, legendas e roteiros de Reels', ativo:true},
-      {id:10, nome:'Auditoria gratuita', tipo:'Serviço', setup:0, mensal:0, ds:'PDF de 1 página com o que falta no Google, site e WhatsApp', ativo:true}
-    ];
+    var P = []; /* o catálogo vem de core/dados.js (Core.garante) */
     var IA = {
       ativo:true, nome:'Assistente da ' + CONFIG.empresa, tom:'Próximo e direto',
       horario:'Responde 24 horas. Passa para o ' + CONFIG.responsavel + ' de segunda a sexta, das 9h às 18h.',
-      base:'Pacotes: Start R$ 650 + R$ 49/mês; Presença R$ 850 + R$ 49/mês; Completo R$ 1.500 + R$ 150/mês; Enterprise sob consulta.\nAtendimento presencial em Arujá e região, e remoto.\nAuditoria gratuita: PDF de 1 página com o que falta no Google, site e WhatsApp.\nPassar para humano: preço personalizado, reclamação, pedido de contrato.',
+      base:'Pacotes: Start R$ 650 + R$ 49/mês; Presença R$ 990 + R$ 99/mês; Completo R$ 1.900 + R$ 249/mês; Enterprise R$ 3.500 + R$ 450/mês.\nPlanos: mensal sem fidelidade; 6 meses com 15% de desconto na mensalidade; 12 meses com 30%.\nAtendimento presencial em Arujá e região, e remoto.\nAuditoria gratuita: PDF de 1 página com o que falta no Google, site e WhatsApp.\nPassar para humano: preço personalizado, reclamação, pedido de contrato.',
       humano:true, agendar:true
     };
     return {contatos:C, eventos:E, produtos:P, ia:IA, msgsCanal:{WhatsApp:312, Instagram:128, Facebook:64, 'E-mail':41}, prox:{c:C.length + 1, e:E.length + 1, p:P.length + 1}};
@@ -588,7 +577,7 @@
   try { S = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { S = null; }
   if (!S || !S.contatos || !S.ia) S = (function(n){ if (S && S.contatos){ n.contatos = S.contatos.concat(n.contatos.filter(function(x){ return !S.contatos.some(function(y){ return y.id === x.id; }); })); } return n; })(semente());
   Core.garante(S);
-  try { if (!localStorage.getItem(CHAVE)) localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {}
+  try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {}
   function salva(){ try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} }
   function contato(id){ for (var i = 0; i < S.contatos.length; i++) if (S.contatos[i].id === id) return S.contatos[i]; return null; }
   function ultima(c){ return c.msgs[c.msgs.length - 1]; }
@@ -1079,7 +1068,7 @@
     }).join('') + '<div class="canal-card"><div class="tt">Dados da demonstração</div><div class="ds">As mudanças ficam salvas só neste navegador. Volte aos dados de exemplo quando quiser.</div><button class="btn peq" id="reset" style="align-self:flex-start">Restaurar dados de exemplo</button></div></div>';
     $('#vista').onclick = function(e){
       if (e.target.closest('[data-cn]')) aviso('Na demonstração os canais são simulados. A conexão real entra na versão com integrações.');
-      if (e.target.closest('#reset')){ S = semente(); sel = null; salva(); aviso('Dados de exemplo restaurados.'); desenha(); }
+      if (e.target.closest('#reset')){ S = Core.garante(semente()); sel = null; salva(); aviso('Dados de exemplo restaurados.'); desenha(); }
     };
   }
 

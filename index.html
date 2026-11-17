@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aberto Digital | Central de Atendimento</title>
+<meta name="description" content="Demonstração do sistema integrado da Aberto Digital: mensagens, funil, agenda, assistente de IA e relatórios num só lugar.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101A2C; --navy:#1E3050; --slate:#384358;
+    --ambar:#FFB020; --ceu:#2F6FED; --pessego:#FFA586;
+    --papel:#F6F7F9; --branco:#fff; --texto:#101A2C; --sec:#5B6678;
+    --muted:#8A93A6; --linha:#E2E6ED; --linha2:#D5DAE3;
+    --verde:#1F9D55; --vermelho:#D64545;
+    --wa:#1FAF5A; --ig:#C13584; --fb:#1877F2; --em:#5B6678;
+    --display:"Archivo",system-ui,sans-serif;
+    --corpo:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --raio:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--corpo);color:var(--texto);background:var(--papel);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow:hidden}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;border:0;background:none}
+  :focus-visible{outline:3px solid var(--ambar);outline-offset:2px;border-radius:6px}
+  .app{display:grid;grid-template-columns:72px 1fr;height:100dvh}
+
+  /* trilho lateral */
+  .trilho{background:linear-gradient(180deg,var(--navy),var(--ink));display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px}
+  .trilho .marca{width:42px;height:42px;margin-bottom:14px}
+  .trilho button{position:relative;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#AEB6C6;transition:background .15s,color .15s}
+  .trilho button:hover{background:rgba(255,255,255,.08);color:#fff}
+  .trilho button[aria-current="page"]{background:var(--ceu);color:#fff}
+  .trilho svg{width:22px;height:22px}
+  .trilho .bolha{position:absolute;top:5px;right:5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--ambar);color:var(--ink);font-size:10.5px;font-weight:800;display:grid;place-items:center}
+  .trilho .fim{margin-top:auto}
+  .dica{position:absolute;left:58px;white-space:nowrap;background:var(--ink);color:#fff;font-size:13px;padding:5px 10px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .12s;z-index:50}
+  .trilho button:hover .dica,.trilho button:focus-visible .dica{opacity:1}
+
+  .principal{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .topo{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--linha);background:var(--branco)}
+  .topo h1{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:1.45rem;letter-spacing:-.01em}
+  .topo .sub{color:var(--sec);font-size:13.5px}
+  .topo .dir{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .aovivo{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--sec);padding:6px 11px;border-radius:999px;border:1px solid var(--linha2);background:var(--branco)}
+  .aovivo i{width:8px;height:8px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(31,157,85,.5);animation:pulso 2s infinite}
+  .aovivo[aria-pressed="false"] i{background:var(--muted);animation:none}
+  @keyframes pulso{70%{box-shadow:0 0 0 7px rgba(31,157,85,0)}100%{box-shadow:0 0 0 0 rgba(31,157,85,0)}}
+  .demo{font-size:12.5px;color:var(--slate);background:#FFF4DA;border:1px solid #F5D98F;padding:5px 10px;border-radius:8px}
+  .vista{flex:1;min-height:0;overflow:auto}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;font-weight:600;font-size:14px;background:var(--branco);border:1px solid var(--linha2);transition:background .15s}
+  .btn:hover{background:#EEF1F6}
+  .btn.pri{background:var(--ceu);border-color:var(--ceu);color:#fff}
+  .btn.pri:hover{background:#245CD0}
+  .btn.ia{background:#FFF4DA;border-color:#F5D98F;color:var(--ink)}
+  .btn.ia:hover{background:#FFEAB8}
+  .btn svg{width:17px;height:17px}
+  .btn.peq{padding:6px 11px;font-size:13px}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .chip.lead{background:#E6EEFF;color:#1D4FC4}
+  .chip.cliente{background:#E2F5EA;color:#167443}
+  .chip.etapa{background:#EEF1F6;color:var(--slate)}
+  .chip.atraso{background:#FCE6E6;color:#A82F2F}
+  .chip.hoje{background:#FFF4DA;color:#8A5B00}
+  .canal{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--sec)}
+  .canal b{width:9px;height:9px;border-radius:50%}
+
+  .av{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff}
+  .av .sel{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;border:2px solid var(--branco);display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff}
+
+  /* ===== Mensagens ===== */
+  .inbox{display:grid;grid-template-columns:360px 1fr 300px;height:100%}
+  .lista{border-right:1px solid var(--linha);background:var(--branco);display:flex;flex-direction:column;min-height:0}
+  .lista .busca{display:flex;align-items:center;gap:8px;margin:14px 14px 8px;padding:9px 12px;border-radius:10px;background:var(--papel);border:1px solid var(--linha)}
+  .lista .busca svg{width:17px;height:17px;color:var(--muted)}
+  .lista .busca input{border:0;background:none;outline:0;width:100%}
+  .abas{display:flex;margin:0 14px;background:var(--papel);border-radius:10px;padding:4px;gap:2px}
+  .abas button{flex:1;padding:7px 4px;border-radius:7px;font-size:13.5px;font-weight:600;color:var(--sec)}
+  .abas button[aria-selected="true"]{background:var(--branco);color:var(--ink);box-shadow:0 1px 2px rgba(16,26,44,.12)}
+  .abas small{font-size:11px;background:var(--ceu);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
+  .filtros{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;border-bottom:1px solid var(--linha)}
+  .filtros button{font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--linha2);color:var(--sec);white-space:nowrap}
+  .filtros button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .itens{overflow:auto;flex:1}
+  .item{display:flex;gap:12px;width:100%;text-align:left;padding:13px 14px;border-bottom:1px solid var(--linha);border-left:3px solid transparent}
+  .item:hover{background:#F8F9FB}
+  .item[aria-current="true"]{background:#EEF3FF;border-left-color:var(--ceu)}
+  .item .mid{flex:1;min-width:0}
+  .item .l1{display:flex;justify-content:space-between;gap:8px}
+  .item .nome{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item[aria-current="true"] .nome{color:var(--ceu)}
+  .item .hora{font-size:12px;color:var(--muted);white-space:nowrap}
+  .item .hora.nova{color:var(--ceu);font-weight:700}
+  .item .ult{font-size:13.5px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 6px}
+  .item .ult.nova{color:var(--ink);font-weight:600}
+  .item .l3{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .item .cont{margin-left:auto;background:var(--ceu);color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
+  .vazio{padding:40px 20px;text-align:center;color:var(--sec)}
+
+  .conversa{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
+  .conv-topo{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--branco);border-bottom:1px solid var(--linha)}
+  .conv-topo .nm{font-weight:700;font-size:16px}
+  .conv-topo .ng{font-size:13px;color:var(--sec)}
+  .conv-topo .acoes{margin-left:auto;display:flex;gap:8px}
+  .voltar,.det-btn{display:none}
+  .fio{flex:1;overflow:auto;padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+  .dia{align-self:center;font-size:12px;color:var(--sec);background:var(--branco);border:1px solid var(--linha);padding:3px 10px;border-radius:999px;margin:6px 0}
+  .msg{max-width:min(560px,78%);padding:10px 13px 6px;border-radius:14px;background:var(--branco);box-shadow:0 1px 1px rgba(16,26,44,.06);white-space:pre-wrap;word-wrap:break-word}
+  .msg .h{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:3px}
+  .msg.cli{align-self:flex-start;border-top-left-radius:4px}
+  .msg.eq{align-self:flex-end;background:var(--navy);color:#fff;border-top-right-radius:4px}
+  .msg.eq .h{color:#AEB6C6}
+  .msg.ia{align-self:flex-end;background:#FFF8E6;border:1px solid #F5D98F;border-top-right-radius:4px}
+  .msg .quem{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:#8A5B00;margin-bottom:3px}
+  .msg .quem svg{width:13px;height:13px}
+  .msg .assunto{display:block;font-weight:700;margin-bottom:4px}
+  .digitando{align-self:flex-end;font-size:12.5px;color:#8A5B00;background:#FFF8E6;border:1px dashed #F5D98F;padding:6px 11px;border-radius:12px}
+  .compor{background:var(--branco);border-top:1px solid var(--linha);padding:12px 16px}
+  .compor .linha{display:flex;gap:10px;align-items:flex-end}
+  .compor textarea{flex:1;resize:none;border:1px solid var(--linha2);border-radius:12px;padding:10px 12px;min-height:44px;max-height:140px;outline:0;background:var(--papel)}
+  .compor textarea:focus{border-color:var(--ceu);background:var(--branco)}
+  .compor .envia{width:44px;height:44px;border-radius:12px;background:var(--ceu);color:#fff;display:grid;place-items:center;flex:none}
+  .compor .envia svg{width:20px;height:20px}
+  .compor .ferr{display:flex;gap:8px;margin-bottom:9px;align-items:center;flex-wrap:wrap}
+  .compor .ferr .info{font-size:12.5px;color:var(--sec)}
+
+  .detalhe{border-left:1px solid var(--linha);background:var(--branco);overflow:auto;padding:20px}
+  .detalhe .cab{text-align:center;padding-bottom:16px;border-bottom:1px solid var(--linha);margin-bottom:16px}
+  .detalhe .cab .av{width:64px;height:64px;font-size:21px;margin:0 auto 10px}
+  .detalhe .cab .nm{font-weight:700;font-size:17px}
+  .detalhe .cab .ng{color:var(--sec);font-size:13.5px}
+  .campo{margin-bottom:14px}
+  .campo>label,.campo>.rot{display:block;font-size:12.5px;font-weight:700;color:var(--sec);margin-bottom:5px}
+  .campo input,.campo select,.campo textarea{width:100%;padding:8px 10px;border:1px solid var(--linha2);border-radius:9px;background:var(--branco);outline:0}
+  .campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--ceu)}
+  .seg{display:flex;background:var(--papel);border-radius:9px;padding:3px}
+  .seg button{flex:1;padding:6px;border-radius:7px;font-weight:600;font-size:13.5px;color:var(--sec)}
+  .seg button[aria-pressed="true"].lead{background:#E6EEFF;color:#1D4FC4}
+  .seg button[aria-pressed="true"].cliente{background:#E2F5EA;color:#167443}
+  .dado{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:5px 0}
+  .dado span:first-child{color:var(--sec)}
+
+  /* ===== Funil ===== */
+  .funil{display:flex;gap:14px;padding:18px 22px;height:100%;overflow-x:auto;align-items:flex-start}
+  .coluna{flex:0 0 268px;background:#EDF0F5;border-radius:var(--raio);display:flex;flex-direction:column;max-height:100%}
+  .coluna .ch{padding:13px 14px 8px}
+  .coluna .ch .t{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+  .coluna .ch .t small{font-size:12px;font-weight:700;color:var(--sec);background:var(--branco);border-radius:8px;padding:1px 7px}
+  .coluna .ch .v{font-size:12.5px;color:var(--sec)}
+  .coluna .barra{height:3px;border-radius:2px;margin-top:8px}
+  .cards{padding:6px 10px 12px;display:flex;flex-direction:column;gap:9px;overflow:auto;min-height:80px}
+  .coluna.alvo{outline:2px dashed var(--ceu);outline-offset:-4px}
+  .card{background:var(--branco);border-radius:11px;padding:11px 12px;box-shadow:0 1px 2px rgba(16,26,44,.08);cursor:grab;text-align:left;width:100%;border:1px solid transparent}
+  .card:hover{border-color:var(--linha2)}
+  .card.arrastando{opacity:.45}
+  .card .nm{font-weight:700;font-size:14px}
+  .card .ng{font-size:12.5px;color:var(--sec);margin-bottom:8px}
+  .card .rod{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .card .val{margin-left:auto;font-weight:700;font-size:13px}
+
+  /* ===== Agenda ===== */
+  .agenda{display:grid;grid-template-columns:1fr 360px;gap:18px;padding:18px 22px}
+  .painel{background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);padding:16px 18px}
+  .painel h2{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:1.15rem;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .semana{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .dia-col{border:1px solid var(--linha);border-radius:11px;padding:9px;min-height:250px;background:var(--papel)}
+  .dia-col.hoje{border-color:var(--ceu);background:#F3F7FF}
+  .dia-col .d{font-size:12px;color:var(--sec);font-weight:600;text-transform:capitalize}
+  .dia-col .n{font-family:var(--display);font-weight:800;font-size:1.35rem;margin-bottom:6px}
+  .ev{display:block;width:100%;text-align:left;background:var(--branco);border-left:3px solid var(--ceu);border-radius:7px;padding:6px 7px;margin-bottom:6px;font-size:12.5px;box-shadow:0 1px 1px rgba(16,26,44,.06)}
+  .ev b{display:block;font-size:12px}
+  .ev.visita{border-left-color:var(--ambar)}
+  .ev.ligacao{border-left-color:var(--verde)}
+  .fu{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--linha)}
+  .fu:last-child{border-bottom:0}
+  .fu .mid{flex:1;min-width:0}
+  .fu .nm{font-weight:700;font-size:14px}
+  .fu .ac{font-size:13px;color:var(--sec)}
+  .fu .bts{display:flex;gap:6px;margin-top:7px}
+  .grupo-t{font-size:12px;font-weight:800;color:var(--sec);margin:12px 0 2px}
+
+  /* ===== Dashboard ===== */
+  .dash{padding:18px 22px;display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+  .kpi{grid-column:span 3;background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);padding:15px 17px}
+  .kpi .r{font-size:13px;color:var(--sec);font-weight:600}
+  .kpi .n{font-family:var(--display);font-weight:800;font-stretch:85%;font-size:2.1rem;line-height:1.1;margin:4px 0 2px}
+  .kpi .s{font-size:12.5px;color:var(--sec)}
+  .kpi .s.up{color:var(--verde);font-weight:600}
+  .kpi.flash .n{animation:flash 1.2s}
+  @keyframes flash{0%{color:var(--ceu)}100%{color:var(--ink)}}
+  .g6{grid-column:span 6}.g4{grid-column:span 4}.g8{grid-column:span 8}.g12{grid-column:span 12}
+  .graf svg{width:100%;height:auto;display:block}
+  .graf .leg{font-size:12.5px;color:var(--sec);margin-top:6px}
+  .ultimas li{list-style:none;display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linha);font-size:13.5px}
+  .ultimas li:last-child{border-bottom:0}
+  .ultimas .q{color:var(--sec);margin-left:auto;font-size:12px;white-space:nowrap}
+
+  /* ===== Produtos ===== */
+  .prod{padding:18px 22px}
+  table{width:100%;border-collapse:collapse;background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);overflow:hidden}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--linha);font-size:14px;vertical-align:top}
+  th{font-size:12.5px;color:var(--sec);font-weight:700;background:#FAFBFC}
+  tr:last-child td{border-bottom:0}
+  td .ds{font-size:12.5px;color:var(--sec);margin-top:2px}
+  td.num{white-space:nowrap;font-variant-numeric:tabular-nums}
+  .tb-cab{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .tb-cab h2{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:1.15rem}
+  .chave{position:relative;width:38px;height:22px;border-radius:11px;background:var(--linha2);flex:none;transition:background .15s}
+  .chave::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}
+  .chave[aria-checked="true"]{background:var(--verde)}
+  .chave[aria-checked="true"]::after{transform:translateX(16px)}
+  .destaque td:first-child{box-shadow:inset 3px 0 var(--ambar)}
+
+  /* ===== Assistente ===== */
+  .assist{display:grid;grid-template-columns:1fr 400px;gap:18px;padding:18px 22px}
+  .teste{display:flex;flex-direction:column;height:520px;padding:0;overflow:hidden}
+  .teste h2{padding:16px 18px 0}
+  .teste .fio{background:var(--papel);padding:14px}
+  .teste .compor{padding:10px}
+  .linha-ch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--linha)}
+  .linha-ch:last-child{border-bottom:0}
+  .linha-ch .t{font-weight:600}
+  .linha-ch .d{font-size:12.5px;color:var(--sec)}
+
+  /* ===== Canais ===== */
+  .canais{padding:18px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .canal-card{background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+  .canal-card .tt{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15.5px}
+  .canal-card .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px}
+  .canal-card .st{font-size:13px;font-weight:600}
+  .canal-card .st.ok{color:var(--verde)}
+  .canal-card .st.br{color:var(--muted)}
+  .canal-card .ds{font-size:13px;color:var(--sec);flex:1}
+
+  /* modal e aviso */
+  dialog{border:0;border-radius:16px;padding:0;width:min(460px,calc(100vw - 28px));box-shadow:0 20px 60px rgba(16,26,44,.3)}
+  dialog::backdrop{background:rgba(16,26,44,.45)}
+  dialog form{padding:20px 22px}
+  dialog h3{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:1.25rem;margin-bottom:14px}
+  dialog .bts{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+  .duas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .aviso{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+  .aviso div{background:var(--ink);color:#fff;padding:11px 15px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(16,26,44,.3);animation:sobe .25s ease-out;max-width:340px}
+  .aviso div b{color:var(--ambar)}
+  @keyframes sobe{from{transform:translateY(10px);opacity:0}}
+
+  @media (max-width:1180px){
+    .inbox{grid-template-columns:320px 1fr}
+    .detalhe{display:none;position:fixed;inset:0 0 0 auto;width:min(340px,92vw);z-index:60;box-shadow:-10px 0 40px rgba(16,26,44,.25)}
+    .inbox.mostra-det .detalhe{display:block}
+    .det-btn{display:inline-flex}
+    .det-fecha{display:inline-flex!important}
+    .agenda,.assist{grid-template-columns:1fr}
+    .kpi{grid-column:span 6}.g6,.g4,.g8{grid-column:span 12}
+  }
+  .det-fecha{display:none!important}
+  @media (max-width:760px){
+    body{font-size:14.5px}
+    .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
+    .trilho{order:2;flex-direction:row;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom));gap:0;overflow-x:auto}
+    .trilho .marca,.dica{display:none}
+    .trilho .fim{margin-top:0}
+    .trilho button{width:44px;height:42px;flex:none}
+    .topo{padding:10px 14px;flex-wrap:wrap;gap:6px 10px}
+    .topo .sub,.demo{display:none}
+    .inbox{grid-template-columns:1fr}
+    .inbox .conversa{display:none}
+    .inbox.mostra-conv .lista{display:none}
+    .inbox.mostra-conv .conversa{display:flex}
+    .voltar{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px}
+    .voltar svg{width:20px;height:20px}
+    .conv-topo{padding:10px 12px;gap:9px}
+    .conv-topo .acoes .txt{display:none}
+    .fio{padding:14px 12px}
+    .msg{max-width:88%}
+    .funil{padding:14px}
+    .coluna{flex-basis:250px}
+    .agenda,.assist,.prod,.dash,.canais{padding:14px}
+    .semana{grid-template-columns:1fr}
+    .dia-col{min-height:0}
+    .kpi{grid-column:span 6;padding:12px 13px}
+    .kpi .n{font-size:1.6rem}
+    .tb-prod th:nth-child(2),.tb-prod td:nth-child(2){display:none}
+    th,td{padding:10px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <nav class="trilho" aria-label="Menu principal">
+    <svg class="marca" viewBox="0 0 96 96" role="img" aria-label="Aberto Digital"><rect width="96" height="96" rx="24" fill="#1E3050" stroke="rgba(255,255,255,.12)"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>
+    <div id="nav" style="display:contents"></div>
+  </nav>
+  <main class="principal">
+    <div class="topo">
+      <div><h1 id="titulo">Mensagens</h1><div class="sub" id="subtitulo"></div></div>
+      <div class="dir">
+        <span class="demo">Demonstração com dados de exemplo</span>
+        <button class="aovivo" id="aovivo" aria-pressed="true" title="Simula mensagens chegando em tempo real"><i></i><span>Ao vivo</span></button>
+      </div>
+    </div>
+    <div class="vista" id="vista"></div>
+  </main>
+</div>
+<dialog id="modal"></dialog>
+<div class="aviso" id="aviso" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- utilidades ---------- */
+  var IC = {
+    msg:'<path d="M4 5h16v11H9l-5 4z"/>',
+    funil:'<path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/>',
+    agenda:'<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/>',
+    dash:'<path d="M5 20v-8M12 20V5M19 20v-5M3 20h18"/>',
+    prod:'<path d="M3 7.5 12 3l9 4.5-9 4.5zM3 7.5v9L12 21l9-4.5v-9M12 12v9"/>',
+    ia:'<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM18.5 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
+    canais:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    enviar:'<path d="M4 12 20 4l-6 16-3-6.5z"/>',
+    busca:'<path d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14zM20 20l-4-4"/>',
+    mais:'<path d="M12 5v14M5 12h14"/>',
+    voltar:'<path d="M15 5l-7 7 7 7"/>',
+    info:'<path d="M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 11v6M12 7.5v.5"/>',
+    ok:'<path d="M5 12.5 10 17l9-10"/>',
+    x:'<path d="M6 6l12 12M18 6 6 18"/>'
+  };
+  function ic(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function $(s, r){ return (r || document).querySelector(s); }
+  function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function brl(v){ return v == null ? 'Sob consulta' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0}); }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function iso(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function addDias(n){ var d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + n); return iso(d); }
+  var HOJE = addDias(0);
+  function diffDias(s){ var a = new Date(s + 'T12:00:00'), b = new Date(HOJE + 'T12:00:00'); return Math.round((a - b) / 864e5); }
+  function dataCurta(s){ var d = new Date(s + 'T12:00:00'); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
+  function agoraMs(){ return Date.now(); }
+  function quando(ts){
+    var d = new Date(ts), h = new Date();
+    if (d.toDateString() === h.toDateString()) return pad(d.getHours()) + ':' + pad(d.getMinutes());
+    var o = new Date(); o.setDate(o.getDate() - 1);
+    if (d.toDateString() === o.toDateString()) return 'ontem';
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1);
+  }
+  function hm(ts){ var d = new Date(ts); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function rotDia(ts){
+    var d = new Date(ts), h = new Date();
+    if (d.toDateString() === h.toDateString()) return 'Hoje';
+    var o = new Date(); o.setDate(o.getDate() - 1);
+    if (d.toDateString() === o.toDateString()) return 'Ontem';
+    return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'long'});
+  }
+
+  var CANAIS = {
+    WhatsApp:{cor:'var(--wa)', l:'W'}, Instagram:{cor:'var(--ig)', l:'I'},
+    Facebook:{cor:'var(--fb)', l:'F'}, 'E-mail':{cor:'var(--em)', l:'@'}
+  };
+  var ETAPAS = ['Novo contato','Qualificado','Proposta enviada','Negociação','Fechado','Perdido'];
+  var COR_ETAPA = ['#AEB6C6','#2F6FED','#FFB020','#FFA586','#1F9D55','#D64545'];
+  var CORES_AV = ['#2F6FED','#1E3050','#C77700','#1F9D55','#B0417A','#5B6678','#D9603B','#3B7A8C'];
+  function corAv(nome){ var h = 0; for (var i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) % 997; return CORES_AV[h % CORES_AV.length]; }
+  function iniciais(nome){ var p = nome.trim().split(/\s+/); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
+  function avatar(c, semSelo){
+    var k = CANAIS[c.canal];
+    return '<span class="av" style="background:' + corAv(c.nome) + '">' + esc(iniciais(c.nome)) +
+      (semSelo ? '' : '<span class="sel" style="background:' + k.cor + '" title="' + c.canal + '">' + k.l + '</span>') + '</span>';
+  }
+  function chipCanal(c){ return '<span class="canal"><b style="background:' + CANAIS[c].cor + '"></b>' + c + '</span>'; }
+  function chipTipo(t){ return '<span class="chip ' + (t === 'Cliente' ? 'cliente' : 'lead') + '">' + t + '</span>'; }
+  function chipFollow(c){
+    if (!c.followup) return '';
+    var d = diffDias(c.followup);
+    if (d < 0) return '<span class="chip atraso">Retorno atrasado</span>';
+    if (d === 0) return '<span class="chip hoje">Retorno hoje</span>';
+    return '<span class="chip etapa">Retorno ' + dataCurta(c.followup) + '</span>';
+  }
+
+  /* ---------- dados de exemplo ---------- */
+  function min(n){ return agoraMs() - n * 60000; }
+  function semente(){
+    var C = [
+      {nome:'Rogério Lima', negocio:'Auto Center Lima', canal:'WhatsApp', tipo:'Lead', etapa:'Qualificado', valor:1500, followup:addDias(0), status:'entrada', tel:'(11) 9 8xxx-1021', origem:'Site', nota:'Oficina com muita pergunta de preço no WhatsApp. Interesse no Completo.', msgs:[
+        ['cli','Oi! Vi o site de vocês. Quanto custa pra aparecer no Google?',95],
+        ['ia','Oi, Rogério! O pacote Start sai por R$ 650 + R$ 49/mês e inclui perfil no Google otimizado, site de 1 página e domínio no 1º ano. Quer que eu marque uma conversa rápida para entender sua oficina?',94],
+        ['cli','Quero sim. Tenho muita gente perguntando preço de troca de óleo no WhatsApp',12],
+        ['cli','Dá pra automatizar isso?',11]], naoLidas:2},
+      {nome:'Camila Duarte', negocio:'Bella Estética', canal:'Instagram', tipo:'Lead', etapa:'Novo contato', valor:3000, followup:addDias(1), status:'entrada', tel:'(11) 9 7xxx-4410', origem:'Instagram', nota:'Clínica com 3 profissionais. Perfil ideal para o Enterprise.', msgs:[
+        ['cli','Olá! Vocês fazem sistema de agendamento com WhatsApp pra clínica? Hoje anoto tudo no caderno 😅',38]], naoLidas:1},
+      {nome:'Luciana Ferreira', negocio:'Ótica Visão Clara', canal:'WhatsApp', tipo:'Cliente', etapa:'Fechado', valor:1500, followup:null, status:'entrada', tel:'(11) 9 9xxx-3377', origem:'Indicação', nota:'Cliente do Completo desde setembro.', msgs:[
+        ['eq','Luciana, o relatório de outubro já está no seu e-mail. As rotas pelo Google subiram 34%.',60*26],
+        ['cli','Bom dia! Como faço pra colocar o horário de feriado no Google?',7]], naoLidas:1},
+      {nome:'Ricardo Alves', negocio:'Restaurante Sabor Caseiro', canal:'E-mail', tipo:'Lead', etapa:'Novo contato', valor:650, followup:addDias(2), status:'entrada', tel:'(11) 9 6xxx-8890', origem:'Google', nota:'', msgs:[
+        ['cli','Assunto: Orçamento site e Google\n\nBoa tarde. Tenho um restaurante em Arujá e gostaria de um orçamento para site e cardápio digital com QR Code.',140]], naoLidas:1},
+      {nome:'Juliana Rocha', negocio:'Patinhas Pet Shop', canal:'Facebook', tipo:'Lead', etapa:'Proposta enviada', valor:1500, followup:addDias(-1), status:'esperando', tel:'(11) 9 5xxx-2214', origem:'Facebook', nota:'Quer lembrete automático de banho e tosa.', msgs:[
+        ['cli','Quero entender como funciona o lembrete de banho e tosa',60*30],
+        ['eq','Oi, Juliana! Mandei a proposta do pacote Completo com o lembrete automático. Qualquer dúvida é só chamar.',60*29],
+        ['cli','Vou ver com meu sócio e te falo',60*28]], naoLidas:0},
+      {nome:'Ana Souza', negocio:'Studio Ana Cabeleireiros', canal:'WhatsApp', tipo:'Lead', etapa:'Negociação', valor:850, followup:addDias(2), status:'esperando', tel:'(11) 9 4xxx-5560', origem:'Site', nota:'Pediu parcelar a implantação em 2x.', msgs:[
+        ['cli','Consigo parcelar a implantação?',60*20],
+        ['eq','Consegue sim, em 2x sem juros. Te mando o contrato assim?',60*19]], naoLidas:0},
+      {nome:'Paulo Santos', negocio:'Contabilidade Santos', canal:'E-mail', tipo:'Lead', etapa:'Qualificado', valor:1500, followup:addDias(4), status:'entrada', tel:'(11) 9 3xxx-7781', origem:'Indicação', nota:'', msgs:[
+        ['cli','Assunto: Atendimento de clientes\n\nRecebemos muitas dúvidas repetidas sobre DAS e MEI. Um assistente de IA ajudaria?',60*5],
+        ['ia','Olá, Paulo! Ajudaria sim: o assistente responde dúvidas frequentes 24 horas e passa para a sua equipe só o que precisa de um contador. Posso agendar uma demonstração de 15 minutos?',60*5-1]], naoLidas:0},
+      {nome:'Thiago Martins', negocio:'Arujá Fitness', canal:'Facebook', tipo:'Lead', etapa:'Proposta enviada', valor:3000, followup:addDias(3), status:'esperando', tel:'(11) 9 2xxx-9902', origem:'Facebook', nota:'Academia com 400 alunos. Proposta Enterprise.', msgs:[
+        ['eq','Thiago, segue a proposta do Enterprise com CRM, WhatsApp e agenda de aulas experimentais.',60*45]], naoLidas:0},
+      {nome:'Marcos Pereira', negocio:'Padaria Pão Dourado', canal:'WhatsApp', tipo:'Cliente', etapa:'Fechado', valor:850, followup:null, status:'finalizado', tel:'(11) 9 1xxx-4455', origem:'Visita', nota:'Cardápio com QR Code no ar.', msgs:[
+        ['cli','O cardápio novo ficou ótimo, os clientes estão usando o QR Code!',60*50],
+        ['eq','Que bom, Marcos! Qualquer ajuste é só falar.',60*49]], naoLidas:0},
+      {nome:'Fernanda Lopes', negocio:'Maria Modas', canal:'Instagram', tipo:'Cliente', etapa:'Fechado', valor:650, followup:null, status:'finalizado', tel:'(11) 9 8xxx-6643', origem:'Instagram', nota:'', msgs:[
+        ['cli','Obrigada pelo site!! 💛',60*70]], naoLidas:0},
+      {nome:'Beatriz Costa', negocio:'Doce Arte Confeitaria', canal:'WhatsApp', tipo:'Lead', etapa:'Perdido', valor:650, followup:null, status:'finalizado', tel:'(11) 9 7xxx-1188', origem:'Site', nota:'Sem orçamento agora. Retomar em março.', msgs:[
+        ['cli','Por enquanto não vou conseguir, obrigada',60*96]], naoLidas:0}
+    ];
+    C.forEach(function(c, i){ c.id = i + 1; c.msgs = c.msgs.map(function(m){ return {de:m[0], txt:m[1], ts:min(m[2])}; }); });
+    var E = [
+      {id:1, contato:1, titulo:'Diagnóstico da oficina', data:addDias(0), hora:'15:00', tipo:'Visita'},
+      {id:2, contato:2, titulo:'Demonstração do Enterprise', data:addDias(1), hora:'10:00', tipo:'Reunião'},
+      {id:3, contato:6, titulo:'Assinatura do contrato', data:addDias(2), hora:'14:30', tipo:'Reunião'},
+      {id:4, contato:7, titulo:'Demonstração do assistente de IA', data:addDias(4), hora:'09:30', tipo:'Ligação'},
+      {id:5, contato:3, titulo:'Revisão mensal de resultados', data:addDias(5), hora:'11:00', tipo:'Ligação'},
+      {id:6, contato:8, titulo:'Retorno sobre proposta', data:addDias(3), hora:'17:00', tipo:'Ligação'}
+    ];
+    var P = [
+      {id:1, nome:'Start', tipo:'Pacote', setup:650, mensal:49, ds:'Perfil no Google otimizado, site de 1 página, domínio no 1º ano', ativo:true},
+      {id:2, nome:'Presença', tipo:'Pacote', setup:850, mensal:49, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business com catálogo', ativo:true},
+      {id:3, nome:'Completo', tipo:'Pacote', setup:1500, mensal:150, ds:'Tudo do Presença, chatbot de IA no WhatsApp, 1 mês de acompanhamento', ativo:true},
+      {id:4, nome:'Enterprise', tipo:'Pacote', setup:null, mensal:null, ds:'Sistema integrado: assistente de IA, WhatsApp, Instagram, Facebook e e-mail numa caixa só, funil, agenda, follow-up e relatórios', ativo:true, destaque:true},
+      {id:5, nome:'Agendamento online', tipo:'Módulo', setup:null, mensal:null, ds:'Link de agenda com lembrete automático', ativo:true},
+      {id:6, nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:null, mensal:null, ds:'A IA sugere, o cliente aprova', ativo:true},
+      {id:7, nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:null, mensal:null, ds:'Para restaurantes, padarias e lojas', ativo:true},
+      {id:8, nome:'Pós-venda que pede avaliação', tipo:'Módulo', setup:null, mensal:null, ds:'Mensagem com link direto para o Google', ativo:true},
+      {id:9, nome:'Calendário mensal de conteúdo', tipo:'Módulo', setup:null, mensal:null, ds:'Posts, legendas e roteiros de Reels', ativo:true},
+      {id:10, nome:'Auditoria gratuita', tipo:'Serviço', setup:0, mensal:0, ds:'PDF de 1 página com o que falta no Google, site e WhatsApp', ativo:true}
+    ];
+    var IA = {
+      ativo:true, nome:'Assistente da Aberto Digital', tom:'Próximo e direto',
+      horario:'Responde 24 horas. Passa para o Julio de segunda a sexta, das 9h às 18h.',
+      base:'Pacotes: Start R$ 650 + R$ 49/mês; Presença R$ 850 + R$ 49/mês; Completo R$ 1.500 + R$ 150/mês; Enterprise sob consulta.\nAtendimento presencial em Arujá e região, e remoto.\nAuditoria gratuita: PDF de 1 página com o que falta no Google, site e WhatsApp.\nPassar para humano: preço personalizado, reclamação, pedido de contrato.',
+      humano:true, agendar:true
+    };
+    return {contatos:C, eventos:E, produtos:P, ia:IA, msgsCanal:{WhatsApp:312, Instagram:128, Facebook:64, 'E-mail':41}, prox:{c:C.length + 1, e:E.length + 1, p:P.length + 1}};
+  }
+
+  var CHAVE = 'aberto-crm-demo-v1';
+  var S;
+  try { S = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { S = null; }
+  if (!S || !S.contatos) S = semente();
+  function salva(){ try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} }
+  function contato(id){ for (var i = 0; i < S.contatos.length; i++) if (S.contatos[i].id === id) return S.contatos[i]; return null; }
+  function ultima(c){ return c.msgs[c.msgs.length - 1]; }
+
+  /* ---------- assistente (respostas por palavra-chave) ---------- */
+  function respostaIA(texto, nome){
+    var t = (texto || '').toLowerCase(), n = nome ? nome.split(' ')[0] : '';
+    var oi = n ? n + ', ' : '';
+    if (/pre[cç]o|valor|quanto|custa|or[cç]amento/.test(t)) return 'Claro, ' + (n || 'vamos lá') + '! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 850 + R$ 49/mês e Completo por R$ 1.500 + R$ 150/mês. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.';
+    if (/agend|marcar|hor[aá]rio|reuni|demonstra/.test(t)) return 'Posso marcar uma conversa de 15 minutos. Tenho amanhã às 10h ou às 15h. Qual fica melhor para você?';
+    if (/automat|chatbot|\bia\b|rob[oô]|responder sozinho|whats/.test(t)) return oi + 'dá sim! O assistente de IA responde preço, horário e endereço na hora, pré-agenda e só chama você quando precisa. Ele vem no pacote Completo e no Enterprise.';
+    if (/crm|sistema|funil|enterprise|equipe|v[aá]rios atendentes/.test(t)) return 'No Enterprise, WhatsApp, Instagram, Facebook e e-mail chegam numa caixa só, cada contato vira um card no funil, e a agenda e o follow-up ficam no mesmo lugar. Quer ver uma demonstração?';
+    if (/google|maps|aparecer/.test(t)) return 'Para aparecer no Google, otimizamos seu perfil com fotos, horário, serviços e respostas às avaliações. Isso já vem no Start, a partir de R$ 650.';
+    if (/site/.test(t)) return 'Fazemos site de 1 página, rápido no celular e com botão de WhatsApp. Ele vem a partir do pacote Start.';
+    if (/feriado|hor[aá]rio de funcionamento/.test(t)) return oi + 'eu mesmo atualizo o horário de feriado no seu perfil do Google. É só me dizer o dia e o horário que vão funcionar.';
+    if (/onde|endere[cç]o|aruj[aá]|atende/.test(t)) return 'Atendemos presencialmente em Arujá e região, e remoto para qualquer cidade.';
+    if (/auditoria/.test(t)) return 'A auditoria é gratuita: olhamos seu Google, site e WhatsApp e mandamos um PDF de 1 página com o que está deixando clientes escaparem.';
+    if (/obrigad|valeu/.test(t)) return 'Eu que agradeço! Qualquer coisa, é só chamar por aqui.';
+    if (/parcel|contrato|desconto|reclama/.test(t)) return 'Vou passar para o Julio, que cuida disso pessoalmente. Ele responde em poucos minutos.';
+    return 'Entendi! Vou passar para o Julio, que responde em poucos minutos. Enquanto isso, quer receber a auditoria gratuita do seu negócio?';
+  }
+
+  /* ---------- navegação ---------- */
+  var VISTAS = [
+    {id:'mensagens', nome:'Mensagens', ic:'msg', sub:'WhatsApp, Instagram, Facebook e e-mail numa caixa só'},
+    {id:'funil', nome:'Funil', ic:'funil', sub:'Cada contato é um card. Arraste entre as etapas.'},
+    {id:'agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
+    {id:'dashboard', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
+    {id:'produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
+    {id:'assistente', nome:'Assistente de IA', ic:'ia', sub:'Como a IA responde os seus clientes'},
+    {id:'canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true}
+  ];
+  var atual = (location.hash || '#mensagens').slice(1);
+  if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
+  var sel = null, aba = 'entrada', filtroCanal = 'Todos', busca = '';
+
+  function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.naoLidas || 0); }, 0); }
+  function desenhaNav(){
+    $('#nav').innerHTML = VISTAS.map(function(v){
+      var b = v.id === 'mensagens' && naoLidasTotal() ? '<span class="bolha">' + naoLidasTotal() + '</span>' : '';
+      return '<button data-v="' + v.id + '"' + (v.fim ? ' class="fim"' : '') + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="dica">' + v.nome + '</span></button>';
+    }).join('');
+  }
+  $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
+  function vai(id){ atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
+  function desenha(){
+    var v = VISTAS.filter(function(x){ return x.id === atual; })[0];
+    $('#titulo').textContent = v.nome; $('#subtitulo').textContent = v.sub;
+    document.title = v.nome + ' | Aberto Digital';
+    desenhaNav();
+    ({mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAssistente, canais:vCanais})[atual]();
+  }
+
+  /* ---------- avisos ---------- */
+  function aviso(html){
+    var d = document.createElement('div'); d.innerHTML = html; $('#aviso').appendChild(d);
+    setTimeout(function(){ d.remove(); }, 4200);
+  }
+
+  /* ========== MENSAGENS ========== */
+  function vMensagens(){
+    var V = $('#vista');
+    V.innerHTML = '<div class="inbox" id="inbox">' +
+      '<section class="lista" aria-label="Conversas">' +
+        '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
+        '<div class="abas" role="tablist" id="abas"></div>' +
+        '<div class="filtros" id="filtros"></div>' +
+        '<div class="itens" id="itens"></div>' +
+      '</section>' +
+      '<section class="conversa" id="conversa" aria-label="Conversa"></section>' +
+      '<aside class="detalhe" id="detalhe" aria-label="Dados do contato"></aside>' +
+    '</div>';
+    $('#busca').addEventListener('input', function(e){ busca = e.target.value; desenhaLista(); });
+    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaLista(); } });
+    $('#filtros').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ filtroCanal = b.getAttribute('data-c'); desenhaLista(); } });
+    $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) abre(+b.getAttribute('data-id')); });
+    if (!sel || !contato(sel)) { var p = filtrados()[0]; sel = p ? p.id : S.contatos[0].id; }
+    desenhaLista(); desenhaConversa(); desenhaDetalhe();
+  }
+  function filtrados(){
+    var q = busca.trim().toLowerCase();
+    return S.contatos.filter(function(c){
+      return c.status === aba && (filtroCanal === 'Todos' || c.canal === filtroCanal) &&
+        (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel).toLowerCase().indexOf(q) >= 0);
+    }).sort(function(a, b){ return ultima(b).ts - ultima(a).ts; });
+  }
+  function desenhaLista(){
+    if (!$('#itens')) return;
+    var cont = {entrada:0, esperando:0, finalizado:0};
+    S.contatos.forEach(function(c){ cont[c.status]++; });
+    $('#abas').innerHTML = [['entrada','Entrada'],['esperando','Esperando'],['finalizado','Finalizados']].map(function(a){
+      return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + '</button>';
+    }).join('');
+    $('#filtros').innerHTML = ['Todos','WhatsApp','Instagram','Facebook','E-mail'].map(function(c){
+      return '<button data-c="' + c + '" aria-pressed="' + (filtroCanal === c) + '">' + c + '</button>';
+    }).join('');
+    var L = filtrados();
+    $('#itens').innerHTML = L.length ? L.map(function(c){
+      var u = ultima(c), novo = c.naoLidas > 0;
+      var pre = u.de === 'ia' ? 'IA: ' : u.de === 'eq' ? 'Você: ' : '';
+      var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
+      return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
+        '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
+        '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
+        '<span class="l3">' + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
+    }).join('') : '<div class="vazio">Nenhuma conversa aqui.</div>';
+  }
+  function abre(id){
+    sel = id; var c = contato(id);
+    if (c.naoLidas){ c.naoLidas = 0; salva(); desenhaNav(); }
+    if (c.status !== aba) aba = c.status;
+    desenhaLista(); desenhaConversa(); desenhaDetalhe();
+    var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
+  }
+  function desenhaConversa(){
+    var c = contato(sel), box = $('#conversa'); if (!box || !c) return;
+    var html = '', dAnt = '';
+    c.msgs.forEach(function(m){
+      var d = rotDia(m.ts); if (d !== dAnt){ html += '<div class="dia">' + d + '</div>'; dAnt = d; }
+      var cls = m.de === 'cli' ? 'cli' : m.de === 'ia' ? 'ia' : 'eq';
+      var corpo = esc(m.txt).replace(/^Assunto: (.*)\n+/, '<span class="assunto">$1</span>');
+      html += '<div class="msg ' + cls + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + '</span></div>';
+    });
+    box.innerHTML = '<div class="conv-topo">' +
+        '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button>' + avatar(c) +
+        '<div><div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + ' · ' + chipCanal(c.canal) + '</div></div>' +
+        '<div class="acoes">' +
+          '<button class="btn peq det-btn" id="verDet">' + ic('info') + '<span class="txt">Detalhes</span></button>' +
+          (c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('ok') + '<span class="txt">Finalizar</span></button>' : '<button class="btn peq" id="reabre"><span>Reabrir</span></button>') +
+        '</div></div>' +
+      '<div class="fio" id="fio">' + html + '</div>' +
+      '<div class="compor"><div class="ferr"><button class="btn ia peq" id="sugere">' + ic('ia') + 'Sugerir resposta com IA</button><span class="info">' + (S.ia.ativo && c.canal !== 'E-mail' ? 'Assistente ativo nesta conversa' : c.canal === 'E-mail' ? 'Resposta vai por e-mail' : 'Assistente pausado') + '</span></div>' +
+        '<form class="linha" id="fEnvia"><textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
+    var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
+    $('#voltar').onclick = function(){ $('#inbox').classList.remove('mostra-conv'); };
+    $('#verDet').onclick = function(){ $('#inbox').classList.add('mostra-det'); };
+    var f = $('#finaliza'); if (f) f.onclick = function(){ c.status = 'finalizado'; salva(); aviso('Conversa com <b>' + esc(c.nome) + '</b> finalizada.'); aba = 'finalizado'; desenhaLista(); desenhaConversa(); };
+    var r = $('#reabre'); if (r) r.onclick = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); };
+    var ta = $('#texto');
+    ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
+    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#fEnvia').requestSubmit(); } });
+    $('#sugere').onclick = function(){
+      var ult = c.msgs.filter(function(m){ return m.de === 'cli'; }).pop();
+      ta.value = respostaIA(ult ? ult.txt : '', c.nome); ta.dispatchEvent(new Event('input')); ta.focus();
+    };
+    $('#fEnvia').addEventListener('submit', function(e){
+      e.preventDefault(); var t = ta.value.trim(); if (!t) return;
+      c.msgs.push({de:'eq', txt:t, ts:agoraMs()}); c.status = 'esperando';
+      S.msgsCanal[c.canal]++; salva(); aba = 'esperando';
+      desenhaLista(); desenhaConversa();
+    });
+  }
+  function desenhaDetalhe(){
+    var c = contato(sel), box = $('#detalhe'); if (!box || !c) return;
+    var evs = S.eventos.filter(function(e){ return e.contato === c.id && diffDias(e.data) >= 0; });
+    box.innerHTML = '<button class="btn peq det-fecha" id="fechaDet" style="float:right">' + ic('x') + '</button>' +
+      '<div class="cab">' + avatar(c, true) + '<div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + '</div></div>' +
+      '<div class="campo"><span class="rot">Classificação</span><div class="seg" id="segTipo">' +
+        '<button class="lead" data-t="Lead" aria-pressed="' + (c.tipo === 'Lead') + '">Lead</button>' +
+        '<button class="cliente" data-t="Cliente" aria-pressed="' + (c.tipo === 'Cliente') + '">Cliente</button></div></div>' +
+      '<div class="campo"><label for="dEtapa">Etapa do funil</label><select id="dEtapa">' + ETAPAS.map(function(e){ return '<option' + (e === c.etapa ? ' selected' : '') + '>' + e + '</option>'; }).join('') + '</select></div>' +
+      '<div class="duas"><div class="campo"><label for="dValor">Valor (R$)</label><input id="dValor" type="number" min="0" step="50" value="' + c.valor + '"></div>' +
+      '<div class="campo"><label for="dFollow">Próximo retorno</label><input id="dFollow" type="date" value="' + (c.followup || '') + '"></div></div>' +
+      '<div class="campo"><label for="dNota">Anotações</label><textarea id="dNota" rows="3">' + esc(c.nota) + '</textarea></div>' +
+      '<button class="btn pri" id="dAgendar" style="width:100%;justify-content:center;margin-bottom:16px">' + ic('agenda') + 'Agendar compromisso</button>' +
+      '<div class="dado"><span>Canal</span>' + chipCanal(c.canal) + '</div>' +
+      '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
+      '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' +
+      (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
+    $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
+    $('#segTipo').onclick = function(e){ var b = e.target.closest('button'); if (!b) return; c.tipo = b.getAttribute('data-t'); salva(); desenhaDetalhe(); desenhaLista(); aviso(esc(c.nome) + ' agora é <b>' + c.tipo + '</b>.'); };
+    $('#dEtapa').onchange = function(e){ mudaEtapa(c, e.target.value); desenhaDetalhe(); desenhaLista(); };
+    $('#dValor').onchange = function(e){ c.valor = +e.target.value || 0; salva(); };
+    $('#dFollow').onchange = function(e){ c.followup = e.target.value || null; salva(); desenhaLista(); };
+    $('#dNota').onchange = function(e){ c.nota = e.target.value; salva(); };
+    $('#dAgendar').onclick = function(){ modalEvento(c.id); };
+  }
+  function mudaEtapa(c, etapa){
+    c.etapa = etapa;
+    if (etapa === 'Fechado' && c.tipo !== 'Cliente'){ c.tipo = 'Cliente'; aviso('Venda fechada! <b>' + esc(c.nome) + '</b> virou cliente.'); }
+    salva();
+  }
+
+  /* ========== FUNIL ========== */
+  function vFunil(){
+    var V = $('#vista');
+    V.innerHTML = '<div class="funil" id="funil">' + ETAPAS.map(function(et, i){
+      var L = S.contatos.filter(function(c){ return c.etapa === et; });
+      var tot = L.reduce(function(a, c){ return a + (c.valor || 0); }, 0);
+      return '<section class="coluna" data-etapa="' + et + '" aria-label="' + et + '"><div class="ch"><div class="t">' + et + ' <small>' + L.length + '</small></div><div class="v">' + brl(tot) + '</div><div class="barra" style="background:' + COR_ETAPA[i] + '"></div></div>' +
+        '<div class="cards">' + L.map(function(c){
+          return '<button class="card" draggable="true" data-id="' + c.id + '"><div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + '</div>' +
+            '<div class="rod">' + chipCanal(c.canal) + chipFollow(c) + '<span class="val">' + brl(c.valor) + '</span></div></button>';
+        }).join('') + '</div></section>';
+    }).join('') + '</div>';
+    var arr = null;
+    $$('.card', V).forEach(function(k){
+      k.addEventListener('dragstart', function(e){ arr = +k.getAttribute('data-id'); k.classList.add('arrastando'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', arr); });
+      k.addEventListener('dragend', function(){ k.classList.remove('arrastando'); $$('.coluna', V).forEach(function(c){ c.classList.remove('alvo'); }); });
+      k.addEventListener('click', function(){ modalCard(+k.getAttribute('data-id')); });
+    });
+    $$('.coluna', V).forEach(function(col){
+      col.addEventListener('dragover', function(e){ e.preventDefault(); col.classList.add('alvo'); });
+      col.addEventListener('dragleave', function(e){ if (!col.contains(e.relatedTarget)) col.classList.remove('alvo'); });
+      col.addEventListener('drop', function(e){
+        e.preventDefault(); var c = contato(arr); if (!c) return;
+        var et = col.getAttribute('data-etapa'); if (c.etapa !== et){ mudaEtapa(c, et); if (et !== 'Fechado') aviso('<b>' + esc(c.nome) + '</b> foi para ' + et + '.'); }
+        vFunil();
+      });
+    });
+  }
+  function modalCard(id){
+    var c = contato(id), M = $('#modal');
+    M.innerHTML = '<form method="dialog"><h3>' + esc(c.nome) + '</h3><p style="color:var(--sec);margin:-8px 0 14px">' + esc(c.negocio) + ' · ' + c.canal + '</p>' +
+      '<div class="campo"><label for="mEt">Mover para</label><select id="mEt">' + ETAPAS.map(function(e){ return '<option' + (e === c.etapa ? ' selected' : '') + '>' + e + '</option>'; }).join('') + '</select></div>' +
+      '<div class="duas"><div class="campo"><label for="mVal">Valor (R$)</label><input id="mVal" type="number" min="0" step="50" value="' + c.valor + '"></div>' +
+      '<div class="campo"><label for="mFu">Próximo retorno</label><input id="mFu" type="date" value="' + (c.followup || '') + '"></div></div>' +
+      (c.nota ? '<p style="font-size:13.5px;color:var(--sec);margin-bottom:12px">' + esc(c.nota) + '</p>' : '') +
+      '<div class="bts"><button class="btn" value="conversa">Abrir conversa</button><button class="btn pri" value="salvar">Salvar</button></div></form>';
+    M.onclose = function(){
+      if (M.returnValue === 'salvar'){ c.valor = +$('#mVal').value || 0; c.followup = $('#mFu').value || null; mudaEtapa(c, $('#mEt').value); vFunil(); }
+      if (M.returnValue === 'conversa'){ vai('mensagens'); abre(c.id); }
+      M.onclose = null;
+    };
+    M.returnValue = ''; M.showModal();
+  }
+
+  /* ========== AGENDA ========== */
+  function vAgenda(){
+    var dias = [];
+    for (var i = 0; i < 7; i++) dias.push(addDias(i));
+    var semana = dias.map(function(d){
+      var dt = new Date(d + 'T12:00:00');
+      var evs = S.eventos.filter(function(e){ return e.data === d; }).sort(function(a, b){ return a.hora < b.hora ? -1 : 1; });
+      return '<div class="dia-col' + (d === HOJE ? ' hoje' : '') + '"><div class="d">' + (d === HOJE ? 'hoje' : dt.toLocaleDateString('pt-BR', {weekday:'short'}).replace('.', '')) + '</div><div class="n">' + dt.getDate() + '</div>' +
+        evs.map(function(e){ var c = contato(e.contato); return '<button class="ev ' + (e.tipo === 'Visita' ? 'visita' : e.tipo === 'Ligação' ? 'ligacao' : '') + '" data-c="' + e.contato + '"><b>' + e.hora + ' ' + e.tipo + '</b>' + esc(e.titulo) + (c ? '<br><span style="color:var(--sec)">' + esc(c.nome) + '</span>' : '') + '</button>'; }).join('') + '</div>';
+    }).join('');
+    var fus = S.contatos.filter(function(c){ return c.followup; }).sort(function(a, b){ return a.followup < b.followup ? -1 : 1; });
+    function bloco(tit, L){
+      if (!L.length) return '';
+      return '<div class="grupo-t">' + tit + '</div>' + L.map(function(c){
+        return '<div class="fu">' + avatar(c) + '<div class="mid"><div class="nm">' + esc(c.nome) + '</div><div class="ac">' + esc(c.negocio) + ', ' + c.etapa.toLowerCase() + ' (' + dataCurta(c.followup) + ')</div>' +
+          '<div class="bts"><button class="btn peq" data-abre="' + c.id + '">Abrir conversa</button><button class="btn peq" data-feito="' + c.id + '">' + ic('ok') + 'Feito</button></div></div></div>';
+      }).join('');
+    }
+    $('#vista').innerHTML = '<div class="agenda">' +
+      '<section class="painel"><h2>Próximos 7 dias <button class="btn pri peq" id="novoEv">' + ic('mais') + 'Novo compromisso</button></h2><div class="semana">' + semana + '</div></section>' +
+      '<section class="painel"><h2>Follow-up</h2>' +
+        (fus.length ? bloco('Atrasados', fus.filter(function(c){ return diffDias(c.followup) < 0; })) +
+          bloco('Hoje', fus.filter(function(c){ return diffDias(c.followup) === 0; })) +
+          bloco('Próximos dias', fus.filter(function(c){ return diffDias(c.followup) > 0; })) : '<div class="vazio">Nenhum retorno pendente.</div>') +
+      '</section></div>';
+    $('#novoEv').onclick = function(){ modalEvento(); };
+    $('#vista').onclick = function(e){
+      var a = e.target.closest('[data-abre]'), f = e.target.closest('[data-feito]'), ev = e.target.closest('.ev');
+      if (a){ vai('mensagens'); abre(+a.getAttribute('data-abre')); }
+      if (f){ var c = contato(+f.getAttribute('data-feito')); c.followup = null; salva(); aviso('Retorno de <b>' + esc(c.nome) + '</b> concluído.'); vAgenda(); }
+      if (ev){ vai('mensagens'); abre(+ev.getAttribute('data-c')); }
+    };
+  }
+  function modalEvento(cid){
+    var M = $('#modal');
+    M.innerHTML = '<form method="dialog" id="fEv"><h3>Novo compromisso</h3>' +
+      '<div class="campo"><label for="eC">Contato</label><select id="eC">' + S.contatos.map(function(c){ return '<option value="' + c.id + '"' + (c.id === cid ? ' selected' : '') + '>' + esc(c.nome) + ' (' + esc(c.negocio) + ')</option>'; }).join('') + '</select></div>' +
+      '<div class="campo"><label for="eT">O que é</label><input id="eT" required placeholder="Ex.: Demonstração do sistema"></div>' +
+      '<div class="duas"><div class="campo"><label for="eD">Data</label><input id="eD" type="date" required value="' + addDias(1) + '"></div>' +
+      '<div class="campo"><label for="eH">Hora</label><input id="eH" type="time" required value="10:00"></div></div>' +
+      '<div class="campo"><label for="eTp">Tipo</label><select id="eTp"><option>Reunião</option><option>Visita</option><option>Ligação</option></select></div>' +
+      '<label style="display:flex;gap:8px;font-size:13.5px;margin-bottom:12px"><input type="checkbox" id="eAv" checked> Enviar confirmação e lembrete automático ao cliente</label>' +
+      '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Agendar</button></div></form>';
+    M.onclose = function(){
+      if (M.returnValue === 'ok'){
+        var e = {id:S.prox.e++, contato:+$('#eC').value, titulo:$('#eT').value.trim() || 'Compromisso', data:$('#eD').value, hora:$('#eH').value, tipo:$('#eTp').value};
+        S.eventos.push(e); var c = contato(e.contato);
+        if ($('#eAv').checked){ c.msgs.push({de:'ia', txt:'Oi, ' + c.nome.split(' ')[0] + '! Confirmado: ' + e.titulo.toLowerCase() + ' em ' + dataCurta(e.data) + ' às ' + e.hora + '. Vou te lembrar um dia antes.', ts:agoraMs()}); S.msgsCanal[c.canal]++; }
+        salva(); aviso('Agendado com <b>' + esc(c.nome) + '</b> em ' + dataCurta(e.data) + ' às ' + e.hora + '.'); desenha();
+      }
+      M.onclose = null;
+    };
+    M.returnValue = ''; M.showModal();
+  }
+
+  /* ========== DASHBOARD ========== */
+  function serieLeads(){
+    var base = [3,5,2,6,4,7,5,3,8,6,4,9,7,5], d = [];
+    for (var i = 13; i >= 0; i--){ var dia = addDias(-i); var extra = S.contatos.filter(function(c){ return c.criado === dia; }).length; d.push({dia:dia, n:base[13 - i] + extra}); }
+    return d;
+  }
+  function vDash(){
+    var C = S.contatos;
+    var abertas = C.filter(function(c){ return c.status !== 'finalizado'; }).length;
+    var serie = serieLeads(), sem = serie.slice(7).reduce(function(a, x){ return a + x.n; }, 0), semAnt = serie.slice(0, 7).reduce(function(a, x){ return a + x.n; }, 0);
+    var fech = C.filter(function(c){ return c.etapa === 'Fechado'; }).length, perd = C.filter(function(c){ return c.etapa === 'Perdido'; }).length;
+    var conv = fech + perd ? Math.round(fech / (fech + perd) * 100) : 0;
+    var prev = C.filter(function(c){ return ['Fechado','Perdido'].indexOf(c.etapa) < 0; }).reduce(function(a, c){ return a + c.valor; }, 0);
+    var receita = C.filter(function(c){ return c.etapa === 'Fechado'; }).reduce(function(a, c){ return a + c.valor; }, 0);
+    var iaResp = C.reduce(function(a, c){ return a + c.msgs.filter(function(m){ return m.de === 'ia'; }).length; }, 0) + 186;
+    var V = $('#vista');
+    V.innerHTML = '<div class="dash">' +
+      kpi('Conversas abertas', abertas, naoLidasTotal() + ' sem resposta', 'k1') +
+      kpi('Novos leads (7 dias)', sem, (sem >= semAnt ? '+' : '') + Math.round((sem - semAnt) / Math.max(semAnt, 1) * 100) + '% sobre a semana anterior', 'k2', sem >= semAnt) +
+      kpi('Taxa de conversão', conv + '%', fech + (fech === 1 ? ' fechado, ' : ' fechados, ') + perd + (perd === 1 ? ' perdido' : ' perdidos'), 'k3') +
+      kpi('Em negociação', brl(prev), 'Implantação prevista no funil', 'k4') +
+      '<section class="painel g8 graf"><h2>Novos leads por dia</h2>' + grafLeads(serie) + '<div class="leg">Últimos 14 dias, todos os canais.</div></section>' +
+      '<section class="painel g4 graf"><h2>Mensagens por canal</h2>' + grafCanais() + '<div class="leg">Últimos 30 dias.</div></section>' +
+      '<section class="painel g6 graf"><h2>Funil de vendas</h2>' + grafFunil() + '</section>' +
+      '<section class="painel g6"><h2>Assistente de IA</h2>' +
+        '<div class="dado"><span>Respostas dadas pela IA (30 dias)</span><b>' + iaResp + '</b></div>' +
+        '<div class="dado"><span>Tempo médio de 1ª resposta com IA</span><b>8 segundos</b></div>' +
+        '<div class="dado"><span>Tempo médio de 1ª resposta da equipe</span><b>14 minutos</b></div>' +
+        '<div class="dado"><span>Conversas resolvidas sem humano</span><b>62%</b></div>' +
+        '<div class="dado"><span>Receita fechada</span><b>' + brl(receita) + '</b></div>' +
+        '<div class="grupo-t" style="margin-top:14px">Últimas mensagens</div><ul class="ultimas">' +
+        C.slice().sort(function(a, b){ return ultima(b).ts - ultima(a).ts; }).slice(0, 4).map(function(c){ var u = ultima(c); return '<li>' + avatar(c) + '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>' + esc(c.nome) + '</b><br><span style="color:var(--sec)">' + esc(u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ')) + '</span></span><span class="q">' + quando(u.ts) + '</span></li>'; }).join('') +
+        '</ul></section></div>';
+  }
+  function kpi(r, n, s, id, up){ return '<div class="kpi" id="' + id + '"><div class="r">' + r + '</div><div class="n">' + n + '</div><div class="s' + (up ? ' up' : '') + '">' + s + '</div></div>'; }
+  function grafLeads(serie){
+    var W = 640, H = 220, p = {l:28, r:8, t:12, b:26}, max = Math.max.apply(null, serie.map(function(x){ return x.n; })) + 2;
+    var bw = (W - p.l - p.r) / serie.length;
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Novos leads por dia">';
+    for (var g = 0; g <= max; g += Math.ceil(max / 4)){ var y = H - p.b - g / max * (H - p.t - p.b); s += '<line x1="' + p.l + '" x2="' + (W - p.r) + '" y1="' + y + '" y2="' + y + '" stroke="#E2E6ED"/><text x="' + (p.l - 6) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" fill="#8A93A6">' + g + '</text>'; }
+    serie.forEach(function(x, i){
+      var h = x.n / max * (H - p.t - p.b), xx = p.l + i * bw + bw * .18, w = bw * .64, y = H - p.b - h;
+      var hoje = x.dia === HOJE;
+      s += '<rect x="' + xx + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="' + (hoje ? '#FFB020' : '#2F6FED') + '"><title>' + dataCurta(x.dia) + ': ' + x.n + ' leads</title></rect>';
+      if (i % 2 === 1 || hoje) s += '<text x="' + (xx + w / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="' + (hoje ? '#101A2C' : '#8A93A6') + '"' + (hoje ? ' font-weight="700"' : '') + '>' + (hoje ? 'hoje' : dataCurta(x.dia)) + '</text>';
+    });
+    return s + '</svg>';
+  }
+  function grafCanais(){
+    var ks = Object.keys(S.msgsCanal).sort(function(a, b){ return S.msgsCanal[b] - S.msgsCanal[a]; });
+    var max = S.msgsCanal[ks[0]], W = 320, rh = 44, H = ks.length * rh;
+    var cores = {WhatsApp:'#1FAF5A', Instagram:'#C13584', Facebook:'#1877F2', 'E-mail':'#5B6678'};
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Mensagens por canal">';
+    ks.forEach(function(k, i){
+      var y = i * rh, w = S.msgsCanal[k] / max * (W - 60);
+      s += '<text x="0" y="' + (y + 13) + '" font-size="12.5" fill="#384358" font-weight="600">' + k + '</text>' +
+        '<rect x="0" y="' + (y + 19) + '" width="' + Math.max(w, 4) + '" height="14" rx="4" fill="' + cores[k] + '"/>' +
+        '<text x="' + (w + 7) + '" y="' + (y + 31) + '" font-size="12.5" fill="#101A2C" font-weight="700">' + S.msgsCanal[k] + '</text>';
+    });
+    return s + '</svg>';
+  }
+  function grafFunil(){
+    var ab = ETAPAS.slice(0, 5), cont = ab.map(function(et, i){
+      return S.contatos.filter(function(c){ return ETAPAS.indexOf(c.etapa) >= i && c.etapa !== 'Perdido'; }).length;
+    });
+    var W = 480, rh = 40, H = ab.length * rh, max = Math.max(cont[0], 1);
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Funil de vendas">';
+    ab.forEach(function(et, i){
+      var w = Math.max(cont[i] / max * (W - 200), 6), x = 130 + (W - 200 - w) / 2, y = i * rh;
+      s += '<text x="0" y="' + (y + 24) + '" font-size="12.5" fill="#384358" font-weight="600">' + et + '</text>' +
+        '<rect x="' + x + '" y="' + (y + 8) + '" width="' + w + '" height="24" rx="5" fill="' + COR_ETAPA[i] + '"/>' +
+        '<text x="' + (W - 4) + '" y="' + (y + 25) + '" text-anchor="end" font-size="12.5" fill="#101A2C" font-weight="700">' + cont[i] + (i ? ' (' + Math.round(cont[i] / max * 100) + '%)' : '') + '</text>';
+    });
+    return s + '</svg><div class="leg">Quantos contatos chegaram a cada etapa. Perdidos ficam de fora.</div>';
+  }
+
+  /* ========== PRODUTOS ========== */
+  function vProdutos(){
+    $('#vista').innerHTML = '<div class="prod"><div class="tb-cab"><h2>' + S.produtos.length + ' produtos e serviços</h2><button class="btn pri" id="novoP">' + ic('mais') + 'Novo produto</button></div>' +
+      '<table class="tb-prod"><thead><tr><th>Nome</th><th>Tipo</th><th>Implantação</th><th>Mensalidade</th><th>Ativo</th></tr></thead><tbody>' +
+      S.produtos.map(function(p){
+        return '<tr' + (p.destaque ? ' class="destaque"' : '') + '><td><button data-ed="' + p.id + '" style="font-weight:700;text-align:left">' + esc(p.nome) + '</button><div class="ds">' + esc(p.ds) + '</div></td><td>' + p.tipo + '</td>' +
+          '<td class="num">' + (p.setup === 0 ? 'Grátis' : brl(p.setup)) + '</td><td class="num">' + (p.mensal === 0 ? '-' : brl(p.mensal)) + '</td>' +
+          '<td><button class="chave" role="switch" aria-checked="' + p.ativo + '" data-at="' + p.id + '" aria-label="Ativar ' + esc(p.nome) + '"></button></td></tr>';
+      }).join('') + '</tbody></table></div>';
+    $('#novoP').onclick = function(){ modalProduto(); };
+    $('#vista').onclick = function(e){
+      var a = e.target.closest('[data-at]'), ed = e.target.closest('[data-ed]');
+      if (a){ var p = S.produtos.filter(function(x){ return x.id === +a.getAttribute('data-at'); })[0]; p.ativo = !p.ativo; salva(); a.setAttribute('aria-checked', p.ativo); }
+      if (ed) modalProduto(+ed.getAttribute('data-ed'));
+    };
+  }
+  function modalProduto(id){
+    var p = id ? S.produtos.filter(function(x){ return x.id === id; })[0] : {nome:'', tipo:'Pacote', setup:null, mensal:null, ds:'', ativo:true};
+    var M = $('#modal');
+    M.innerHTML = '<form method="dialog"><h3>' + (id ? 'Editar produto' : 'Novo produto') + '</h3>' +
+      '<div class="campo"><label for="pN">Nome</label><input id="pN" required value="' + esc(p.nome) + '"></div>' +
+      '<div class="campo"><label for="pT">Tipo</label><select id="pT">' + ['Pacote','Módulo','Serviço','Produto'].map(function(t){ return '<option' + (t === p.tipo ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div>' +
+      '<div class="duas"><div class="campo"><label for="pS">Implantação (R$)</label><input id="pS" type="number" min="0" placeholder="Sob consulta" value="' + (p.setup == null ? '' : p.setup) + '"></div>' +
+      '<div class="campo"><label for="pM">Mensalidade (R$)</label><input id="pM" type="number" min="0" placeholder="Sob consulta" value="' + (p.mensal == null ? '' : p.mensal) + '"></div></div>' +
+      '<div class="campo"><label for="pD">O que inclui</label><textarea id="pD" rows="3">' + esc(p.ds) + '</textarea></div>' +
+      '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Salvar</button></div></form>';
+    M.onclose = function(){
+      if (M.returnValue === 'ok'){
+        function num(v){ return v === '' ? null : +v; }
+        p.nome = $('#pN').value.trim(); p.tipo = $('#pT').value; p.setup = num($('#pS').value); p.mensal = num($('#pM').value); p.ds = $('#pD').value.trim();
+        if (!id){ p.id = S.prox.p++; S.produtos.push(p); }
+        salva(); aviso('<b>' + esc(p.nome) + '</b> salvo.'); vProdutos();
+      }
+      M.onclose = null;
+    };
+    M.returnValue = ''; M.showModal();
+  }
+
+  /* ========== ASSISTENTE ========== */
+  function vAssistente(){
+    var A = S.ia;
+    $('#vista').innerHTML = '<div class="assist">' +
+      '<section class="painel"><h2>Configuração</h2>' +
+        '<div class="linha-ch"><div><div class="t">Assistente ligado</div><div class="d">Responde sozinho no WhatsApp, Instagram e Facebook</div></div><button class="chave" role="switch" id="iaOn" aria-checked="' + A.ativo + '" aria-label="Assistente ligado"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede preço personalizado, contrato ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
+        '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Pré-agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Pré-agendar"></button></div>' +
+        '<div class="duas"><div class="campo"><label for="iaN">Nome do assistente</label><input id="iaN" value="' + esc(A.nome) + '"></div>' +
+        '<div class="campo"><label for="iaT">Tom de voz</label><select id="iaT">' + ['Próximo e direto','Formal','Animado'].map(function(t){ return '<option' + (t === A.tom ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
+        '<div class="campo"><label for="iaH">Horário de atendimento</label><input id="iaH" value="' + esc(A.horario) + '"></div>' +
+        '<div class="campo"><label for="iaB">Base de conhecimento</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea></div>' +
+        '<button class="btn pri" id="iaSalva">Salvar configuração</button>' +
+      '</section>' +
+      '<section class="painel teste"><h2>Teste o assistente</h2><div class="fio" id="tFio"><div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>Oi! Sou o assistente da Aberto Digital. Pergunte sobre preços, horários ou agendamento.<span class="h">agora</span></div></div>' +
+        '<div class="compor"><form class="linha" id="tF"><textarea id="tT" rows="1" placeholder="Ex.: quanto custa um site?" aria-label="Pergunta de teste"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div></section></div>';
+    ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn') aviso('Assistente ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); }; });
+    $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); aviso('Configuração do assistente salva.'); };
+    var ta = $('#tT');
+    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#tF').requestSubmit(); } });
+    $('#tF').addEventListener('submit', function(e){
+      e.preventDefault(); var t = ta.value.trim(); if (!t) return; ta.value = '';
+      var fio = $('#tFio'), agora = hm(agoraMs());
+      fio.insertAdjacentHTML('beforeend', '<div class="msg cli">' + esc(t) + '<span class="h">' + agora + '</span></div><div class="digitando" id="dig">digitando...</div>');
+      fio.scrollTop = fio.scrollHeight;
+      setTimeout(function(){
+        var d = $('#dig'); if (d) d.remove();
+        fio.insertAdjacentHTML('beforeend', '<div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>' + esc(respostaIA(t)) + '<span class="h">' + hm(agoraMs()) + '</span></div>');
+        fio.scrollTop = fio.scrollHeight;
+      }, 900);
+    });
+  }
+
+  /* ========== CANAIS ========== */
+  function vCanais(){
+    var L = [
+      ['W','var(--wa)','WhatsApp Business','ok','Conectado: (11) 99123-3627','Mensagens, áudios e fotos chegam na central. Assistente de IA ativo.'],
+      ['I','var(--ig)','Instagram','ok','Conectado: Direct','Mensagens do Direct e respostas aos stories.'],
+      ['F','var(--fb)','Facebook Messenger','ok','Conectado: página da empresa','Mensagens da página e de anúncios.'],
+      ['@','var(--em)','E-mail','ok','Conectado: contato@abertodigital.com','Recebe e responde e-mails, e cada um vira Lead ou Cliente no funil.'],
+      ['G','#EA4335','Google Business','br','Em breve','Mensagens e avaliações do perfil no Google.'],
+      ['T','#101A2C','TikTok','br','Em breve','Mensagens diretas do TikTok.'],
+      ['S','#2F6FED','Chat do site','br','Em breve','Janela de conversa no abertodigital.com.']
+    ];
+    $('#vista').innerHTML = '<div class="canais">' + L.map(function(c){
+      return '<div class="canal-card"><div class="tt"><span class="ic" style="background:' + c[1] + '">' + c[0] + '</span>' + c[2] + '</div><div class="st ' + c[3] + '">' + c[4] + '</div><div class="ds">' + c[5] + '</div>' +
+        '<button class="btn peq" data-cn="' + c[3] + '" style="align-self:flex-start">' + (c[3] === 'ok' ? 'Gerenciar' : 'Conectar') + '</button></div>';
+    }).join('') + '<div class="canal-card"><div class="tt">Dados da demonstração</div><div class="ds">As mudanças ficam salvas só neste navegador. Volte aos dados de exemplo quando quiser.</div><button class="btn peq" id="reset" style="align-self:flex-start">Restaurar dados de exemplo</button></div></div>';
+    $('#vista').onclick = function(e){
+      if (e.target.closest('[data-cn]')) aviso('Na demonstração os canais são simulados. A conexão real entra na versão com integrações.');
+      if (e.target.closest('#reset')){ S = semente(); sel = null; salva(); aviso('Dados de exemplo restaurados.'); desenha(); }
+    };
+  }
+
+  /* ---------- simulação ao vivo ---------- */
+  var FILA = [
+    {nome:'Rogério Lima', txt:'Consigo ver isso hoje ainda?'},
+    {novo:{nome:'Patrícia Gomes', negocio:'Floricultura Jardim', canal:'Instagram', tel:'(11) 9 6xxx-3301', origem:'Instagram'}, txt:'Oi! Quanto custa pra fazer um site pra minha floricultura?'},
+    {nome:'Camila Duarte', txt:'Vocês conseguem marcar uma demonstração essa semana?'},
+    {novo:{nome:'Eduardo Ramos', negocio:'Ramos Materiais de Construção', canal:'WhatsApp', tel:'(11) 9 5xxx-7720', origem:'Google'}, txt:'Boa tarde, vi vocês no Google. Vocês fazem chatbot pra WhatsApp?'},
+    {nome:'Juliana Rocha', txt:'Conversei com meu sócio, vamos fechar! Como faço o pagamento?'},
+    {novo:{nome:'Sônia Almeida', negocio:'Lavanderia Bolha', canal:'E-mail', tel:'(11) 9 4xxx-1180', origem:'Site'}, txt:'Assunto: Aparecer no Google Maps\n\nOlá, minha lavanderia não aparece no Google Maps. Vocês ajudam?'},
+    {nome:'Ana Souza', txt:'Pode mandar o contrato sim'},
+    {novo:{nome:'Gustavo Nunes', negocio:'Barbearia do Gus', canal:'Facebook', tel:'(11) 9 3xxx-6650', origem:'Facebook'}, txt:'Quero um sistema de agendamento pra barbearia, vocês fazem?'}
+  ];
+  var iFila = 0, timer = null, vivo = true;
+  function chega(){
+    var f = FILA[iFila++ % FILA.length], c;
+    if (f.novo){
+      c = S.contatos.filter(function(x){ return x.nome === f.novo.nome; })[0];
+      if (!c){ c = {id:S.prox.c++, nome:f.novo.nome, negocio:f.novo.negocio, canal:f.novo.canal, tipo:'Lead', etapa:'Novo contato', valor:650, followup:addDias(1), status:'entrada', tel:f.novo.tel, origem:f.novo.origem, nota:'', msgs:[], naoLidas:0, criado:HOJE}; S.contatos.push(c); }
+    } else c = S.contatos.filter(function(x){ return x.nome === f.nome; })[0];
+    if (!c) return;
+    c.msgs.push({de:'cli', txt:f.txt, ts:agoraMs()}); c.status = 'entrada'; S.msgsCanal[c.canal]++;
+    if (c.id !== sel || atual !== 'mensagens') c.naoLidas = (c.naoLidas || 0) + 1;
+    salva();
+    aviso('Nova mensagem de <b>' + esc(c.nome) + '</b> no ' + c.canal + (f.novo ? ' (novo lead)' : '') + '.');
+    atualizaAoVivo(c);
+    if (S.ia.ativo && c.canal !== 'E-mail'){
+      setTimeout(function(){
+        c.msgs.push({de:'ia', txt:respostaIA(f.txt, c.nome), ts:agoraMs()}); S.msgsCanal[c.canal]++; salva(); atualizaAoVivo(c);
+      }, 2200);
+    }
+  }
+  function atualizaAoVivo(c){
+    desenhaNav();
+    if (atual === 'mensagens'){ if (c.status !== aba && c.id !== sel) {} desenhaLista(); if (c.id === sel){ var ta = $('#texto'), v = ta ? ta.value : ''; desenhaConversa(); if (v) $('#texto').value = v; } }
+    else if (atual === 'dashboard'){ vDash(); $$('.kpi').forEach(function(k){ k.classList.add('flash'); }); }
+    else if (atual === 'funil') vFunil();
+  }
+  function ligaVivo(){ clearInterval(timer); if (vivo) timer = setInterval(chega, 25000); }
+  $('#aovivo').onclick = function(){ vivo = !vivo; this.setAttribute('aria-pressed', vivo); aviso(vivo ? 'Simulação ao vivo <b>ligada</b>.' : 'Simulação ao vivo pausada.'); ligaVivo(); };
+  if (window.matchMedia('(max-width:760px)').matches === false){ /* desktop abre direto na conversa */ }
+  window.addEventListener('hashchange', function(){ var h = location.hash.slice(1); if (h && h !== atual && VISTAS.some(function(v){ return v.id === h; })) vai(h); });
+
+  desenha();
+  ligaVivo();
+  setTimeout(chega, 6000);
+})();
+</script>
+</body>
+</html>

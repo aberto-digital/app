@@ -114,7 +114,7 @@
   .pop-filtro input{width:18px;height:18px;accent-color:var(--ceu)}
   .pop-filtro .canal{font-size:14.5px;color:var(--ink)}
   .pop-filtro .canal b{width:10px;height:10px}
-  .abas button{flex:1;padding:7px 4px;border-radius:7px;font-size:13.5px;font-weight:600;color:var(--sec)}
+  .abas button{flex:1 1 auto;padding:7px 3px;border-radius:7px;font-size:13px;white-space:nowrap;letter-spacing:-.005em;font-weight:600;color:var(--sec)}
   .abas button[aria-selected="true"]{background:var(--branco);color:var(--ink);box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .abas small{font-size:11px;background:var(--ceu);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
   .itens{overflow:auto;flex:1}
@@ -132,6 +132,11 @@
   .item .l3{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
   .item .cont{margin-left:auto;background:var(--ceu);color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
   .vazio{padding:40px 20px;text-align:center;color:var(--sec)}
+  .vazio .btn{margin-top:12px}
+  .nota-sis{align-self:center;max-width:90%;margin:6px auto;padding:6px 12px;border-radius:999px;background:var(--papel);border:1px solid var(--linha);color:var(--sec);font-size:12.5px;text-align:center}
+  .btn-novo{flex:none;width:40px;border-radius:10px;border:0;background:var(--azul,#2F6FED);color:#fff;display:grid;place-items:center;cursor:pointer}
+  .btn-novo svg{width:20px;height:20px}
+  .aviso-dup{background:#FFF4DA;border:1px solid #F5D98F;border-radius:10px;padding:8px 10px;font-size:13px;margin:-4px 0 12px}
 
   .conversa{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
   .conv-topo{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--branco);border-bottom:1px solid var(--linha)}
@@ -581,7 +586,7 @@
   try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {}
   function salva(){ try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} }
   function contato(id){ for (var i = 0; i < S.contatos.length; i++) if (S.contatos[i].id === id) return S.contatos[i]; return null; }
-  function ultima(c){ return c.msgs[c.msgs.length - 1]; }
+  function ultima(c){ return c.msgs[c.msgs.length - 1] || {de:'sis', txt:'Sem mensagens ainda', ts:c.criadoTs || 0}; }
 
   /* ---------- assistente (respostas por palavra-chave) ---------- */
   function respostaIA(texto, nome){
@@ -651,13 +656,15 @@
     V.innerHTML = '<div class="inbox" id="inbox">' +
       '<section class="lista" aria-label="Conversas">' +
         '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
-        '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar por origem"></button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
+        '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar por origem"></button><button class="btn-novo" id="btnNovo" aria-label="Novo contato" title="Novo contato">' + ic('mais') + '</button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
         '<div class="itens" id="itens"></div>' +
       '</section>' +
       '<section class="conversa" id="conversa" aria-label="Conversa"></section>' +
       '<aside class="detalhe" id="detalhe" aria-label="Dados do contato"></aside>' +
     '</div>';
     $('#busca').addEventListener('input', function(e){ busca = e.target.value; desenhaLista(); });
+    $('#btnNovo').onclick = function(){ modalContato(); };
+    $('#itens').addEventListener('click', function(e){ if (e.target.closest('#vazioNovo')) modalContato(); });
     $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaLista(); } });
     var bf = $('#btnFiltro'), pf = $('#popFiltro');
     bf.onclick = function(e){ e.stopPropagation(); var abre = pf.hidden; pf.hidden = !abre; bf.setAttribute('aria-expanded', abre); };
@@ -703,13 +710,13 @@
     var L = filtrados();
     $('#itens').innerHTML = L.length ? L.map(function(c){
       var u = ultima(c), novo = c.naoLidas > 0;
-      var pre = u.de === 'ia' ? 'IA: ' : u.de === 'eq' ? 'Você: ' : '';
+      var pre = u.de === 'ia' ? 'IA: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
       var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
       return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
         '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
         '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
         '<span class="l3">' + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
-    }).join('') : '<div class="vazio">Nenhuma conversa aqui.</div>';
+    }).join('') : (S.contatos.length ? '<div class="vazio">Nenhuma conversa aqui.</div>' : '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>');
   }
   function abre(id){
     sel = id; var c = contato(id);
@@ -719,10 +726,12 @@
     var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
   }
   function desenhaConversa(){
-    var c = contato(sel), box = $('#conversa'); if (!box || !c) return;
+    var c = contato(sel), box = $('#conversa'); if (!box) return;
+    if (!c){ box.innerHTML = '<div class="vazio" style="margin:auto">Selecione ou cadastre um contato.</div>'; return; }
     var html = '', dAnt = '';
     c.msgs.forEach(function(m){
       var d = rotDia(m.ts); if (d !== dAnt){ html += '<div class="dia">' + d + '</div>'; dAnt = d; }
+      if (m.de === 'sis'){ html += '<div class="nota-sis">' + esc(m.txt) + '</div>'; return; }
       var cls = m.de === 'cli' ? 'cli' : m.de === 'ia' ? 'ia' : 'eq';
       var corpo = esc(m.txt).replace(/^Assunto: (.*)\n+/, '<span class="assunto">$1</span>');
       html += '<div class="msg ' + cls + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + '</span></div>';
@@ -765,11 +774,12 @@
         '<button class="lead" data-t="Lead" aria-pressed="' + (c.tipo === 'Lead') + '">Lead</button>' +
         '<button class="cliente" data-t="Cliente" aria-pressed="' + (c.tipo === 'Cliente') + '">Cliente</button></div></div>' +
       '<div class="campo"><label for="dEtapa">Etapa do funil</label><select id="dEtapa">' + ETAPAS.map(function(e){ return '<option' + (e === c.etapa ? ' selected' : '') + '>' + e + '</option>'; }).join('') + '</select></div>' +
-      '<div class="duas"><div class="campo"><label for="dValor">Valor (R$)</label><input id="dValor" type="number" min="0" step="50" value="' + c.valor + '"></div>' +
+      '<div class="duas"><div class="campo"><label for="dValor">Valor (R$)</label><input id="dValor" type="number" min="0" step="any" value="' + c.valor + '"></div>' +
       '<div class="campo"><label for="dFollow">Próximo retorno</label><input id="dFollow" type="date" value="' + (c.followup || '') + '"></div></div>' +
       '<div class="campo"><label for="dNota">Anotações</label><textarea id="dNota" rows="3">' + esc(c.nota) + '</textarea></div>' +
       '<button class="btn pri" id="dAgendar" style="width:100%;justify-content:center;margin-bottom:16px">' + ic('agenda') + 'Agendar compromisso</button>' +
       blocoDocs(c) +
+      '<div class="grupo-t" style="display:flex;justify-content:space-between;align-items:center">Contato<button class="btn peq" id="dEditar" type="button">Editar</button></div>' +
       '<div class="dado"><span>Canal</span>' + chipCanal(c.canal) + '</div>' +
       '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
       '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' +
@@ -787,6 +797,7 @@
     $('#dFollow').onchange = function(e){ c.followup = e.target.value || null; salva(); desenhaLista(); };
     $('#dNota').onchange = function(e){ c.nota = e.target.value; salva(); };
     $('#dAgendar').onclick = function(){ modalEvento(c.id); };
+    $('#dEditar').onclick = function(){ modalContato(c.id); };
   }
   function blocoDocs(c){
     var e = c.empresa || {}, b = c.briefing || {}, a = c.auditoria, p = c.proposta, k = c.contrato;
@@ -838,7 +849,7 @@
     var c = contato(id), M = $('#modal');
     M.innerHTML = '<form method="dialog"><h3>' + esc(c.nome) + '</h3><p style="color:var(--sec);margin:-8px 0 14px">' + esc(c.negocio) + ' · ' + c.canal + '</p>' +
       '<div class="campo"><label for="mEt">Mover para</label><select id="mEt">' + ETAPAS.map(function(e){ return '<option' + (e === c.etapa ? ' selected' : '') + '>' + e + '</option>'; }).join('') + '</select></div>' +
-      '<div class="duas"><div class="campo"><label for="mVal">Valor (R$)</label><input id="mVal" type="number" min="0" step="50" value="' + c.valor + '"></div>' +
+      '<div class="duas"><div class="campo"><label for="mVal">Valor (R$)</label><input id="mVal" type="number" min="0" step="any" value="' + c.valor + '"></div>' +
       '<div class="campo"><label for="mFu">Próximo retorno</label><input id="mFu" type="date" value="' + (c.followup || '') + '"></div></div>' +
       (c.nota ? '<p style="font-size:13.5px;color:var(--sec);margin-bottom:12px">' + esc(c.nota) + '</p>' : '') +
       '<div class="bts"><button class="btn" value="conversa">Abrir conversa</button><button class="btn pri" value="salvar">Salvar</button></div></form>';
@@ -883,7 +894,58 @@
       if (ev){ vai('mensagens'); abre(+ev.getAttribute('data-c')); }
     };
   }
+  var ORIGENS = ['Indicação','Site','Google','Instagram','Facebook','WhatsApp','Visita','Evento','Outro'];
+  function soDigitos(t){ return String(t || '').replace(/\D/g, ''); }
+  function modalContato(id){
+    var c = id ? contato(id) : null, M = $('#modal');
+    var v = c || {nome:'', negocio:'', tel:'', canal:'WhatsApp', origem:'Indicação', tipo:'Lead', etapa:ETAPAS[0], valor:0, followup:addDias(1), nota:''};
+    function opts(lista, atual){ return lista.map(function(o){ return '<option' + (o === atual ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join(''); }
+    M.innerHTML = '<form method="dialog" id="fCt"><h3>' + (c ? 'Editar contato' : 'Novo contato') + '</h3>' +
+      '<div class="campo"><label for="cNome">Nome da pessoa</label><input id="cNome" required autocomplete="off" value="' + esc(v.nome) + '" placeholder="Ex.: Maria Silva"></div>' +
+      '<div class="campo"><label for="cNeg">Empresa ou negócio</label><input id="cNeg" autocomplete="off" value="' + esc(v.negocio) + '" placeholder="Ex.: Padaria Pão Dourado"></div>' +
+      '<div class="campo"><label for="cTel">WhatsApp ou telefone</label><input id="cTel" type="tel" inputmode="tel" autocomplete="off" value="' + esc(v.tel) + '" placeholder="(11) 9 9999-9999"></div>' +
+      '<div id="cDup"></div>' +
+      '<div class="duas"><div class="campo"><label for="cCanal">Fala com você por</label><select id="cCanal">' + opts(Object.keys(CANAIS), v.canal) + '</select></div>' +
+      '<div class="campo"><label for="cOrig">Como chegou</label><select id="cOrig">' + opts(ORIGENS.indexOf(v.origem) < 0 && v.origem ? ORIGENS.concat([v.origem]) : ORIGENS, v.origem) + '</select></div></div>' +
+      (c ? '' :
+      '<div class="duas"><div class="campo"><label for="cTipo">Classificação</label><select id="cTipo">' + opts(['Lead','Cliente'], v.tipo) + '</select></div>' +
+      '<div class="campo"><label for="cEt">Etapa do funil</label><select id="cEt">' + opts(ETAPAS, v.etapa) + '</select></div></div>' +
+      '<div class="duas"><div class="campo"><label for="cVal">Valor estimado (R$)</label><input id="cVal" type="number" min="0" step="any" value="' + (v.valor || '') + '" placeholder="0"></div>' +
+      '<div class="campo"><label for="cFol">Próximo retorno</label><input id="cFol" type="date" value="' + (v.followup || '') + '"></div></div>' +
+      '<div class="campo"><label for="cNota">Anotações</label><textarea id="cNota" rows="2" placeholder="O que a pessoa precisa, o que foi combinado"></textarea></div>') +
+      '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">' + (c ? 'Salvar' : 'Cadastrar') + '</button></div></form>';
+    var dup = null;
+    function confere(){
+      var d = soDigitos($('#cTel').value); dup = null;
+      if (d.length >= 8) dup = S.contatos.filter(function(x){ return x !== c && soDigitos(x.tel).slice(-8) === d.slice(-8); })[0] || null;
+      $('#cDup').innerHTML = dup ? '<div class="aviso-dup">Este número já é de <b>' + esc(dup.nome) + '</b>' + (dup.negocio ? ' (' + esc(dup.negocio) + ')' : '') + '. <a href="#" id="cAbreDup">Abrir esse contato</a></div>' : '';
+      var a = $('#cAbreDup'); if (a) a.onclick = function(e){ e.preventDefault(); var alvo = dup.id; M.onclose = null; M.close(); vai('mensagens'); abre(alvo); };
+    }
+    $('#cTel').addEventListener('input', confere); confere();
+    if (!c) $('#cEt').onchange = function(e){ if (e.target.value === CONFIG.etapaGanho) $('#cTipo').value = 'Cliente'; };
+    M.onclose = function(){
+      M.onclose = null;
+      if (M.returnValue !== 'ok') return;
+      var nome = $('#cNome').value.trim(); if (!nome) return;
+      if (c){
+        c.nome = nome; c.negocio = $('#cNeg').value.trim(); c.tel = $('#cTel').value.trim(); c.canal = $('#cCanal').value; c.origem = $('#cOrig').value;
+        salva(); aviso('Dados de <b>' + esc(c.nome) + '</b> atualizados.'); desenha(); return;
+      }
+      var maxId = S.contatos.reduce(function(m, x){ return Math.max(m, x.id); }, 0);
+      var n = {id:Math.max(maxId + 1, S.prox.c || 1), nome:nome, negocio:$('#cNeg').value.trim(), canal:$('#cCanal').value, tipo:$('#cTipo').value,
+        etapa:$('#cEt').value, valor:+$('#cVal').value || 0, followup:$('#cFol').value || null, status:'entrada', tel:$('#cTel').value.trim(),
+        origem:$('#cOrig').value, nota:$('#cNota').value.trim(), naoLidas:0, criado:HOJE, criadoTs:agoraMs(),
+        msgs:[{de:'sis', txt:'Contato cadastrado em ' + dataCurta(HOJE) + '.', ts:agoraMs()}]};
+      if (n.etapa === CONFIG.etapaGanho) n.tipo = 'Cliente';
+      S.contatos.push(n); S.prox.c = n.id + 1; salva();
+      aba = 'entrada'; busca = ''; canaisSel = [];
+      if (atual === 'mensagens'){ sel = n.id; desenha(); abre(n.id); } else desenha();
+      aviso('<b>' + esc(n.nome) + '</b> cadastrado.');
+    };
+    M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#cNome').focus(); }, 30);
+  }
   function modalEvento(cid){
+    if (!S.contatos.length){ aviso('Cadastre um contato antes de agendar.'); return modalContato(); }
     var M = $('#modal');
     M.innerHTML = '<form method="dialog" id="fEv"><h3>Novo compromisso</h3>' +
       '<div class="campo"><label for="eC">Contato</label><select id="eC">' + S.contatos.map(function(c){ return '<option value="' + c.id + '"' + (c.id === cid ? ' selected' : '') + '>' + esc(c.nome) + ' (' + esc(c.negocio) + ')</option>'; }).join('') + '</select></div>' +

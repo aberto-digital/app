@@ -23,6 +23,19 @@ Sistema integrado de atendimento da **Aberto Digital**. Ele junta mensagens, fun
 | Configurações (celular) | No celular, Produtos, Assistente de IA e Canais ficam agrupados no botão de engrenagem no topo, e a barra de baixo mostra só Mensagens, Funil, Agenda e Painel. | O mesmo |
 | Ao vivo | Simula mensagens chegando a cada 25 s e a IA respondendo. | Mensagens chegando de verdade |
 
+## Auditoria de presença digital
+
+Página separada em https://app.abertodigital.com/auditoria/ (também em Configurações, no celular).
+
+- Avalia 24 itens em 4 áreas, com estes pesos na nota geral: Ser encontrado (30), Confiança e reputação (25), Atendimento (25) e Redes sociais (20).
+- Gera uma nota de 0 a 100, um gráfico de medidor e barras por área.
+- Lista o que a empresa está perdendo, ordenado por impacto.
+- Pode comparar com o concorrente principal.
+- Sugere um pacote: Start, Presença, Completo ou Enterprise.
+- "Imprimir / PDF" gera o relatório em A4, com o nome do arquivo "Auditoria Empresa data".
+- As auditorias ficam salvas no navegador (botão Salvar e a lista "Salvas").
+- Os critérios, pesos e textos ficam no bloco `AREAS` do `auditoria/index.html`. As regras do pacote sugerido ficam na função `pacote()`.
+
 ## Estrutura dos arquivos
 
 ```
@@ -93,6 +106,7 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 | Data | Mudança |
 | --- | --- |
 | 16 nov 2026 | Primeira versão do protótipo: 7 telas, dados de exemplo, simulação ao vivo |
+| 17 nov 2026 | Página de auditoria com nota, gráficos, perdas, pacote sugerido e impressão em PDF |
 | 16 nov 2026 | Celular: funil sem texto de instrução, colunas com altura fixa e só os cards rolando dentro; ícones centralizados na barra de baixo |
 | 16 nov 2026 | Celular: barra de baixo só com ícones; topo e busca se escondem ao rolar a lista (abas ficam fixas); filtro de origem com seleção múltipla num botão ao lado das abas |
 | 16 nov 2026 | Celular: barra superior clara e fixa (sem o borrão do Safari), sem zoom ao digitar, barra de baixo mais compacta e escondida enquanto digita, avisos no topo |

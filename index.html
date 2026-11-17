@@ -642,7 +642,7 @@
   function vConfig(){
     $('#vista').innerHTML = '<div class="cfg-lista">' + VISTAS.filter(function(v){ return v.grupo === 'config'; }).map(function(v){
       return '<button class="cfg-item" data-v="' + v.id + '"><span class="ic">' + ic(v.ic) + '</span><span><span class="t" style="display:block">' + v.nome + '</span><span class="d">' + v.sub + '</span></span><span class="seta" aria-hidden="true">›</span></button>';
-    }).join('') + '</div>';
+    }).join('') + '<a class="cfg-item" href="auditoria/" style="text-decoration:none;color:inherit"><span class="ic">' + ic('dash') + '</span><span><span class="t" style="display:block">Auditoria de presença digital</span><span class="d">Score, gráficos e relatório em PDF por empresa</span></span><span class="seta" aria-hidden="true">›</span></a></div>';
     $('#vista').onclick = function(e){ var b = e.target.closest('[data-v]'); if (b) vai(b.getAttribute('data-v')); };
   }
 

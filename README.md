@@ -12,7 +12,7 @@ Sistema integrado de atendimento da **Aberto Digital**. Ele junta mensagens, fun
 
 | Módulo | O que faz hoje (demo) | Na versão real |
 | --- | --- | --- |
-| Mensagens | Caixa única com WhatsApp, Instagram, Facebook e e-mail. Abas Entrada, Esperando e Finalizados, filtro por canal, busca e resposta sugerida pela IA. | Mensagens reais pelas APIs da Meta e por e-mail |
+| Mensagens | Caixa única com WhatsApp, Instagram, Facebook e e-mail. Abas Entrada, Esperando e Finalizados, filtro de origem com seleção múltipla, busca e resposta sugerida pela IA. | Mensagens reais pelas APIs da Meta e por e-mail |
 | Contato (painel lateral) | Classifica como Lead ou Cliente e define etapa do funil, valor, próximo retorno e anotações. Também agenda compromissos. | O mesmo, salvo no banco |
 | Funil | Quadro com 6 etapas e cards arrastáveis (no celular, toque no card para mover). Mostra o total em R$ por etapa. Ao fechar, o contato vira Cliente. | O mesmo, salvo no banco |
 | Agenda e follow-up | Próximos 7 dias e retornos atrasados, de hoje e futuros. Novo compromisso com confirmação automática ao cliente. | Integração com Google Agenda e lembretes reais |
@@ -93,6 +93,7 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 | Data | Mudança |
 | --- | --- |
 | 16 nov 2026 | Primeira versão do protótipo: 7 telas, dados de exemplo, simulação ao vivo |
+| 16 nov 2026 | Celular: barra de baixo só com ícones; topo e busca se escondem ao rolar a lista (abas ficam fixas); filtro de origem com seleção múltipla num botão ao lado das abas |
 | 16 nov 2026 | Celular: barra superior clara e fixa (sem o borrão do Safari), sem zoom ao digitar, barra de baixo mais compacta e escondida enquanto digita, avisos no topo |
 | 16 nov 2026 | Janelas (modais) centralizadas no computador e como painel de baixo no celular; painel do contato com botões Fechar e Salvar |
 | 16 nov 2026 | Celular: barra superior sólida na cor da marca; Produtos, Assistente de IA e Canais agrupados no botão de Configurações (engrenagem) no topo; produtos em cards |

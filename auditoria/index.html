@@ -36,6 +36,11 @@
   .btn.pri{background:var(--ceu);border-color:var(--ceu);color:#fff}
   .btn.pri:hover{background:#245CD0}
   .btn svg{width:17px;height:17px}
+  a.btn{text-decoration:none;color:var(--ink)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .barra .voltar{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;color:var(--ink)}
+  .barra .voltar svg{width:20px;height:20px}
+  .plano table{background:#fff;border-radius:8px}
   select.btn{padding-right:10px}
 
   .abas-mob{display:none}
@@ -120,7 +125,14 @@
     body[data-aba="rel"] .form{display:none}
     .barra .tt,.barra .sep,.btn .txt,.barra .marca .nm{display:none}
     .barra .dir{gap:6px}
-    #salvas{max-width:120px}
+    #salvas{max-width:110px}
+  }
+  @media (max-width:520px){
+    .barra .marca,#nova{display:none}
+    .barra{gap:6px}
+    .barra .dir{min-width:0;flex:1;justify-content:flex-end}
+    #salvas{min-width:0;flex:1;max-width:160px}
+    .btn{padding:9px 11px}
     .topo-rel{grid-template-columns:1fr;gap:12px}
     .gauge{max-width:260px;margin:0 auto}
     .rel h1{font-size:1.7rem}
@@ -143,12 +155,15 @@
 <body data-aba="form">
 
 <header class="barra">
+  <a class="voltar" id="voltarCrm" href="../#mensagens" aria-label="Voltar ao AbertoCore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
   <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
   <span class="sep"></span><span class="tt">Auditoria de presença digital</span>
   <div class="dir">
-    <select class="btn" id="salvas" aria-label="Auditorias salvas"></select>
+    <select class="btn" id="salvas" aria-label="Contato do CRM"></select>
     <button class="btn" id="nova"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="txt">Nova</span></button>
     <button class="btn" id="salvar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg><span class="txt">Salvar</span></button>
+    <a class="btn" id="irBriefing" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6v3H9zM7 5H5v16h14V5h-2M9 12h6M9 16h4"/></svg><span class="txt">Briefing</span></a>
+    <a class="btn" id="irProposta" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg><span class="txt">Gerar proposta</span></a>
     <button class="btn pri" id="imprimir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></svg><span class="txt">Imprimir / PDF</span></button>
   </div>
 </header>
@@ -162,10 +177,12 @@
   <article class="rel" id="rel" aria-label="Relatório"></article>
 </main>
 
+<script src="../core/dados.js"></script>
 <script>
 (function(){
   'use strict';
   function $(s){ return document.querySelector(s); }
+  var aviso = Core.aviso;
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function hojeISO(){ var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function dataBR(s){ if (!s) return ''; var p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
@@ -178,75 +195,74 @@
   var SIM = [['Sim',1],['Parcial',.5],['Não',0]];
   var AREAS = [
     {id:'enc', nome:'Ser encontrado', peso:30, itens:[
-      {id:'g_perfil', q:'Tem perfil no Google (Maps)?', peso:25, tipo:'op', ops:[['Sim, verificado',1],['Sim, sem verificar',.5],['Não tem',0]],
+      {id:'g_perfil', sol:'Start', q:'Tem perfil no Google (Maps)?', peso:25, tipo:'op', ops:[['Sim, verificado',1],['Sim, sem verificar',.5],['Não tem',0]],
         perda:'Quem procura no Google ou no Maps não encontra a empresa', acao:'Criar e verificar o perfil no Google'},
-      {id:'g_busca', q:'Aparece nos 3 primeiros do Maps buscando "[ramo] em [cidade]"?', peso:20, tipo:'op', ops:[['Top 3',1],['Até o 10º',.5],['Não aparece',0]],
+      {id:'g_busca', sol:'Start', q:'Aparece nos 3 primeiros do Maps buscando "[ramo] em [cidade]"?', peso:20, tipo:'op', ops:[['Top 3',1],['Até o 10º',.5],['Não aparece',0]],
         perda:'Os clientes encontram os concorrentes primeiro', acao:'Otimizar categoria, serviços e palavras do perfil'},
-      {id:'g_fotos', q:'Quantas fotos tem no perfil do Google?', peso:15, tipo:'num', ph:'nº de fotos', nota:function(n){ return n >= 10 ? 1 : n >= 1 ? .5 : 0; },
+      {id:'g_fotos', sol:'Start', q:'Quantas fotos tem no perfil do Google?', peso:15, tipo:'num', ph:'nº de fotos', nota:function(n){ return n >= 10 ? 1 : n >= 1 ? .5 : 0; },
         perda:'Sem fotos, o perfil parece abandonado e recebe menos cliques', acao:'Publicar pelo menos 10 fotos boas do local e dos serviços'},
-      {id:'g_categoria', q:'Categoria e serviços estão corretos?', peso:10, tipo:'op', ops:SIM,
+      {id:'g_categoria', sol:'Start', q:'Categoria e serviços estão corretos?', peso:10, tipo:'op', ops:SIM,
         perda:'O Google não mostra a empresa nas buscas certas', acao:'Corrigir categoria principal e listar os serviços'},
-      {id:'g_horario', q:'Horário e telefone estão atualizados?', peso:10, tipo:'op', ops:SIM,
+      {id:'g_horario', sol:'Start', q:'Horário e telefone estão atualizados?', peso:10, tipo:'op', ops:SIM,
         perda:'Clientes chegam com a loja fechada ou ligam para o número errado', acao:'Atualizar horário, feriados e telefone'},
-      {id:'site', q:'Tem site próprio?', peso:10, tipo:'op', ops:[['Sim',1],['Só link de rede social',.5],['Não',0]],
+      {id:'site', sol:'Start', q:'Tem site próprio?', peso:10, tipo:'op', ops:[['Sim',1],['Só link de rede social',.5],['Não',0]],
         perda:'Falta um endereço oficial para o cliente conferir serviços e preços', acao:'Criar site de 1 página com botão de WhatsApp'},
-      {id:'site_mob', q:'O site abre bem no celular e tem cadeado (HTTPS)?', peso:5, tipo:'op', ops:[['Sim',1],['Mais ou menos',.5],['Não / sem site',0]],
+      {id:'site_mob', sol:'Start', q:'O site abre bem no celular e tem cadeado (HTTPS)?', peso:5, tipo:'op', ops:[['Sim',1],['Mais ou menos',.5],['Não / sem site',0]],
         perda:'O site assusta ou demora no celular, e o cliente desiste', acao:'Site rápido, responsivo e seguro'},
-      {id:'g_posts', q:'Publicou novidades no Google nos últimos 30 dias?', peso:5, tipo:'op', ops:[['Sim',1],['Não',0]],
+      {id:'g_posts', sol:'Gestão mensal do perfil no Google', q:'Publicou novidades no Google nos últimos 30 dias?', peso:5, tipo:'op', ops:[['Sim',1],['Não',0]],
         perda:'O perfil parece parado em comparação aos concorrentes', acao:'Publicar ofertas e novidades no Google todo mês'}
     ]},
     {id:'conf', nome:'Confiança e reputação', peso:25, itens:[
-      {id:'nota', q:'Nota média no Google', peso:30, tipo:'num', ph:'ex.: 4,6', passo:'0.1', nota:function(n){ return !n ? 0 : n >= 4.7 ? 1 : n >= 4.3 ? .7 : n >= 4 ? .4 : .1; },
-        perda:'Nota baixa ou sem nota faz o cliente desconfiar do serviço', acao:'Pós-venda que pede avaliação aos clientes satisfeitos'},
-      {id:'aval', q:'Quantas avaliações no Google?', peso:25, tipo:'num', ph:'nº de avaliações', nota:function(n){ return n >= 50 ? 1 : n >= 20 ? .7 : n >= 5 ? .4 : n >= 1 ? .15 : 0; },
+      {id:'nota', sol:'Pós-venda que pede avaliação', q:'Nota média no Google', peso:30, tipo:'num', ph:'ex.: 4,6', passo:'0.1', nota:function(n){ return !n ? 0 : n >= 4.7 ? 1 : n >= 4.3 ? .7 : n >= 4 ? .4 : .1; },
+        perda:'Nota baixa ou sem nota faz o cliente desconfiar do serviço', acao:'Pedir avaliação aos clientes satisfeitos depois de cada venda'},
+      {id:'aval', sol:'Pós-venda que pede avaliação', q:'Quantas avaliações no Google?', peso:25, tipo:'num', ph:'nº de avaliações', nota:function(n){ return n >= 50 ? 1 : n >= 20 ? .7 : n >= 5 ? .4 : n >= 1 ? .15 : 0; },
         perda:'Poucas avaliações passam a impressão de negócio pequeno ou novo demais', acao:'Campanha de avaliações com link direto'},
-      {id:'resp', q:'Responde às avaliações?', peso:20, tipo:'op', ops:[['Todas',1],['Algumas',.5],['Nenhuma',0]],
+      {id:'resp', sol:'Respostas às avaliações do Google', q:'Responde às avaliações?', peso:20, tipo:'op', ops:[['Todas',1],['Algumas',.5],['Nenhuma',0]],
         perda:'Avaliações sem resposta, principalmente as ruins, afastam clientes', acao:'Responder todas as avaliações, com apoio da IA'},
-      {id:'recente', q:'Recebeu avaliação nos últimos 3 meses?', peso:10, tipo:'op', ops:[['Sim',1],['Não',0]],
+      {id:'recente', sol:'Pós-venda que pede avaliação', q:'Recebeu avaliação nos últimos 3 meses?', peso:10, tipo:'op', ops:[['Sim',1],['Não',0]],
         perda:'Avaliações antigas fazem o cliente duvidar se o serviço continua bom', acao:'Pedir avaliação a cada atendimento'},
-      {id:'visual', q:'Logo e cores são profissionais e iguais em todo lugar?', peso:15, tipo:'op', ops:SIM,
+      {id:'visual', sol:'Presença', q:'Logo e cores são profissionais e iguais em todo lugar?', peso:15, tipo:'op', ops:SIM,
         perda:'Visual amador ou diferente em cada canal reduz a confiança', acao:'Criar identidade visual e aplicar em todos os canais'}
     ]},
     {id:'atend', nome:'Atendimento', peso:25, itens:[
-      {id:'tempo', q:'Teste: quanto tempo levou para responder uma mensagem?', peso:35, tipo:'op', ops:[['Até 15 min',1],['Até 2 horas',.6],['Mais de 2 horas',.2],['Não respondeu',0]],
+      {id:'tempo', sol:'Completo', q:'Teste: quanto tempo levou para responder uma mensagem?', peso:35, tipo:'op', ops:[['Até 15 min',1],['Até 2 horas',.6],['Mais de 2 horas',.2],['Não respondeu',0]],
         perda:'O cliente que espera fecha com quem respondeu antes', acao:'Assistente de IA que responde na hora, 24 horas'},
-      {id:'wa_bus', q:'Usa WhatsApp Business (e não o pessoal)?', peso:15, tipo:'op', ops:[['Sim',1],['Não',0]],
+      {id:'wa_bus', sol:'Presença', q:'Usa WhatsApp Business (e não o pessoal)?', peso:15, tipo:'op', ops:[['Sim',1],['Não',0]],
         perda:'Sem perfil comercial, o atendimento fica desorganizado e pouco profissional', acao:'Configurar WhatsApp Business com perfil completo'},
-      {id:'catalogo', q:'Tem catálogo ou lista de preços no WhatsApp?', peso:15, tipo:'op', ops:SIM,
+      {id:'catalogo', sol:'Presença', q:'Tem catálogo ou lista de preços no WhatsApp?', peso:15, tipo:'op', ops:SIM,
         perda:'O cliente precisa perguntar tudo e desiste no meio do caminho', acao:'Montar catálogo com produtos, serviços e preços'},
-      {id:'agenda', q:'Dá para agendar ou pedir online?', peso:15, tipo:'op', ops:[['Sim',1],['Só pelo WhatsApp',.5],['Não',0]],
+      {id:'agenda', sol:'Agendamento online', q:'Dá para agendar ou pedir online?', peso:15, tipo:'op', ops:[['Sim',1],['Só pelo WhatsApp',.5],['Não',0]],
         perda:'Quem decide fora do horário comercial não consegue marcar e esquece', acao:'Agendamento online com lembrete automático'},
-      {id:'saudacao', q:'Tem mensagem de saudação e de ausência?', peso:10, tipo:'op', ops:SIM,
+      {id:'saudacao', sol:'Presença', q:'Tem mensagem de saudação e de ausência?', peso:10, tipo:'op', ops:SIM,
         perda:'Fora do horário, o cliente fica sem resposta nenhuma', acao:'Mensagens automáticas de boas-vindas e ausência'},
-      {id:'link_wa', q:'O WhatsApp está fácil de achar (Google, site, Instagram)?', peso:10, tipo:'op', ops:SIM,
+      {id:'link_wa', sol:'Start', q:'O WhatsApp está fácil de achar (Google, site, Instagram)?', peso:10, tipo:'op', ops:SIM,
         perda:'O cliente não acha como falar com a empresa', acao:'Botão de WhatsApp em todos os canais'}
     ]},
     {id:'redes', nome:'Redes sociais', peso:20, itens:[
-      {id:'ig', q:'Tem Instagram profissional?', peso:20, tipo:'op', ops:[['Sim',1],['Pessoal',.5],['Não',0]],
+      {id:'ig', sol:'Instagram profissional', q:'Tem Instagram profissional?', peso:20, tipo:'op', ops:[['Sim',1],['Pessoal',.5],['Não',0]],
         perda:'Muitos clientes conferem o Instagram antes de comprar e não encontram nada', acao:'Criar ou converter para perfil profissional'},
-      {id:'ultimo', q:'Quando foi a última postagem?', peso:30, tipo:'op', ops:[['Até 7 dias',1],['Até 30 dias',.6],['Mais de 30 dias',.2],['Nunca postou',0]],
+      {id:'ultimo', sol:'Calendário mensal de conteúdo', q:'Quando foi a última postagem?', peso:30, tipo:'op', ops:[['Até 7 dias',1],['Até 30 dias',.6],['Mais de 30 dias',.2],['Nunca postou',0]],
         perda:'Perfil parado passa a impressão de que o negócio fechou', acao:'Calendário mensal de conteúdo'},
-      {id:'bio', q:'A bio diz o que faz, a cidade e tem link de contato?', peso:20, tipo:'op', ops:SIM,
+      {id:'bio', sol:'Instagram profissional', q:'A bio diz o que faz, a cidade e tem link de contato?', peso:20, tipo:'op', ops:SIM,
         perda:'O visitante não entende o que a empresa faz nem como chamar', acao:'Reescrever bio com link de WhatsApp'},
-      {id:'qualidade', q:'Fotos e vídeos têm boa qualidade?', peso:20, tipo:'op', ops:SIM,
+      {id:'qualidade', sol:'Fotos e vídeos curtos com IA', q:'Fotos e vídeos têm boa qualidade?', peso:20, tipo:'op', ops:SIM,
         perda:'Imagens fracas desvalorizam o produto e o preço', acao:'Fotos e vídeos curtos editados com IA'},
-      {id:'seg', q:'Quantos seguidores?', peso:10, tipo:'num', ph:'nº de seguidores', nota:function(n){ return n >= 1000 ? 1 : n >= 300 ? .6 : n >= 1 ? .3 : 0; },
-        perda:'Alcance pequeno: poucas pessoas da região conhecem a empresa', acao:'Conteúdo local e parcerias na região'}
+      {id:'seg', sol:'Calendário mensal de conteúdo', q:'Quantos seguidores?', peso:10, tipo:'num', ph:'nº de seguidores', nota:function(n){ return n >= 1000 ? 1 : n >= 300 ? .6 : n >= 1 ? .3 : 0; },
+        perda:'Alcance pequeno: poucas pessoas da região conhecem a empresa', acao:'Conteúdo frequente e local para ganhar seguidores da região'}
     ]}
   ];
-  var PACOTES = {
-    Start:{preco:'R$ 650 + R$ 49/mês', inclui:'Perfil no Google otimizado, site de 1 página e domínio no 1º ano'},
-    'Presença':{preco:'R$ 850 + R$ 49/mês', inclui:'Tudo do Start, logo e identidade visual e WhatsApp Business com catálogo'},
-    Completo:{preco:'R$ 1.500 + R$ 150/mês', inclui:'Tudo do Presença, chatbot de IA no WhatsApp e 1 mês de acompanhamento'},
-    Enterprise:{preco:'sob consulta', inclui:'Sistema AbertoCore: todos os canais numa caixa só, IA, funil, agenda e relatórios'}
-  };
 
   /* ---------- estado ---------- */
-  var CHAVE = 'aberto-auditorias-v1';
-  function vazio(){ return {id:'a' + Date.now(), empresa:'', ramo:'', cidade:'Arujá/SP', resp:'', data:hojeISO(), msgs:'', conc:'', concNota:'', concAval:'', r:{}}; }
+  function vazio(){ return {cid:null, empresa:'', ramo:'', cidade:'Arujá/SP', resp:'', data:hojeISO(), msgs:'', conc:'', concNota:'', concAval:'', r:{}}; }
   var A = vazio();
-  function lista(){ try { return JSON.parse(localStorage.getItem(CHAVE)) || []; } catch (e) { return []; } }
-  function grava(l){ try { localStorage.setItem(CHAVE, JSON.stringify(l)); } catch (e) {} }
+  /* Carrega a auditoria salva no contato, ou prepara uma nova com os dados dele. */
+  function deContato(id){
+    var S = Core.carrega(), c = Core.contato(S, id); if (!c) return vazio();
+    var e = Core.empresa(c);
+    if (c.auditoria){ var a = JSON.parse(JSON.stringify(c.auditoria)); a.cid = c.id; a.r = a.r || {}; return a; }
+    var n = vazio(); n.cid = c.id; n.empresa = c.negocio || ''; n.resp = c.nome || ''; n.ramo = e.ramo || ''; n.cidade = e.cidade || 'Arujá/SP';
+    return n;
+  }
 
   /* ---------- cálculo ---------- */
   function valor(it){
@@ -273,14 +289,19 @@
     }); });
     return L.sort(function(a, b){ return b.impacto - a.impacto; });
   }
-  function pacote(c){
-    var n = {}; c.areas.forEach(function(a){ n[a.id] = a.nota === null ? 100 : a.nota; });
-    var msgs = parseInt(A.msgs, 10) || 0;
-    if (msgs >= 30) return 'Enterprise';
-    if (n.atend < 70) return 'Completo';
-    if (n.conf < 70 || n.redes < 70) return 'Presença';
-    if (n.enc < 70) return 'Start';
-    return msgs >= 10 ? 'Enterprise' : 'Completo';
+  /* Recomendação: cada item fraco aponta para a solução que o resolve (sol).
+     O pacote é o maior nível necessário; módulos entram se o pacote não os inclui. */
+  function recomenda(L){
+    var S = Core.carrega(), ordem = Core.ORDEM_PACOTES, nivel = -1, mods = [];
+    L.forEach(function(p){
+      var i = ordem.indexOf(p.it.sol);
+      if (i >= 0) nivel = Math.max(nivel, i);
+      else if (mods.indexOf(p.it.sol) < 0) mods.push(p.it.sol);
+    });
+    if ((parseInt(A.msgs, 10) || 0) >= 30) nivel = 3;
+    var pac = nivel >= 0 ? ordem[nivel] : '';
+    mods = mods.filter(function(m){ return !pac || !Core.incluso(pac, m); });
+    return {pacote:pac, modulos:mods, produtos:S.produtos};
   }
 
   /* ---------- formulário ---------- */
@@ -339,7 +360,7 @@
       '<text x="110" y="112" text-anchor="middle" font-size="11" fill="#5B6678">de 100</text></svg><div class="nivel" style="color:' + nv.c + '">' + nv.t + '</div>';
   }
   function desenhaRel(){
-    var c = calcula(), L = perdas(), emp = A.empresa || 'Empresa', pk = pacote(c);
+    var c = calcula(), L = perdas(), emp = A.empresa || 'Empresa', rec = recomenda(L);
     c.areas.forEach(function(a){ var el = $('#nf_' + a.id); if (el) el.textContent = a.nota === null ? a.resp + '/' + a.n : a.nota + '/100'; });
     $('#mobScore').textContent = c.geral === null ? '' : '(' + c.geral + ')';
     var resumo = c.geral === null ? 'Preencha os itens ao lado para gerar a nota.' :
@@ -365,9 +386,15 @@
       comp = '<h3>Comparação com a concorrência</h3><div class="comp"><div class="c"><div class="r">' + esc(emp) + '</div><div class="n">' + minhaNota + ' ★</div><div class="r">' + esc(minhasAval) + ' avaliações no Google</div></div>' +
         '<div class="c"><div class="r">' + esc(A.conc) + '</div><div class="n">' + (A.concNota ? String(A.concNota).replace('.', ',') : '–') + ' ★</div><div class="r">' + esc(A.concAval || '0') + ' avaliações no Google</div></div></div>';
     }
-    var acoes = L.slice(0, 5).map(function(p){ return '<li>' + esc(p.it.acao) + '</li>'; }).join('');
-    var plano = c.geral === null ? '' : '<h3>Plano recomendado</h3><div class="plano"><div class="pk">Pacote ' + pk + '</div><div class="pr">' + PACOTES[pk].preco + ': ' + PACOTES[pk].inclui + '</div>' +
-      (acoes ? '<ul>' + acoes + '</ul>' : '') + '</div>';
+    function preco(nome){ var p = rec.produtos.filter(function(x){ return x.nome === nome; })[0]; if (!p) return ''; return p.setup == null ? 'valor sob consulta' : Core.brl(p.setup) + (p.mensal ? ' + ' + Core.brl(p.mensal) + '/mês' : ''); }
+    function ds(nome){ var p = rec.produtos.filter(function(x){ return x.nome === nome; })[0]; return p ? p.ds : ''; }
+    var porSol = {};
+    L.forEach(function(p){ var k = Core.ORDEM_PACOTES.indexOf(p.it.sol) >= 0 ? 'Pacote ' + rec.pacote : p.it.sol; (porSol[k] = porSol[k] || []).push(p.it.acao); });
+    var linhas = Object.keys(porSol).map(function(k){ return '<tr><td><b>' + esc(k) + '</b></td><td>' + porSol[k].map(esc).join('<br>') + '</td></tr>'; }).join('');
+    var plano = (c.geral === null || !L.length) ? '' : '<h3>Plano recomendado</h3><div class="plano">' +
+      (rec.pacote ? '<div class="pk">Pacote ' + rec.pacote + '</div><div class="pr">' + preco(rec.pacote) + ': ' + esc(ds(rec.pacote)) + '</div>' : '<div class="pk">Módulos avulsos</div>') +
+      (rec.modulos.length ? '<div class="pr" style="margin-top:6px">' + (rec.pacote ? 'Mais os módulos: ' : '') + rec.modulos.map(function(m){ return esc(m) + ' (' + preco(m) + ')'; }).join(', ') + '</div>' : '') +
+      '<table style="margin-top:10px"><thead><tr><th>Solução</th><th>O que resolve</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
     $('#rel').innerHTML = '<div class="rel-cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>aberto <b>digital</b></div>' +
         '<div class="meta">Auditoria de presença digital<br>' + dataBR(A.data) + (A.resp ? '<br>Para: ' + esc(A.resp) : '') + '</div></div>' +
       '<h1>' + esc(emp) + '</h1><div class="sub">' + esc([A.ramo, A.cidade].filter(Boolean).join(', ')) + '</div>' +
@@ -377,21 +404,47 @@
       '<div class="rodape"><span>Aberto Digital · Julio Romanelli · WhatsApp (11) 99123-3627 · abertodigital.com</span><span>Avaliação feita em ' + dataBR(A.data) + ' com base no que é visível publicamente.</span></div>';
   }
 
-  /* ---------- salvar, carregar, imprimir ---------- */
-  function desenhaSalvas(){
-    var l = lista();
-    $('#salvas').innerHTML = '<option value="">Salvas (' + l.length + ')</option>' + l.map(function(a){ return '<option value="' + a.id + '"' + (a.id === A.id ? ' selected' : '') + '>' + esc(a.empresa || 'Sem nome') + ' · ' + dataBR(a.data) + '</option>'; }).join('');
+  /* ---------- contato, salvar, imprimir ---------- */
+  function desenhaContatos(){
+    var S = Core.carrega();
+    $('#salvas').innerHTML = '<option value="">Novo contato</option>' + S.contatos.slice().sort(function(a, b){ return (a.negocio || a.nome).localeCompare(b.negocio || b.nome); }).map(function(c){
+      return '<option value="' + c.id + '"' + (c.id === A.cid ? ' selected' : '') + '>' + esc(c.negocio || c.nome) + (c.auditoria ? ' (' + c.auditoria.geral + ')' : '') + '</option>';
+    }).join('');
+    ['#irProposta', '#irBriefing'].forEach(function(s){ var b = $(s); if (A.cid){ b.removeAttribute('disabled'); b.href = (s === '#irProposta' ? '../proposta/' : '../briefing/') + '?c=' + A.cid; } else { b.setAttribute('disabled', ''); b.removeAttribute('href'); } });
+    $('#voltarCrm').href = '../' + (A.cid ? '?c=' + A.cid : '') + '#mensagens';
   }
-  function aviso(t){ var d = document.createElement('div'); d.className = 'aviso'; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 2600); }
-  $('#salvar').onclick = function(){
-    var l = lista().filter(function(a){ return a.id !== A.id; }); l.unshift(JSON.parse(JSON.stringify(A))); grava(l); desenhaSalvas();
-    aviso('Auditoria de ' + (A.empresa || 'sem nome') + ' salva neste navegador.');
-  };
-  $('#salvas').onchange = function(e){
-    var a = lista().filter(function(x){ return x.id === e.target.value; })[0]; if (!a) return;
-    A = a; desenhaForm(); desenhaRel(); desenhaSalvas();
-  };
-  $('#nova').onclick = function(){ A = vazio(); desenhaForm(); desenhaRel(); desenhaSalvas(); window.scrollTo(0, 0); };
+  function salvar(){
+    var S = Core.carrega(), c = A.cid ? Core.contato(S, A.cid) : null, calc = calcula(), L = perdas(), rec = recomenda(L), novo = false;
+    if (!c){
+      if (!A.empresa && !A.resp){ aviso('Preencha o nome da empresa antes de salvar.'); return false; }
+      c = Core.novoContato(S, {nome:A.resp || A.empresa, negocio:A.empresa}); A.cid = c.id; novo = true;
+    }
+    var e = Core.empresa(c);
+    if (A.empresa) c.negocio = A.empresa;
+    if (A.ramo) e.ramo = A.ramo;
+    if (A.cidade) e.cidade = A.cidade;
+    if (A.resp && e.responsaveis[0] && !e.responsaveis[0].nome) e.responsaveis[0].nome = A.resp;
+    var primeira = !c.auditoria || c.auditoria.data !== A.data;
+    var dados = JSON.parse(JSON.stringify(A)); delete dados.cid;
+    dados.geral = calc.geral; dados.areas = calc.areas.map(function(a){ return {id:a.id, nome:a.nome, nota:a.nota}; });
+    dados.perdas = L.map(function(p){ return {perda:p.it.perda, area:p.ar.nome, acao:p.it.acao, sol:p.it.sol, grave:p.v < .5}; });
+    dados.recomendacao = {pacote:rec.pacote, modulos:rec.modulos};
+    c.auditoria = dados;
+    c.auditorias = (c.auditorias || []).filter(function(x){ return x.data !== A.data; }).concat([{data:A.data, geral:calc.geral}]);
+    var pac = rec.pacote && Core.produto(S, rec.pacote);
+    if (!c.valor && pac && pac.setup) c.valor = pac.setup;
+    if (primeira) c.msgs.push({de:'eq', txt:'Auditoria de presença digital: nota ' + (calc.geral == null ? '-' : calc.geral) + '/100.' + (rec.pacote ? ' Sugestão: pacote ' + rec.pacote + '.' : ''), ts:Date.now()});
+    Core.salva(S);
+    history.replaceState(null, '', '?c=' + c.id);
+    desenhaContatos();
+    aviso(novo ? (c.negocio || c.nome) + ' criado no CRM e auditoria salva.' : 'Auditoria salva no contato ' + (c.negocio || c.nome) + '.');
+    return true;
+  }
+  $('#salvar').onclick = salvar;
+  $('#salvas').onchange = function(e){ A = e.target.value ? deContato(e.target.value) : vazio(); history.replaceState(null, '', e.target.value ? '?c=' + e.target.value : '?'); desenhaForm(); desenhaRel(); desenhaContatos(); };
+  $('#nova').onclick = function(){ A = vazio(); history.replaceState(null, '', '?'); desenhaForm(); desenhaRel(); desenhaContatos(); window.scrollTo(0, 0); };
+  $('#irProposta').onclick = function(e){ if (!salvar()) e.preventDefault(); };
+  $('#irBriefing').onclick = function(e){ if (!salvar()) e.preventDefault(); };
   $('#imprimir').onclick = function(){
     var t = document.title; document.title = 'Auditoria ' + (A.empresa || 'empresa') + ' ' + dataBR(A.data).replace(/\//g, '-');
     window.print(); setTimeout(function(){ document.title = t; }, 500);
@@ -403,7 +456,8 @@
     window.scrollTo(0, 0);
   };
 
-  desenhaForm(); desenhaRel(); desenhaSalvas();
+  if (Core.param('c')) A = deContato(Core.param('c'));
+  desenhaForm(); desenhaRel(); desenhaContatos();
 })();
 </script>
 </body>

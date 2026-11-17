@@ -173,6 +173,12 @@
   .seg button{flex:1;padding:6px;border-radius:7px;font-weight:600;font-size:13.5px;color:var(--sec)}
   .seg button[aria-pressed="true"].lead{background:#E6EEFF;color:#1D4FC4}
   .seg button[aria-pressed="true"].cliente{background:#E2F5EA;color:#167443}
+  .docs{display:flex;flex-direction:column;gap:6px;margin:6px 0 14px}
+  .doc-l{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--linha);border-radius:10px}
+  .doc-l b{display:block;font-size:13.5px}
+  .doc-l small{font-size:12px;color:var(--sec)}
+  .doc-l small.ok{color:var(--verde)}
+  .doc-l .btn{text-decoration:none;color:var(--ink)}
   .dado{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:5px 0}
   .dado span:first-child{color:var(--sec)}
 
@@ -403,6 +409,7 @@
 <dialog id="modal"></dialog>
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
+<script src="core/dados.js"></script>
 <script>
 (function(){
   'use strict';
@@ -489,7 +496,7 @@
 
   var CANAIS = {
     WhatsApp:{cor:'var(--wa)', l:'W'}, Instagram:{cor:'var(--ig)', l:'I'},
-    Facebook:{cor:'var(--fb)', l:'F'}, 'E-mail':{cor:'var(--em)', l:'@'}
+    Facebook:{cor:'var(--fb)', l:'F'}, 'E-mail':{cor:'var(--em)', l:'@'}, Presencial:{cor:'#8A5B00', l:'P'}
   };
   var ETAPAS = CONFIG.etapas, COR_ETAPA = CONFIG.coresEtapas;
   var CORES_AV = ['#2F6FED','#1E3050','#C77700','#1F9D55','#B0417A','#5B6678','#D9603B','#3B7A8C'];
@@ -579,7 +586,9 @@
   var CHAVE = CONFIG.sistema.toLowerCase() + '-demo-v1';
   var S;
   try { S = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { S = null; }
-  if (!S || !S.contatos) S = semente();
+  if (!S || !S.contatos || !S.ia) S = (function(n){ if (S && S.contatos){ n.contatos = S.contatos.concat(n.contatos.filter(function(x){ return !S.contatos.some(function(y){ return y.id === x.id; }); })); } return n; })(semente());
+  Core.garante(S);
+  try { if (!localStorage.getItem(CHAVE)) localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {}
   function salva(){ try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} }
   function contato(id){ for (var i = 0; i < S.contatos.length; i++) if (S.contatos[i].id === id) return S.contatos[i]; return null; }
   function ultima(c){ return c.msgs[c.msgs.length - 1]; }
@@ -607,7 +616,7 @@
   ];
   var atual = (location.hash || '#mensagens').slice(1);
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
-  var sel = null, aba = 'entrada', canaisSel = [], busca = '';
+  var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '';
 
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.naoLidas || 0); }, 0); }
   function desenhaNav(){
@@ -770,6 +779,7 @@
       '<div class="campo"><label for="dFollow">Próximo retorno</label><input id="dFollow" type="date" value="' + (c.followup || '') + '"></div></div>' +
       '<div class="campo"><label for="dNota">Anotações</label><textarea id="dNota" rows="3">' + esc(c.nota) + '</textarea></div>' +
       '<button class="btn pri" id="dAgendar" style="width:100%;justify-content:center;margin-bottom:16px">' + ic('agenda') + 'Agendar compromisso</button>' +
+      blocoDocs(c) +
       '<div class="dado"><span>Canal</span>' + chipCanal(c.canal) + '</div>' +
       '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
       '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' +
@@ -787,6 +797,18 @@
     $('#dFollow').onchange = function(e){ c.followup = e.target.value || null; salva(); desenhaLista(); };
     $('#dNota').onchange = function(e){ c.nota = e.target.value; salva(); };
     $('#dAgendar').onclick = function(){ modalEvento(c.id); };
+  }
+  function blocoDocs(c){
+    var e = c.empresa || {}, b = c.briefing || {}, a = c.auditoria, p = c.proposta, k = c.contrato;
+    var nb = Object.keys(b).filter(function(x){ return x !== 'materiais' && x !== 'atualizado' && b[x]; }).length;
+    function lin(nome, st, url, acao, ok){ return '<div class="doc-l"><span><b>' + nome + '</b><small' + (ok ? ' class="ok"' : '') + '>' + st + '</small></span><a class="btn peq" href="' + url + '?c=' + c.id + '">' + acao + '</a></div>'; }
+    return '<div class="grupo-t">Empresa e documentos</div><div class="docs">' +
+      lin('Auditoria', a ? 'Nota ' + a.geral + ' em ' + Core.dataBR(a.data) : 'Não feita', 'auditoria/', a ? 'Abrir' : 'Fazer', !!a) +
+      lin('Briefing', nb ? nb + ' respostas' + (b.atualizado ? ', ' + quando(b.atualizado) : '') : 'Não preenchido', 'briefing/', nb ? 'Abrir' : 'Preencher', nb > 0) +
+      lin('Proposta', p ? p.numero + ', ' + Core.brl(p.setup) : 'Não gerada', 'proposta/', p ? 'Abrir' : 'Gerar', !!p) +
+      lin('Contrato', k ? 'Gerado ' + quando(k.gerado || Date.now()) : 'Não gerado', 'contrato/', k ? 'Abrir' : 'Gerar', !!k) + '</div>' +
+      (e.razao || e.cnpj ? '<div class="dado"><span>Razão social</span><span>' + esc(e.razao || '-') + '</span></div><div class="dado"><span>CNPJ</span><span>' + esc(e.cnpj || '-') + '</span></div>' : '') +
+      (e.responsaveis && e.responsaveis.length > 1 ? '<div class="dado"><span>Responsáveis</span><span>' + e.responsaveis.map(function(r){ return esc(r.nome); }).join(', ') + '</span></div>' : '');
   }
   function mudaEtapa(c, etapa){
     c.etapa = etapa;
@@ -944,7 +966,7 @@
   function grafCanais(){
     var ks = Object.keys(S.msgsCanal).sort(function(a, b){ return S.msgsCanal[b] - S.msgsCanal[a]; });
     var max = S.msgsCanal[ks[0]], W = 320, rh = 44, H = ks.length * rh;
-    var cores = {WhatsApp:'#1FAF5A', Instagram:'#C13584', Facebook:'#1877F2', 'E-mail':'#5B6678'};
+    var cores = {WhatsApp:'#1FAF5A', Instagram:'#C13584', Facebook:'#1877F2', 'E-mail':'#5B6678', Presencial:'#8A5B00'};
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Mensagens por canal">';
     ks.forEach(function(k, i){
       var y = i * rh, w = S.msgsCanal[k] / max * (W - 60);
@@ -1104,6 +1126,10 @@
   document.addEventListener('focusin', function(e){ if (e.target.matches('textarea, input:not([type=checkbox]):not([type=date]):not([type=time]), select')) document.body.classList.add('teclado'); });
   document.addEventListener('focusout', function(){ setTimeout(function(){ if (!document.activeElement || !document.activeElement.matches('textarea, input, select')) document.body.classList.remove('teclado'); }, 50); });
   document.addEventListener('click', function(){ var pf = $('#popFiltro'); if (pf && !pf.hidden){ pf.hidden = true; $('#btnFiltro').setAttribute('aria-expanded', 'false'); } });
+  function recarrega(){ try { var n = JSON.parse(localStorage.getItem(CHAVE)); if (n && n.contatos){ S = Core.garante(n); if (!S.ia) S.ia = semente().ia; desenha(); } } catch (e) {} }
+  window.addEventListener('storage', function(e){ if (e.key === CHAVE) recarrega(); });
+  window.addEventListener('pageshow', function(e){ if (e.persisted) recarrega(); });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) recarrega(); });
   var mq = window.matchMedia('(max-width:760px)');
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(function(){ if (atual === 'dashboard') vDash(); });
 

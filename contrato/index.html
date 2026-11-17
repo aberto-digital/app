@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contrato | AbertoCore</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../core/estilo.css">
+<style>
+  .folha p{text-align:justify}
+  .folha h2{font-size:1.05rem;margin:18px 0 4px}
+  .faltas{border:1px solid #F2C46B;background:#FFFBF0;border-radius:12px;padding:12px 14px;font-size:13.5px}
+  .faltas b{display:block;margin-bottom:4px}
+</style>
+</head>
+<body data-aba="form">
+<header class="barra">
+  <a class="voltar" id="voltarCrm" href="../#mensagens" aria-label="Voltar ao AbertoCore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
+  <span class="sep"></span><span class="tt">Contrato de prestação de serviços</span>
+  <div class="dir">
+    <select class="btn" id="contato" aria-label="Contato do CRM"></select>
+    <a class="btn" id="irProposta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg><span class="txt">Proposta</span></a>
+    <button class="btn" id="salvar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg><span class="txt">Salvar</span></button>
+    <button class="btn pri" id="imprimir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></svg><span class="txt">Imprimir / PDF</span></button>
+  </div>
+</header>
+<div class="abas-mob" role="tablist">
+  <button role="tab" data-a="form" aria-selected="true">Dados</button>
+  <button role="tab" data-a="doc" aria-selected="false">Contrato</button>
+</div>
+
+<main class="grade">
+  <section class="form" id="form"></section>
+  <article class="folha" id="doc"></article>
+</main>
+
+<script src="../core/dados.js"></script>
+<script>
+(function(){
+  'use strict';
+  var esc = Core.esc, brl = Core.brl;
+  function $(s){ return document.querySelector(s); }
+  var S, c, K, CT, cid = Core.param('c') ? +Core.param('c') : null, faltas = [];
+
+  function carrega(){
+    S = Core.carrega(); c = cid ? Core.contato(S, cid) : null;
+    K = Core.contratada();
+    ['razao', 'cnpj', 'endereco', 'email'].forEach(function(k){ if (K[k] == null) K[k] = ''; });
+    if (!c) return;
+    Core.empresa(c);
+    CT = c.contrato ? JSON.parse(JSON.stringify(c.contrato)) : {data:Core.hoje(), rodadas:2, testemunhas:''};
+  }
+  function campo(id, rot, val, attrs, cheio){ return '<div class="campo' + (cheio ? ' cheio' : '') + (!val ? ' falta' : '') + '"><label for="' + id + '">' + rot + '</label><input id="' + id + '" ' + (attrs || '') + ' value="' + esc(val) + '"></div>'; }
+
+  function desenhaForm(){
+    if (!c){ $('#form').innerHTML = '<div class="bloco vazio">Escolha o contato no topo. O contrato usa os dados da empresa, do briefing e da proposta salvos nele.</div>'; return; }
+    var e = c.empresa, sig = Core.signatario(c), si = e.responsaveis.indexOf(sig);
+    $('#form').innerHTML =
+      (c.proposta ? '' : '<div class="faltas"><b>Ainda não há proposta salva.</b>O objeto e os valores vêm da proposta. <a href="../proposta/?c=' + c.id + '">Gerar a proposta</a>.</div>') +
+      '<div class="bloco"><h2>Cliente (contratante)</h2><p class="dica">Os campos em amarelo estão faltando. Tudo que você preencher aqui fica salvo no contato.</p><div class="campos">' +
+        campo('c_razao', 'Razão social', e.razao, 'data-e="razao"', true) + campo('c_cnpj', 'CNPJ ou CPF', e.cnpj, 'data-e="cnpj"') + campo('c_cidade', 'Cidade', e.cidade, 'data-e="cidade"') +
+        campo('c_end', 'Endereço completo', e.endereco, 'data-e="endereco"', true) + '</div></div>' +
+      '<div class="bloco"><h2>Quem assina pelo cliente</h2><div class="campos">' +
+        '<div class="campo cheio"><label for="sig">Responsável</label><select id="sig">' + e.responsaveis.map(function(r, i){ return '<option value="' + i + '"' + (i === si ? ' selected' : '') + '>' + esc(r.nome || 'Sem nome') + '</option>'; }).join('') + '</select></div>' +
+        campo('s_nome', 'Nome completo', sig.nome, 'data-s="nome"', true) + campo('s_cpf', 'CPF', sig.cpf, 'data-s="cpf"') + campo('s_email', 'E-mail', sig.email, 'data-s="email" type="email"') + '</div></div>' +
+      '<div class="bloco"><h2>Aberto Digital (contratada)</h2><p class="dica">Preencha uma vez: vale para todos os contratos.</p><div class="campos">' +
+        campo('k_razao', 'Razão social ou nome do MEI', K.razao, 'data-k="razao"', true) + campo('k_cnpj', 'CNPJ', K.cnpj, 'data-k="cnpj"') + campo('k_email', 'E-mail', K.email, 'data-k="email" type="email"') +
+        campo('k_end', 'Endereço', K.endereco, 'data-k="endereco"', true) + '</div></div>' +
+      '<div class="bloco"><h2>Contrato</h2><div class="campos">' +
+        '<div class="campo"><label for="ct_data">Data</label><input id="ct_data" type="date" value="' + CT.data + '"></div>' +
+        '<div class="campo"><label for="ct_rod">Rodadas de ajustes por material</label><input id="ct_rod" type="number" min="1" value="' + CT.rodadas + '"></div>' +
+        '<div class="campo cheio"><label for="ct_test">Testemunhas (opcional)</label><input id="ct_test" value="' + esc(CT.testemunhas) + '" placeholder="Nome e CPF, separadas por ;"></div></div>' +
+        '<p class="dica" style="margin-top:10px">Modelo de partida, não parecer jurídico: vale uma revisão por advogado antes do primeiro uso.</p></div>';
+  }
+  $('#form').addEventListener('input', function(ev){
+    var t = ev.target; if (!c) return;
+    var e = c.empresa, sig = Core.signatario(c);
+    if (t.hasAttribute('data-e')) e[t.getAttribute('data-e')] = t.value;
+    else if (t.hasAttribute('data-s')) sig[t.getAttribute('data-s')] = t.value;
+    else if (t.hasAttribute('data-k')){ K[t.getAttribute('data-k')] = t.value; Core.salvaContratada(K); }
+    else if (t.id === 'ct_data') CT.data = t.value;
+    else if (t.id === 'ct_rod') CT.rodadas = +t.value || 2;
+    else if (t.id === 'ct_test') CT.testemunhas = t.value;
+    clearTimeout(window._t); window._t = setTimeout(function(){ var at = Core.carrega(), al = Core.contato(at, cid); if (al){ al.empresa = c.empresa; Core.salva(at); } }, 600);
+    var box = t.closest('.campo'); if (box && t.tagName === 'INPUT' && t.type !== 'date' && t.type !== 'number') box.classList.toggle('falta', !t.value);
+    desenhaDoc();
+  });
+  $('#form').addEventListener('change', function(ev){
+    if (ev.target.id === 'sig'){ var i = +ev.target.value; c.empresa.responsaveis.forEach(function(r, j){ r.assina = j === i; }); desenhaForm(); desenhaDoc(); }
+  });
+
+  function v(val, rot){ if (val) return esc(val); faltas.push(rot); return '<span class="falta">[' + esc(rot) + ']</span>'; }
+  function desenhaDoc(){
+    if (!c){ $('#doc').innerHTML = '<p class="vazio">O contrato aparece aqui.</p>'; return; }
+    faltas = [];
+    var e = c.empresa, sig = Core.signatario(c), P = c.proposta || {}, emp = c.negocio || c.nome;
+    var itens = (P.pacote ? [P.pacote] : []).concat(P.modulos || []).map(function(n){ return Core.produto(S, n); }).filter(Boolean);
+    var objeto = itens.length ? itens.map(function(p){ return '<li><b>' + (p.tipo === 'Pacote' ? 'Pacote ' : '') + esc(p.nome) + ':</b> ' + esc(p.ds) + '</li>'; }).join('') : '<li>' + v('', 'serviços contratados') + '</li>';
+    var pagamento = P.pagamento ? P.pagamento.charAt(0).toLowerCase() + P.pagamento.slice(1) : v('', 'forma de pagamento');
+    var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>aberto <b>digital</b></div>' +
+      '<div class="meta">' + (P.numero ? 'Referente à proposta ' + esc(P.numero) + '<br>' : '') + Core.dataBR(CT.data) + '</div></div>' +
+      '<h1 style="font-size:1.55rem">Contrato de prestação de serviços digitais</h1>' +
+      '<h2>1. Partes</h2><p><b>CONTRATADA:</b> ' + v(K.razao, 'razão social da Aberto Digital') + ', nome fantasia Aberto Digital, CNPJ ' + v(K.cnpj, 'CNPJ da Aberto Digital') + ', com endereço em ' + v(K.endereco, 'endereço da Aberto Digital') + ', representada por Julio Romanelli, e-mail ' + v(K.email, 'e-mail da Aberto Digital') + ', WhatsApp (11) 99123-3627.</p>' +
+      '<p><b>CONTRATANTE:</b> ' + v(e.razao, 'razão social do cliente') + ', nome fantasia ' + esc(emp) + ', CNPJ/CPF ' + v(e.cnpj, 'CNPJ do cliente') + ', com endereço em ' + v(e.endereco, 'endereço do cliente') + (e.cidade ? ', ' + esc(e.cidade) : '') + ', representada por ' + v(sig.nome, 'nome de quem assina') + ', CPF ' + v(sig.cpf, 'CPF de quem assina') + ', e-mail ' + v(sig.email, 'e-mail de quem assina') + ', WhatsApp ' + v(sig.tel || c.tel, 'WhatsApp de quem assina') + '.</p>' +
+      '<h2>2. Objeto</h2><p>2.1. A CONTRATADA prestará à CONTRATANTE os seguintes serviços' + (P.numero ? ', conforme a proposta ' + esc(P.numero) + ' de ' + Core.dataBR(P.data) : '') + ':</p><ul>' + objeto + '</ul>' +
+      (P.obs ? '<p>2.2. Ajustes combinados: ' + esc(P.obs) + '</p>' : '') +
+      '<p>2.3. Qualquer serviço fora desta lista será orçado à parte e só será feito após aprovação por escrito, inclusive por WhatsApp ou e-mail.</p>' +
+      '<p>2.4. A CONTRATADA trabalha para melhorar a presença digital da CONTRATANTE, mas não garante posição específica no Google, número de clientes ou de vendas, pois esses resultados dependem também de fatores externos, como os critérios do Google e da Meta e a concorrência.</p>' +
+      '<h2>3. Valores e pagamento</h2><p>3.1. Implantação: <b>' + (P.setup != null ? brl(P.setup) : v('', 'valor da implantação')) + '</b>, paga ' + pagamento + ', por Pix ou boleto.</p>' +
+      '<p>3.2. Mensalidade: <b>' + (P.mensal ? brl(P.mensal) : 'não se aplica') + '</b>' + (P.mensal ? ', com vencimento todo dia ' + (P.vencimento || 10) + ', a partir do mês seguinte à entrega. Ela cobre hospedagem, manutenção, suporte por WhatsApp em horário comercial e os serviços mensais contratados' : '') + '.</p>' +
+      '<p>3.3. Não estão inclusos, salvo se escrito na proposta: anúncios pagos, tarifas da API oficial do WhatsApp ou de outras plataformas e licenças de software escolhidas pela CONTRATANTE. Esses custos serão informados antes e pagos pela CONTRATANTE.</p>' +
+      '<p>3.4. A mensalidade será reajustada uma vez por ano pelo IPCA dos últimos 12 meses, com aviso de 30 dias.</p>' +
+      '<p>3.5. Em caso de atraso, incidem multa de 2% e juros de 1% ao mês. Depois de 15 dias de atraso, a CONTRATADA poderá pausar os serviços mensais até a regularização, com aviso prévio.</p>' +
+      '<h2>4. Prazos</h2><p>4.1. A implantação será entregue em até <b>' + (P.prazo || v('', 'prazo')) + ' dias úteis</b>, contados a partir do pagamento da implantação, do briefing respondido e dos acessos liberados.</p>' +
+      '<p>4.2. A CONTRATANTE terá até 2 dias úteis para aprovar cada material. Atrasos nas aprovações, no envio de informações ou nos acessos aumentam o prazo pelo mesmo período.</p>' +
+      '<p>4.3. Estão inclusas ' + CT.rodadas + ' rodadas de ajustes por material entregue. Ajustes além disso serão orçados à parte.</p>' +
+      '<h2>5. Obrigações da CONTRATADA</h2><p>5.1. Executar os serviços com qualidade e dentro dos prazos. 5.2. Manter a CONTRATANTE informada sobre o andamento. 5.3. Responder o suporte por WhatsApp em até 1 dia útil, de segunda a sexta, das 9h às 18h. 5.4. Seguir as regras das plataformas usadas, como Google, Meta e WhatsApp.</p>' +
+      '<h2>6. Obrigações da CONTRATANTE</h2><p>6.1. Fornecer informações verdadeiras, materiais e os acessos necessários. 6.2. Garantir que tem direito de uso sobre os materiais que enviar, como fotos, marcas e textos. 6.3. Aprovar os materiais nos prazos combinados e pagar em dia. 6.4. Usar as ferramentas entregues dentro da lei e das regras das plataformas, sem enviar mensagens em massa a quem não autorizou.</p>' +
+      '<h2>7. Acessos e propriedade</h2><p>7.1. Domínio, perfil no Google, contas de redes sociais, número de WhatsApp e conteúdos são registrados em nome da CONTRATANTE, que mantém a propriedade mesmo após o fim do contrato.</p>' +
+      '<p>7.2. Logo e identidade visual criados no projeto passam a ser da CONTRATANTE depois da quitação da implantação.</p>' +
+      '<p>7.3. Ferramentas, códigos e sistemas próprios da CONTRATADA, como a plataforma AbertoCore, continuam sendo dela. A CONTRATANTE recebe o direito de uso enquanto o contrato estiver ativo e, ao final, uma cópia dos seus dados em formato comum, como planilha.</p>' +
+      '<p>7.4. A CONTRATADA pode citar a CONTRATANTE como cliente no portfólio, salvo pedido contrário por escrito.</p>' +
+      '<h2>8. Dados pessoais (LGPD)</h2><p>8.1. Nos dados dos clientes da CONTRATANTE, ela é a controladora e a CONTRATADA é a operadora, tratando os dados apenas para prestar estes serviços, conforme a Lei 13.709/2018. 8.2. A CONTRATADA mantém os dados em sigilo, usa medidas razoáveis de segurança, avisa a CONTRATANTE sobre qualquer incidente e apaga ou devolve os dados ao fim do contrato. 8.3. Mensagens de marketing só serão enviadas a quem autorizou recebê-las. 8.4. As partes manterão sigilo sobre informações comerciais uma da outra durante e depois do contrato.</p>' +
+      '<h2>9. Vigência e rescisão</h2><p>9.1. Este contrato começa na data da assinatura e vale por prazo indeterminado, sem fidelidade. 9.2. Qualquer parte pode encerrá-lo com aviso por escrito de 30 dias, inclusive por e-mail ou WhatsApp; a mensalidade do período de aviso é devida. 9.3. A implantação não é reembolsável depois que o trabalho começou; se o contrato terminar antes da entrega, a CONTRATADA entrega o que já foi feito e devolve a parte proporcional ao que não foi executado. 9.4. O contrato pode ser encerrado na hora em caso de descumprimento grave ou de atraso no pagamento por mais de 30 dias. 9.5. No fim do contrato, a CONTRATADA transfere todos os acessos do item 7.1 para a CONTRATANTE em até 5 dias úteis.</p>' +
+      '<h2>10. Disposições gerais e foro</h2><p>10.1. Mudanças neste contrato valem apenas por escrito, aceitas pelas duas partes. 10.2. As partes aceitam a assinatura eletrônica deste contrato. 10.3. Fica eleito o foro da Comarca de Arujá/SP.</p>' +
+      '<p style="margin-top:18px">Arujá/SP, ' + Core.dataExtenso(CT.data) + '.</p>' +
+      '<div class="assin"><div>CONTRATADA: Aberto Digital<br>Julio Romanelli</div><div>CONTRATANTE: ' + esc(emp) + '<br>' + esc(sig.nome || '') + '</div>' +
+      (CT.testemunhas ? CT.testemunhas.split(';').map(function(t, i){ return '<div>Testemunha ' + (i + 1) + ': ' + esc(t.trim()) + '</div>'; }).join('') : '') + '</div>';
+    if (faltas.length) h = '<div class="faltas so-tela"><b>Faltam ' + faltas.length + ' dados para o contrato ficar completo:</b>' + faltas.map(esc).join(', ') + '.</div><br>' + h;
+    $('#doc').innerHTML = h;
+  }
+
+  function salvar(silencioso){
+    if (!c) return false;
+    var atual = Core.carrega(), alvo = Core.contato(atual, cid); if (!alvo) return false;
+    var novo = !alvo.contrato;
+    alvo.empresa = c.empresa; alvo.contrato = JSON.parse(JSON.stringify(CT)); alvo.contrato.gerado = Date.now();
+    if (['Proposta enviada', 'Qualificado', 'Novo contato'].indexOf(alvo.etapa) >= 0) alvo.etapa = 'Negociação';
+    if (novo) alvo.msgs.push({de:'eq', txt:'Contrato gerado' + (alvo.proposta ? ' para a proposta ' + alvo.proposta.numero : '') + '.', ts:Date.now()});
+    Core.salva(atual); S = atual; c = alvo;
+    if (!silencioso) Core.aviso('Contrato salvo no contato ' + (c.negocio || c.nome) + '.' + (faltas.length ? ' Ainda faltam ' + faltas.length + ' dados.' : ''));
+    return true;
+  }
+  function desenhaContatos(){
+    $('#contato').innerHTML = '<option value="">Escolha o contato</option>' + S.contatos.slice().sort(function(a, b){ return (a.negocio || a.nome).localeCompare(b.negocio || b.nome); }).map(function(x){ return '<option value="' + x.id + '"' + (x.id === cid ? ' selected' : '') + '>' + esc(x.negocio || x.nome) + '</option>'; }).join('');
+    $('#irProposta').href = cid ? '../proposta/?c=' + cid : '#'; $('#irProposta').toggleAttribute('disabled', !cid);
+    $('#salvar').toggleAttribute('disabled', !cid); $('#imprimir').toggleAttribute('disabled', !cid);
+    $('#voltarCrm').href = '../' + (cid ? '?c=' + cid : '') + '#mensagens';
+  }
+  $('#contato').onchange = function(e){ cid = e.target.value ? +e.target.value : null; history.replaceState(null, '', cid ? '?c=' + cid : '?'); tudo(); };
+  $('#salvar').onclick = function(){ salvar(); };
+  $('#imprimir').onclick = function(){
+    salvar(true);
+    var t = document.title; document.title = 'Contrato ' + (c.negocio || c.nome) + ' ' + Core.dataBR(CT.data).replace(/\//g, '-');
+    window.print(); setTimeout(function(){ document.title = t; }, 500);
+  };
+  document.querySelector('.abas-mob').onclick = function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    document.body.setAttribute('data-aba', b.getAttribute('data-a'));
+    this.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-selected', x === b); });
+    window.scrollTo(0, 0);
+  };
+  function tudo(){ carrega(); desenhaContatos(); desenhaForm(); desenhaDoc(); }
+  tudo();
+})();
+</script>
+</body>
+</html>

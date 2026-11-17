@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposta comercial | AbertoCore</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../core/estilo.css">
+<style>
+  .mods label{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--linha);font-size:14px;cursor:pointer}
+  .mods label:first-child{border-top:0}
+  .mods input{width:18px;height:18px;margin-top:2px;accent-color:var(--ceu);flex:none}
+  .mods .pr{margin-left:auto;color:var(--sec);font-size:12.5px;white-space:nowrap}
+  .mods .rec{font-size:11px;font-weight:700;color:#8A5B00;background:#FFF1D6;border-radius:5px;padding:1px 6px;margin-left:6px}
+  .ok-l{color:var(--bom);font-weight:700}
+  .nao-l{color:var(--muted)}
+</style>
+</head>
+<body data-aba="form">
+<header class="barra">
+  <a class="voltar" id="voltarCrm" href="../#mensagens" aria-label="Voltar ao AbertoCore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
+  <span class="sep"></span><span class="tt">Proposta comercial</span>
+  <div class="dir">
+    <select class="btn" id="contato" aria-label="Contato do CRM"></select>
+    <button class="btn" id="salvar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg><span class="txt">Salvar</span></button>
+    <a class="btn" id="irContrato"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 17l2 2 4-4"/></svg><span class="txt">Gerar contrato</span></a>
+    <button class="btn pri" id="imprimir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></svg><span class="txt">Imprimir / PDF</span></button>
+  </div>
+</header>
+<div class="abas-mob" role="tablist">
+  <button role="tab" data-a="form" aria-selected="true">Ajustar</button>
+  <button role="tab" data-a="doc" aria-selected="false">Proposta</button>
+</div>
+
+<main class="grade">
+  <section class="form" id="form"></section>
+  <article class="folha" id="doc"></article>
+</main>
+
+<script src="../core/dados.js"></script>
+<script>
+(function(){
+  'use strict';
+  var esc = Core.esc, brl = Core.brl;
+  function $(s){ return document.querySelector(s); }
+  var PAGAMENTOS = ['À vista na assinatura', '50% na assinatura e 50% na entrega', '2x sem juros (assinatura e 30 dias)'];
+  var S, c, P, cid = Core.param('c') ? +Core.param('c') : null;
+
+  function num(v){ return v === '' || v == null || isNaN(v) ? null : Number(v); }
+  function carrega(){
+    S = Core.carrega(); c = cid ? Core.contato(S, cid) : null; P = null;
+    if (!c) return;
+    Core.empresa(c);
+    var rec = (c.auditoria && c.auditoria.recomendacao) || {pacote:'Start', modulos:[]};
+    P = c.proposta ? JSON.parse(JSON.stringify(c.proposta)) : {
+      numero:'AD-' + new Date().getFullYear() + '-' + ('000' + c.id).slice(-3), data:Core.hoje(), validade:Core.maisDias(Core.hoje(), 15),
+      pacote:rec.pacote, modulos:rec.modulos.slice(), setup:null, mensal:null, manual:false, prazo:null,
+      pagamento:PAGAMENTOS[1], vencimento:10, para:0, obs:'', mover:true
+    };
+    if (!P.manual) calculaValores();
+  }
+  function calculaValores(){
+    var setup = 0, mensal = 0, faltaPreco = false, prazo = 0;
+    var itens = (P.pacote ? [P.pacote] : []).concat(P.modulos);
+    itens.forEach(function(n){ var p = Core.produto(S, n); if (!p) return; if (p.setup == null) faltaPreco = true; setup += p.setup || 0; mensal += p.mensal || 0; });
+    var pac = P.pacote && Core.produto(S, P.pacote);
+    prazo = (pac && pac.prazo ? pac.prazo : 5) + P.modulos.length * 2;
+    P.setup = faltaPreco && !setup ? null : setup; P.mensal = mensal; P.faltaPreco = faltaPreco;
+    if (!P.prazoManual) P.prazo = prazo;
+  }
+
+  /* ---------- painel de ajustes ---------- */
+  function desenhaForm(){
+    if (!c){ $('#form').innerHTML = '<div class="bloco vazio">Escolha o contato no topo. A proposta usa a auditoria, o briefing e os dados da empresa salvos nele.</div>'; return; }
+    var e = c.empresa, rec = (c.auditoria && c.auditoria.recomendacao) || {pacote:'', modulos:[]};
+    var pacs = Core.pacotes(S), mods = Core.modulos(S);
+    $('#form').innerHTML =
+      '<div class="bloco"><h2>Pacote</h2><p class="dica">' + (c.auditoria ? 'Já vem com a recomendação da auditoria de ' + Core.dataBR(c.auditoria.data) + ' (nota ' + c.auditoria.geral + ').' : 'Sem auditoria salva: escolha o pacote.') + '</p>' +
+        '<div class="campo"><select id="pacote"><option value="">Só módulos avulsos</option>' + pacs.map(function(p){ return '<option' + (p.nome === P.pacote ? ' selected' : '') + '>' + esc(p.nome) + '</option>'; }).join('') + '</select></div>' +
+        '<h2 style="margin-top:14px">Módulos</h2><div class="mods">' + mods.map(function(m){
+          var inc = P.pacote && Core.incluso(P.pacote, m.nome);
+          return '<label><input type="checkbox" data-mod="' + esc(m.nome) + '"' + (P.modulos.indexOf(m.nome) >= 0 ? ' checked' : '') + (inc ? ' disabled' : '') + '><span>' + esc(m.nome) + (rec.modulos.indexOf(m.nome) >= 0 ? '<span class="rec">auditoria</span>' : '') + (inc ? ' <span class="nao-l">(incluso)</span>' : '') + '</span><span class="pr">' + (m.setup == null ? 'sem preço' : brl(m.setup)) + '</span></label>';
+        }).join('') + '</div></div>' +
+      '<div class="bloco"><h2>Valores e prazo</h2><p class="dica">Calculados pelos preços cadastrados em Produtos. Pode ajustar à mão.</p><div class="campos">' +
+        '<div class="campo' + (P.setup == null ? ' falta' : '') + '"><label for="setup">Implantação (R$)</label><input id="setup" type="number" min="0" step="50" value="' + (P.setup == null ? '' : P.setup) + '" placeholder="a definir"></div>' +
+        '<div class="campo"><label for="mensal">Mensalidade (R$)</label><input id="mensal" type="number" min="0" step="10" value="' + (P.mensal == null ? '' : P.mensal) + '"></div>' +
+        '<div class="campo"><label for="prazo">Prazo (dias úteis)</label><input id="prazo" type="number" min="1" value="' + P.prazo + '"></div>' +
+        '<div class="campo"><label for="venc">Vencimento da mensalidade (dia)</label><input id="venc" type="number" min="1" max="28" value="' + P.vencimento + '"></div>' +
+        '<div class="campo cheio"><label for="pag">Pagamento da implantação</label><select id="pag">' + PAGAMENTOS.map(function(p){ return '<option' + (p === P.pagamento ? ' selected' : '') + '>' + p + '</option>'; }).join('') + '</select></div>' +
+        '<div class="campo"><label for="dt">Data</label><input id="dt" type="date" value="' + P.data + '"></div>' +
+        '<div class="campo"><label for="val">Válida até</label><input id="val" type="date" value="' + P.validade + '"></div>' +
+        '</div>' + (P.faltaPreco && !P.manual ? '<p class="dica" style="margin:10px 0 0;color:#8A5B00">Há itens sem preço cadastrado. Defina em Configurações, Produtos e serviços, ou digite o total à mão.</p>' : '') + (P.manual ? '<button class="btn" id="recalc" style="margin-top:10px">Recalcular pelos preços</button>' : '') + '</div>' +
+      '<div class="bloco"><h2>Para quem</h2><div class="campos">' +
+        '<div class="campo cheio"><label for="para">Responsável</label><select id="para">' + e.responsaveis.map(function(r, i){ return '<option value="' + i + '"' + (i === +P.para ? ' selected' : '') + '>' + esc(r.nome || 'Sem nome') + (r.cargo ? ' (' + esc(r.cargo) + ')' : '') + '</option>'; }).join('') + '</select></div>' +
+        '<div class="campo cheio"><label for="obs">Ajustes combinados (opcional)</label><textarea id="obs" rows="3" placeholder="Ex.: inclui 2 artes extras para a inauguração">' + esc(P.obs) + '</textarea></div></div>' +
+        '<p class="dica" style="margin-top:8px">Faltou algo da empresa? <a href="../briefing/?c=' + c.id + '">Abrir o briefing</a>.</p>' +
+        '<label class="check"><input type="checkbox" id="mover"' + (P.mover ? ' checked' : '') + '>Ao salvar, mover o contato para "Proposta enviada" no funil</label></div>';
+  }
+  $('#form').addEventListener('change', function(ev){
+    var t = ev.target; if (!P) return;
+    if (t.id === 'pacote'){ P.pacote = t.value; P.modulos = P.modulos.filter(function(m){ return !P.pacote || !Core.incluso(P.pacote, m); }); P.manual = false; P.prazoManual = false; calculaValores(); desenhaForm(); }
+    else if (t.hasAttribute('data-mod')){ var n = t.getAttribute('data-mod'); P.modulos = t.checked ? P.modulos.concat([n]) : P.modulos.filter(function(m){ return m !== n; }); P.prazoManual = false; if (P.manual){ var sm = P.setup, mm = P.mensal; calculaValores(); P.setup = sm; P.mensal = mm; } else calculaValores(); desenhaForm(); }
+    else if (t.id === 'pag') P.pagamento = t.value;
+    else if (t.id === 'dt') P.data = t.value;
+    else if (t.id === 'val') P.validade = t.value;
+    else if (t.id === 'para') P.para = +t.value;
+    else if (t.id === 'mover') P.mover = t.checked;
+    desenhaDoc();
+  });
+  $('#form').addEventListener('input', function(ev){
+    var t = ev.target; if (!P) return;
+    if (t.id === 'setup'){ P.setup = num(t.value); P.manual = true; }
+    else if (t.id === 'mensal'){ P.mensal = num(t.value); P.manual = true; }
+    else if (t.id === 'prazo'){ P.prazo = +t.value || 1; P.prazoManual = true; }
+    else if (t.id === 'venc') P.vencimento = +t.value || 10;
+    else if (t.id === 'obs') P.obs = t.value;
+    else return;
+    desenhaDoc();
+  });
+  $('#form').addEventListener('click', function(ev){ if (ev.target.id === 'recalc'){ P.manual = false; calculaValores(); desenhaForm(); desenhaDoc(); } });
+
+  /* ---------- documento ---------- */
+  function falta(t){ return '<span class="falta">' + esc(t) + '</span>'; }
+  function desenhaDoc(){
+    if (!c){ $('#doc').innerHTML = '<p class="vazio">A proposta aparece aqui.</p>'; return; }
+    var e = c.empresa, a = c.auditoria, b = c.briefing || {}, r = e.responsaveis[+P.para] || e.responsaveis[0], emp = c.negocio || c.nome;
+    var primeiro = (r.nome || c.nome || '').split(' ')[0];
+    var itens = (P.pacote ? [P.pacote] : []).concat(P.modulos).map(function(n){ return Core.produto(S, n); }).filter(Boolean);
+    var resumoPac = P.pacote ? 'o pacote <b>' + esc(P.pacote) + '</b>' + (P.modulos.length ? ' com ' + P.modulos.length + (P.modulos.length > 1 ? ' módulos' : ' módulo') : '') : (P.modulos.length ? P.modulos.length + ' módulos' : falta('[escolha o pacote]'));
+    var valorTxt = (P.setup == null ? falta('R$ a definir') : '<b>' + brl(P.setup) + '</b>' + (P.faltaPreco && !P.manual ? ' ' + falta('+ itens a definir') : '')) + ' de implantação' + (P.mensal ? ' + <b>' + brl(P.mensal) + '/mês</b>' : '');
+    var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>aberto <b>digital</b></div>' +
+      '<div class="meta">Proposta ' + esc(P.numero) + '<br>' + Core.dataBR(P.data) + '<br>Válida até ' + Core.dataBR(P.validade) + '</div></div>';
+    h += '<h1>Proposta para ' + esc(emp) + '</h1><p style="color:var(--sec)">Para ' + esc(r.nome || c.nome) + (r.cargo ? ', ' + esc(r.cargo) : '') + '. De Julio Romanelli, Aberto Digital.</p>';
+    h += '<div class="destaque">' + esc(primeiro || 'Olá') + ', obrigado pela conversa. Propomos ' + resumoPac + ' para que a ' + esc(emp) + ' seja encontrada no Google, passe confiança e responda todos os clientes rápido. O investimento é ' + valorTxt + ', e tudo fica pronto em até <b>' + P.prazo + ' dias úteis</b>.</div>';
+    if (a && a.geral != null){
+      h += '<h2>O que vimos no seu negócio</h2><p>Na auditoria de ' + Core.dataBR(a.data) + ', a ' + esc(emp) + ' fez <b>' + a.geral + ' de 100</b>.</p>' +
+        '<div class="nota-area">' + a.areas.map(function(x){ return '<div><b>' + (x.nota == null ? '–' : x.nota) + '</b><span>' + esc(x.nome) + '</span></div>'; }).join('') + '</div>';
+      var cobre = {}, resolvidas = [], pendentes = [];
+      itens.forEach(function(p){ cobre[p.nome] = true; });
+      var nivel = Core.ORDEM_PACOTES.indexOf(P.pacote);
+      (a.perdas || []).forEach(function(p){
+        var i = Core.ORDEM_PACOTES.indexOf(p.sol), ok = i >= 0 ? (nivel >= i) : (cobre[p.sol] || (P.pacote && Core.incluso(P.pacote, p.sol)));
+        (ok ? resolvidas : pendentes).push(p);
+      });
+      if (resolvidas.length) h += '<h3>O que esta proposta resolve</h3><table><thead><tr><th>Problema encontrado</th><th>O que vamos fazer</th></tr></thead><tbody>' + resolvidas.map(function(p){ return '<tr><td>' + esc(p.perda) + '</td><td>' + esc(p.acao) + '</td></tr>'; }).join('') + '</tbody></table>';
+      if (pendentes.length) h += '<h3>Fica para uma próxima etapa</h3><ul>' + pendentes.map(function(p){ return '<li>' + esc(p.perda) + ' <span style="color:var(--sec)">(' + esc(p.sol) + ')</span></li>'; }).join('') + '</ul>';
+    }
+    var pacItem = itens.filter(function(p){ return p.tipo === 'Pacote'; })[0], modItens = itens.filter(function(p){ return p.tipo !== 'Pacote'; });
+    h += '<h2>O que vamos entregar</h2>' + (pacItem ? '<h3>Pacote ' + esc(pacItem.nome) + '</h3><ul>' + pacItem.ds.split(/,\s*/).map(function(x){ return '<li>' + esc(x.charAt(0).toUpperCase() + x.slice(1)) + '</li>'; }).join('') + '</ul>' : '') +
+      (modItens.length ? '<h3>' + (pacItem ? 'Módulos adicionais' : 'Módulos') + '</h3><ul>' + modItens.map(function(p){ return '<li><b>' + esc(p.nome) + ':</b> ' + esc(p.ds.charAt(0).toLowerCase() + p.ds.slice(1)) + '</li>'; }).join('') + '</ul>' : '') +
+      (P.obs ? '<h3>Ajustes combinados</h3><p>' + esc(P.obs).replace(/\n/g, '<br>') + '</p>' : '');
+    h += '<h2>Investimento</h2><table><thead><tr><th>Item</th><th style="text-align:right">Implantação</th><th style="text-align:right">Mensalidade</th></tr></thead><tbody>' +
+      itens.map(function(p){ return '<tr><td>' + (p.tipo === 'Pacote' ? 'Pacote ' : '') + esc(p.nome) + '</td><td class="num">' + (P.manual ? '' : p.setup == null ? falta('a definir') : brl(p.setup)) + '</td><td class="num">' + (P.manual ? '' : p.mensal ? brl(p.mensal) : '-') + '</td></tr>'; }).join('') +
+      '<tr class="total"><td>Total</td><td class="num">' + (P.setup == null ? falta('a definir') : brl(P.setup) + (P.faltaPreco && !P.manual ? ' + ' + falta('itens a definir') : '')) + '</td><td class="num">' + (P.mensal ? brl(P.mensal) + '/mês' : '-') + '</td></tr></tbody></table>' +
+      '<p><b>Pagamento:</b> implantação ' + esc(P.pagamento.charAt(0).toLowerCase() + P.pagamento.slice(1)) + ', por Pix ou boleto. Mensalidade todo dia ' + P.vencimento + ', a partir do mês seguinte à entrega. Sem fidelidade: cancele com 30 dias de aviso.</p>' +
+      '<p><b>Fica no seu nome:</b> domínio, perfil no Google, contas e conteúdos são da ' + esc(emp) + ', mesmo se cancelar.</p>';
+    var mats = [['logo_arq','logo em boa qualidade'],['fotos','10 a 20 fotos do local e dos serviços'],['precos','lista de produtos e preços'],['acesso_google','acesso ao perfil do Google'],['acesso_meta','acesso ao Instagram e Facebook'],['dominio','acesso ao domínio, se já tiver']];
+    var faltam = mats.filter(function(m){ return !(b.materiais && b.materiais[m[0]]); }).map(function(m){ return m[1]; });
+    h += '<h2>Prazo e próximos passos</h2><p>Tudo fica pronto em até <b>' + P.prazo + ' dias úteis</b>, contados a partir do pagamento da implantação e do envio dos materiais.</p>' +
+      (faltam.length ? '<p><b>O que precisamos de você:</b> ' + faltam.join(', ') + '.</p>' : '<p><b>Materiais:</b> já recebemos tudo o que precisamos.</p>') +
+      '<ol><li>Responda "aprovado" no WhatsApp ou assine o contrato.</li><li>Faça o pagamento da implantação.</li><li>Começamos no próximo dia útil.</li></ol>' +
+      '<div class="assin"><div>Aberto Digital, Julio Romanelli</div><div>De acordo: ' + esc(r.nome || '') + ', ' + esc(emp) + '</div></div>' +
+      '<div class="rodape">Aberto Digital · Julio Romanelli · WhatsApp (11) 99123-3627 · abertodigital.com · Arujá/SP</div>';
+    $('#doc').innerHTML = h;
+  }
+
+  /* ---------- salvar e navegar ---------- */
+  function salvar(silencioso){
+    if (!c) return false;
+    var atual = Core.carrega(), alvo = Core.contato(atual, cid); if (!alvo) return false;
+    var novo = !alvo.proposta;
+    alvo.proposta = JSON.parse(JSON.stringify(P));
+    if (P.mover && ['Novo contato', 'Qualificado'].indexOf(alvo.etapa) >= 0){ alvo.etapa = 'Proposta enviada'; alvo.status = alvo.status === 'finalizado' ? 'esperando' : alvo.status; }
+    if (P.setup != null) alvo.valor = P.setup;
+    if (!alvo.followup) alvo.followup = Core.maisDias(Core.hoje(), 3);
+    if (novo) alvo.msgs.push({de:'eq', txt:'Proposta ' + P.numero + ': ' + (P.pacote ? 'pacote ' + P.pacote : 'módulos') + (P.modulos.length ? ' + ' + P.modulos.join(', ') : '') + ', ' + (P.setup == null ? 'implantação a definir' : brl(P.setup) + ' de implantação') + (P.mensal ? ' + ' + brl(P.mensal) + '/mês' : '') + '.', ts:Date.now()});
+    Core.salva(atual); S = atual; c = alvo;
+    if (!silencioso) Core.aviso('Proposta salva no contato ' + (c.negocio || c.nome) + '.');
+    return true;
+  }
+  function desenhaContatos(){
+    $('#contato').innerHTML = '<option value="">Escolha o contato</option>' + S.contatos.slice().sort(function(a, b){ return (a.negocio || a.nome).localeCompare(b.negocio || b.nome); }).map(function(x){ return '<option value="' + x.id + '"' + (x.id === cid ? ' selected' : '') + '>' + esc(x.negocio || x.nome) + (x.proposta ? ' (proposta)' : '') + '</option>'; }).join('');
+    $('#irContrato').href = cid ? '../contrato/?c=' + cid : '#'; $('#irContrato').toggleAttribute('disabled', !cid);
+    $('#salvar').toggleAttribute('disabled', !cid); $('#imprimir').toggleAttribute('disabled', !cid);
+    $('#voltarCrm').href = '../' + (cid ? '?c=' + cid : '') + '#mensagens';
+  }
+  $('#contato').onchange = function(e){ cid = e.target.value ? +e.target.value : null; history.replaceState(null, '', cid ? '?c=' + cid : '?'); tudo(); };
+  $('#salvar').onclick = function(){ salvar(); desenhaContatos(); };
+  $('#irContrato').onclick = function(){ salvar(true); };
+  $('#imprimir').onclick = function(){
+    salvar(true);
+    var t = document.title; document.title = 'Proposta ' + P.numero + ' ' + (c.negocio || c.nome);
+    window.print(); setTimeout(function(){ document.title = t; }, 500);
+  };
+  document.querySelector('.abas-mob').onclick = function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    document.body.setAttribute('data-aba', b.getAttribute('data-a'));
+    this.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-selected', x === b); });
+    window.scrollTo(0, 0);
+  };
+  function tudo(){ carrega(); desenhaContatos(); desenhaForm(); desenhaDoc(); }
+  tudo();
+})();
+</script>
+</body>
+</html>

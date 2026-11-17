@@ -1,0 +1,114 @@
+/* Estilo comum das páginas do AbertoCore (briefing, proposta, contrato). */
+:root{
+  --ink:#101A2C; --navy:#1E3050; --slate:#384358; --ambar:#FFB020; --ceu:#2F6FED;
+  --papel:#F6F7F9; --branco:#fff; --sec:#5B6678; --muted:#8A93A6; --linha:#E2E6ED; --linha2:#D5DAE3;
+  --ruim:#D64545; --medio:#E08A00; --bom:#1F9D55;
+  --display:"Archivo",system-ui,sans-serif;
+  --corpo:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--corpo);color:var(--ink);background:var(--papel);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--ceu)}
+:focus-visible{outline:3px solid var(--ambar);outline-offset:2px;border-radius:6px}
+
+.barra{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--branco);border-bottom:1px solid var(--linha)}
+.barra .voltar{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;color:var(--ink);text-decoration:none}
+.barra .voltar:hover{background:var(--papel)}
+.barra .voltar svg{width:20px;height:20px}
+.barra .marca{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.15rem;white-space:nowrap}
+.barra .marca svg{width:32px;height:32px}
+.barra .marca b{color:var(--ceu);font-weight:800}
+.barra .sep{width:1px;height:28px;background:var(--linha2)}
+.barra .tt{font-weight:600;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barra .dir{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:10px;font-weight:600;font-size:14px;background:var(--branco);border:1px solid var(--linha2);white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn:hover{background:#EEF1F6}
+.btn.pri{background:var(--ceu);border-color:var(--ceu);color:#fff}
+.btn.pri:hover{background:#245CD0}
+.btn svg{width:17px;height:17px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+.grade{display:grid;grid-template-columns:minmax(360px,460px) 1fr;gap:20px;padding:20px;max-width:1400px;margin:0 auto;align-items:start}
+.grade.unica{grid-template-columns:minmax(0,860px);justify-content:center}
+.form{display:flex;flex-direction:column;gap:14px}
+.bloco{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:16px 18px}
+.bloco h2{font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.1rem;margin-bottom:4px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.bloco h2 small{font-family:var(--corpo);font-size:13px;font-weight:700;color:var(--sec)}
+.bloco .dica{font-size:13px;color:var(--sec);margin-bottom:10px}
+.campos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.campo label{display:block;font-size:12.5px;font-weight:700;color:var(--sec);margin-bottom:4px}
+.campo input,.campo select,.campo textarea{width:100%;padding:8px 10px;border:1px solid var(--linha2);border-radius:9px;background:var(--branco);outline:0;min-height:38px}
+.campo textarea{resize:vertical;min-height:60px;line-height:1.4}
+.campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--ceu)}
+.campo.cheio{grid-column:1/-1}
+.campo.falta input{border-color:#F2C46B;background:#FFFBF0}
+.check{display:flex;align-items:flex-start;gap:9px;padding:6px 0;font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;margin-top:1px;accent-color:var(--ceu);flex:none}
+.resp-card{border:1px solid var(--linha);border-radius:11px;padding:12px;margin-bottom:10px;background:var(--papel)}
+.resp-card .topo-r{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700;font-size:13.5px}
+.resp-card .rem{color:var(--ruim);font-size:13px;font-weight:600}
+.status{font-size:12.5px;color:var(--sec)}
+.status.ok{color:var(--bom)}
+
+/* Documento (proposta, contrato) */
+.folha{background:var(--branco);border:1px solid var(--linha);border-radius:16px;padding:40px 44px;position:sticky;top:76px;font-size:14.5px}
+.folha .cab{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:16px;border-bottom:2px solid var(--ink);margin-bottom:22px}
+.folha .cab .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.05rem}
+.folha .cab .logo svg{width:30px;height:30px}
+.folha .cab .logo b{color:var(--ambar);font-weight:800}
+.folha .cab .meta{text-align:right;font-size:12.5px;color:var(--sec)}
+.folha h1{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:2rem;line-height:1.08;letter-spacing:-.01em;margin-bottom:6px}
+.folha h2{font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.2rem;margin:24px 0 8px}
+.folha h3{font-size:14.5px;font-weight:700;margin:16px 0 4px}
+.folha p{margin:6px 0}
+.folha ul,.folha ol{padding-left:20px;margin:6px 0}
+.folha li{margin:3px 0}
+.folha table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13.5px}
+.folha th,.folha td{text-align:left;padding:8px;border-bottom:1px solid var(--linha);vertical-align:top}
+.folha th{font-size:12px;color:var(--sec);font-weight:700}
+.folha td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.folha tr.total td{font-weight:800;border-top:2px solid var(--ink);border-bottom:0}
+.folha .destaque{border:2px solid var(--ceu);border-radius:12px;padding:14px 16px;background:#F5F8FF;margin:12px 0}
+.folha .falta{background:#FFF1D6;border-radius:4px;padding:0 3px}
+.folha .assin{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:40px}
+.folha .assin div{border-top:1px solid var(--ink);padding-top:6px;font-size:13px}
+.folha .rodape{margin-top:26px;padding-top:14px;border-top:1px solid var(--linha);font-size:12.5px;color:var(--sec)}
+.nota-area{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.nota-area div{border:1px solid var(--linha);border-radius:10px;padding:10px;text-align:center}
+.nota-area b{display:block;font-family:var(--display);font-size:1.5rem}
+.nota-area span{font-size:12px;color:var(--sec)}
+
+.aviso{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:50;box-shadow:0 8px 24px rgba(16,26,44,.3);max-width:90vw;text-align:center}
+.abas-mob{display:none}
+.vazio{padding:40px 20px;text-align:center;color:var(--sec)}
+
+@media (max-width:980px){
+  .grade{grid-template-columns:1fr;padding:12px}
+  .folha{position:static;padding:22px 18px}
+  .abas-mob{display:flex;position:sticky;top:57px;z-index:15;background:var(--branco);border-bottom:1px solid var(--linha);padding:8px 12px;gap:6px}
+  .abas-mob button{flex:1;padding:8px;border-radius:9px;font-weight:700;color:var(--sec);background:var(--papel)}
+  .abas-mob button[aria-selected="true"]{background:var(--ink);color:#fff}
+  body[data-aba="form"] .folha{display:none}
+  body[data-aba="doc"] .form{display:none}
+  .barra .tt,.barra .sep,.btn .txt,.barra .marca .nm{display:none}
+  .barra{padding:10px 12px}
+  .barra .dir{gap:6px}
+  .folha h1{font-size:1.6rem}
+  .nota-area{grid-template-columns:1fr 1fr}
+  input,select,textarea{font-size:16px!important}
+}
+@media (max-width:520px){ .campos{grid-template-columns:1fr} .folha .assin{grid-template-columns:1fr} .barra .marca,.barra .status{display:none} .barra{gap:6px} .barra .dir{min-width:0;flex:1;justify-content:flex-end} #contato{min-width:0;flex:1;max-width:170px} .btn{padding:9px 11px} }
+
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;font-size:12.5px}
+  .barra,.abas-mob,.form,.aviso,.so-tela{display:none!important}
+  .grade{display:block;padding:0;max-width:none}
+  .folha{display:block!important;position:static;border:0;padding:0;border-radius:0;font-size:12.5px}
+  .folha .falta{background:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .folha table tr,.folha .destaque,.folha .assin{break-inside:avoid}
+  .folha h2,.folha h3{break-after:avoid}
+}

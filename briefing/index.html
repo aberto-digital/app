@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Briefing | AbertoCore</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../core/estilo.css">
+<style>
+  .progresso{height:6px;border-radius:3px;background:#EDF0F5;overflow:hidden;margin-top:8px}
+  .progresso i{display:block;height:100%;background:var(--ceu);transition:width .3s}
+  .indice{position:sticky;top:76px;display:flex;flex-direction:column;gap:2px}
+  .indice a{padding:7px 10px;border-radius:8px;color:var(--slate);text-decoration:none;font-weight:600;font-size:14px;display:flex;justify-content:space-between}
+  .indice a:hover{background:var(--branco)}
+  .indice a small{color:var(--muted);font-weight:600}
+  .indice a.cheio small{color:var(--bom)}
+  .grade.brief{grid-template-columns:220px minmax(0,760px);justify-content:center}
+  .bloco{scroll-margin-top:80px}
+  @media (max-width:980px){ .grade.brief{grid-template-columns:1fr} .indice{display:none} }
+</style>
+</head>
+<body>
+<header class="barra">
+  <a class="voltar" id="voltarCrm" href="../#mensagens" aria-label="Voltar ao AbertoCore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
+  <span class="sep"></span><span class="tt">Briefing</span>
+  <div class="dir">
+    <span class="status" id="status"></span>
+    <select class="btn" id="contato" aria-label="Contato do CRM"></select>
+    <a class="btn" id="irAuditoria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg><span class="txt">Auditoria</span></a>
+    <a class="btn pri" id="irProposta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg><span class="txt">Gerar proposta</span></a>
+  </div>
+</header>
+
+<main class="grade brief">
+  <nav class="indice" id="indice" aria-label="Seções do briefing"></nav>
+  <section class="form" id="form"></section>
+</main>
+
+<script src="../core/dados.js"></script>
+<script>
+(function(){
+  'use strict';
+  var esc = Core.esc;
+  function $(s){ return document.querySelector(s); }
+
+  /* Perguntas do briefing. Para mudar o briefing, edite só esta lista. */
+  var SECOES = [
+    {id:'negocio', nome:'Sobre o negócio', q:[
+      ['bairros','Bairros e cidades que atende'],
+      ['horario','Horário de funcionamento (e feriados)'],
+      ['produtos','Principais produtos ou serviços e preços', 1],
+      ['historia','Há quanto tempo existe? Quantas pessoas trabalham?'],
+      ['pagamento','Formas de pagamento']]},
+    {id:'clientes', nome:'Clientes', q:[
+      ['cliente_tipico','Quem é o cliente típico? (idade, bairro, o que procura)', 1],
+      ['como_conhecem','Como os clientes conhecem a empresa hoje?'],
+      ['perguntas','As 5 perguntas que os clientes mais fazem', 1],
+      ['diferencial','Por que o cliente escolhe vocês e não o concorrente?', 1],
+      ['desistencia','O que faz um cliente desistir de comprar?']]},
+    {id:'presenca', nome:'Presença atual e concorrentes', q:[
+      ['whatsapp_tipo','WhatsApp: pessoal ou Business? Qual número usa com clientes?'],
+      ['anuncios','Já fez anúncio pago? Onde e quanto investia?'],
+      ['concorrentes','2 ou 3 concorrentes (nomes ou links)', 1],
+      ['gosta_conc','O que gosta e não gosta na presença online deles?', 1]]},
+    {id:'visual', nome:'Identidade visual', q:[
+      ['logo','Já tem logo? Em que formato?'],
+      ['cores','Cores que representam o negócio, e cores que não quer'],
+      ['palavras','3 palavras que descrevem o jeito do negócio'],
+      ['referencias','Marcas ou sites cujo visual você gosta', 1]]},
+    {id:'atendimento', nome:'Atendimento', q:[
+      ['msgs_dia','Mensagens por dia, mais ou menos, e em quais canais'],
+      ['quem_responde','Quem responde hoje e em quanto tempo?'],
+      ['agenda_hoje','Como os clientes marcam horário hoje?'],
+      ['ia_responde','O que o assistente de IA pode responder sozinho?', 1],
+      ['humano','O que sempre deve passar para uma pessoa?', 1],
+      ['tom','Tom das respostas: formal, próximo ou descontraído?']]},
+    {id:'objetivos', nome:'Objetivos', q:[
+      ['melhorar','O que precisa melhorar nos próximos 3 meses?', 1],
+      ['sucesso','Como vamos saber que deu certo? (ex.: 20 contatos novos por mês)'],
+      ['datas','Datas importantes chegando (inauguração, Natal, Dia das Mães)']]}
+  ];
+  var MATERIAIS = [
+    ['logo_arq','Logo em boa qualidade'],
+    ['fotos','10 a 20 fotos do local, da equipe, dos produtos ou serviços'],
+    ['precos','Lista de produtos ou serviços com preços'],
+    ['acesso_google','Acesso ao perfil do Google (convite para suporte.abertodigital@gmail.com)'],
+    ['acesso_meta','Acesso ao Instagram e Facebook (convite pelo Meta Business)'],
+    ['dominio','Domínio, se já tiver (login do registro.br ou do provedor)'],
+    ['cnpj_doc','CNPJ e razão social conferidos']
+  ];
+  var EMP = [['negocio','Nome da empresa (como os clientes conhecem)'],['razao','Razão social'],['cnpj','CNPJ'],['ramo','Ramo'],['endereco','Endereço completo',1],['cidade','Cidade'],['site','Site'],['instagram','Instagram']];
+
+  var S, c, cid = Core.param('c') ? +Core.param('c') : null, timer = null;
+
+  function carrega(){
+    S = Core.carrega(); c = cid ? Core.contato(S, cid) : null;
+    if (c){ Core.empresa(c); c.briefing = c.briefing || {}; c.briefing.materiais = c.briefing.materiais || {}; }
+  }
+  function totalPerg(){ return SECOES.reduce(function(a, s){ return a + s.q.length; }, 0) + EMP.length + MATERIAIS.length; }
+  function respondidas(){
+    if (!c) return 0;
+    var n = 0, b = c.briefing, e = c.empresa;
+    SECOES.forEach(function(s){ s.q.forEach(function(q){ if (b[q[0]]) n++; }); });
+    EMP.forEach(function(k){ if (k[0] === 'negocio' ? c.negocio : e[k[0]]) n++; });
+    MATERIAIS.forEach(function(m){ if (b.materiais[m[0]]) n++; });
+    return n;
+  }
+  function campo(k, rot, valor, grande, extra){
+    return '<div class="campo' + (grande ? ' cheio' : '') + '"><label for="q_' + k + '">' + esc(rot) + '</label>' +
+      (grande ? '<textarea id="q_' + k + '" rows="2" ' + extra + '>' + esc(valor) + '</textarea>' : '<input id="q_' + k + '" ' + extra + ' value="' + esc(valor) + '">') + '</div>';
+  }
+  function desenha(){
+    desenhaContatos();
+    if (!c){
+      $('#form').innerHTML = '<div class="bloco vazio">Escolha o contato do CRM no topo para preencher o briefing dele.<br><br>Ainda não está no CRM? Comece pela <a href="../auditoria/">auditoria</a>, que cria o contato ao salvar.</div>';
+      $('#indice').innerHTML = ''; return;
+    }
+    var e = c.empresa, b = c.briefing;
+    var html = '<div class="bloco" id="s_empresa"><h2>Empresa <small id="pct"></small></h2><p class="dica">Tudo fica salvo sozinho no contato ' + esc(c.negocio || c.nome) + ' e vai para a proposta e o contrato.</p><div class="progresso"><i id="barra"></i></div><div class="campos" style="margin-top:12px">' +
+      EMP.map(function(k){ return campo('e_' + k[0], k[1], k[0] === 'negocio' ? c.negocio : e[k[0]], k[2], 'data-emp="' + k[0] + '"'); }).join('') + '</div></div>';
+    html += '<div class="bloco" id="s_resp"><h2>Responsáveis</h2><p class="dica">O primeiro é o contato principal no CRM. Marque quem assina o contrato.</p><div id="resps"></div><button class="btn" id="addResp">+ Adicionar responsável</button></div>';
+    html += SECOES.map(function(s){
+      return '<div class="bloco" id="s_' + s.id + '"><h2>' + s.nome + '</h2><div class="campos">' + s.q.map(function(q){ return campo(q[0], q[1], b[q[0]] || '', true, 'data-q="' + q[0] + '"'); }).join('') + '</div></div>';
+    }).join('');
+    html += '<div class="bloco" id="s_materiais"><h2>Materiais e acessos</h2>' + MATERIAIS.map(function(m){ return '<label class="check"><input type="checkbox" data-mat="' + m[0] + '"' + (b.materiais[m[0]] ? ' checked' : '') + '>' + esc(m[1]) + '</label>'; }).join('') + '</div>';
+    $('#form').innerHTML = html;
+    desenhaResps(); progresso();
+    $('#indice').innerHTML = [['empresa','Empresa'],['resp','Responsáveis']].concat(SECOES.map(function(s){ return [s.id, s.nome]; })).concat([['materiais','Materiais e acessos']]).map(function(x){ return '<a href="#s_' + x[0] + '">' + x[1] + '</a>'; }).join('');
+  }
+  function desenhaResps(){
+    $('#resps').innerHTML = c.empresa.responsaveis.map(function(r, i){
+      return '<div class="resp-card" data-i="' + i + '"><div class="topo-r"><span>' + (i === 0 ? 'Contato principal' : 'Responsável ' + (i + 1)) + '</span>' + (i ? '<button class="rem" data-rem="' + i + '">Remover</button>' : '') + '</div><div class="campos">' +
+        ['nome:Nome', 'cargo:Cargo', 'tel:WhatsApp', 'email:E-mail', 'cpf:CPF'].map(function(f){ var k = f.split(':'); return '<div class="campo"><label>' + k[1] + '</label><input data-r="' + k[0] + '" value="' + esc(r[k[0]]) + '"' + (k[0] === 'tel' ? ' inputmode="tel"' : k[0] === 'email' ? ' type="email"' : '') + '></div>'; }).join('') +
+        '<label class="check" style="align-self:end"><input type="checkbox" data-r="assina"' + (r.assina ? ' checked' : '') + '>Assina o contrato</label></div></div>';
+    }).join('');
+  }
+  function progresso(){
+    var t = totalPerg(), n = respondidas(), p = Math.round(n / t * 100);
+    var el = $('#pct'); if (el) el.textContent = p + '% preenchido';
+    var b = $('#barra'); if (b) b.style.width = p + '%';
+  }
+  function agenda(){ clearTimeout(timer); $('#status').textContent = 'Salvando...'; $('#status').className = 'status'; timer = setTimeout(grava, 500); }
+  function grava(){
+    var atual = Core.carrega(), alvo = Core.contato(atual, cid); if (!alvo) return;
+    alvo.negocio = c.negocio; alvo.empresa = c.empresa; alvo.briefing = c.briefing; alvo.briefing.atualizado = Date.now();
+    var p = c.empresa.responsaveis[0]; if (p){ if (p.nome) alvo.nome = p.nome; if (p.tel) alvo.tel = p.tel; }
+    Core.salva(atual); S = atual; c = alvo;
+    var d = new Date(); $('#status').textContent = 'Salvo às ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); $('#status').className = 'status ok';
+    progresso(); desenhaContatos();
+  }
+  $('#form').addEventListener('input', function(e){
+    var t = e.target; if (!c) return;
+    if (t.hasAttribute('data-q')) c.briefing[t.getAttribute('data-q')] = t.value;
+    else if (t.hasAttribute('data-emp')){ var k = t.getAttribute('data-emp'); if (k === 'negocio') c.negocio = t.value; else c.empresa[k] = t.value; }
+    else if (t.hasAttribute('data-mat')) c.briefing.materiais[t.getAttribute('data-mat')] = t.checked;
+    else if (t.hasAttribute('data-r')){
+      var i = +t.closest('.resp-card').getAttribute('data-i'), k2 = t.getAttribute('data-r'), r = c.empresa.responsaveis[i];
+      r[k2] = t.type === 'checkbox' ? t.checked : t.value;
+    } else return;
+    agenda();
+  });
+  $('#form').addEventListener('click', function(e){
+    if (e.target.id === 'addResp'){ c.empresa.responsaveis.push({nome:'', cargo:'', tel:'', email:'', cpf:'', assina:false}); desenhaResps(); agenda(); }
+    var r = e.target.closest('[data-rem]'); if (r){ c.empresa.responsaveis.splice(+r.getAttribute('data-rem'), 1); desenhaResps(); agenda(); }
+  });
+  function desenhaContatos(){
+    $('#contato').innerHTML = '<option value="">Escolha o contato</option>' + S.contatos.slice().sort(function(a, b){ return (a.negocio || a.nome).localeCompare(b.negocio || b.nome); }).map(function(x){ return '<option value="' + x.id + '"' + (x.id === cid ? ' selected' : '') + '>' + esc(x.negocio || x.nome) + '</option>'; }).join('');
+    $('#irProposta').href = cid ? '../proposta/?c=' + cid : '#'; $('#irProposta').toggleAttribute('disabled', !cid);
+    $('#irAuditoria').href = '../auditoria/' + (cid ? '?c=' + cid : '');
+    $('#voltarCrm').href = '../' + (cid ? '?c=' + cid : '') + '#mensagens';
+  }
+  $('#contato').onchange = function(e){ cid = e.target.value ? +e.target.value : null; history.replaceState(null, '', cid ? '?c=' + cid : '?'); carrega(); desenha(); window.scrollTo(0, 0); };
+  $('#irProposta').onclick = function(){ if (timer){ clearTimeout(timer); grava(); } };
+
+  carrega(); desenha();
+})();
+</script>
+</body>
+</html>

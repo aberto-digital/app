@@ -36,6 +36,23 @@ Página separada em https://app.abertodigital.com/auditoria/ (também em Configu
 - As auditorias ficam salvas no navegador (botão Salvar e a lista "Salvas").
 - Os critérios, pesos e textos ficam no bloco `AREAS` do `auditoria/index.html`. As regras do pacote sugerido ficam na função `pacote()`.
 
+## Documentos conectados ao contato
+
+A auditoria, o briefing, a proposta e o contrato são páginas próprias que leem e gravam no mesmo contato do CRM (`?c=<id do contato>`). Nada precisa ser digitado duas vezes.
+
+| Página | O que grava no contato | Usa |
+| --- | --- | --- |
+| `auditoria/` | `c.auditoria`: notas, perdas e recomendação de pacote e módulos. Se não houver contato, cria um (canal Presencial). | Respostas da visita |
+| `briefing/` | `c.empresa` (razão social, CNPJ, endereço, responsáveis) e `c.briefing`. Salva sozinho. | Dados do contato |
+| `proposta/` | `c.proposta`: pacote, módulos, valores, prazo e pagamento. Pode mover o card para "Proposta enviada". | Auditoria, briefing, preços em Produtos |
+| `contrato/` | `c.contrato`, e completa `c.empresa`. Move o card para "Negociação". | Empresa, responsável que assina, proposta |
+
+- No CRM, o painel do contato mostra o bloco "Empresa e documentos", com o status de cada documento e um botão para abrir.
+- Cada documento salvo também deixa um registro na conversa do contato.
+- Os dados da Aberto Digital usados no contrato (razão social, CNPJ, endereço) são preenchidos uma vez e valem para todos.
+- O código comum está em `core/dados.js`: catálogo de produtos, pacotes e o que cada um inclui, além das funções de leitura e gravação. O estilo comum está em `core/estilo.css`.
+- Cada item da auditoria aponta para a solução que o resolve (campo `sol`). A recomendação escolhe o menor pacote que cobre os itens fracos e soma os módulos que faltam.
+
 ## Estrutura dos arquivos
 
 ```
@@ -106,6 +123,7 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 | Data | Mudança |
 | --- | --- |
 | 16 nov 2026 | Primeira versão do protótipo: 7 telas, dados de exemplo, simulação ao vivo |
+| 17 nov 2026 | Auditoria, briefing, proposta e contrato conectados ao contato do CRM; proposta e contrato gerados com um clique; novos módulos Gestão mensal do Google e Instagram profissional |
 | 17 nov 2026 | Página de auditoria com nota, gráficos, perdas, pacote sugerido e impressão em PDF |
 | 16 nov 2026 | Celular: funil sem texto de instrução, colunas com altura fixa e só os cards rolando dentro; ícones centralizados na barra de baixo |
 | 16 nov 2026 | Celular: barra de baixo só com ícones; topo e busca se escondem ao rolar a lista (abas ficam fixas); filtro de origem com seleção múltipla num botão ao lado das abas |

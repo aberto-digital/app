@@ -64,7 +64,6 @@
   .cfg-item .t{font-weight:700;font-size:15.5px}
   .cfg-item .d{font-size:13px;color:var(--sec)}
   .cfg-item .seta{margin-left:auto;color:var(--muted);font-size:22px;line-height:1}
-  .dica-mob{display:none}
   .topo h1{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:1.45rem;letter-spacing:-.01em}
   .topo .sub{color:var(--sec);font-size:13.5px}
   .topo .dir{margin-left:auto;display:flex;align-items:center;gap:10px}
@@ -295,7 +294,7 @@
   @media (max-width:760px){
     body{font-size:14.5px}
     .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
-    .trilho{order:2;flex-direction:row;justify-content:space-between;padding:4px 8px calc(2px + env(safe-area-inset-bottom));gap:4px;background:var(--ink);border-top:1px solid rgba(255,255,255,.06)}
+    .trilho{order:2;flex-direction:row;justify-content:space-between;padding:calc(6px + env(safe-area-inset-bottom) / 2) 8px calc(6px + env(safe-area-inset-bottom) / 2);gap:4px;align-items:center;background:var(--ink);border-top:1px solid rgba(255,255,255,.06)}
     .teclado .trilho{display:none}
     .trilho .marca,.dica{display:none}
     .trilho .fim{margin-top:0}
@@ -345,9 +344,9 @@
     .na-sub .voltar-cfg{display:grid;place-items:center;width:36px;height:36px;margin-left:-6px;border-radius:10px;color:var(--ink)}
     .voltar-cfg svg{width:22px;height:22px}
     .trilho .cfg{display:none}
-    .dica-mob{display:block;font-size:13px;color:var(--sec);padding:12px 14px 0}
-    .funil{scroll-snap-type:x mandatory;padding:12px 14px 14px}
-    .coluna{flex-basis:84vw;scroll-snap-align:center}
+    .funil{scroll-snap-type:x mandatory;padding:12px 14px;align-items:stretch;overscroll-behavior-x:contain}
+    .coluna{flex-basis:84vw;scroll-snap-align:center;height:100%;max-height:none}
+    .coluna .cards{flex:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
     .agenda .painel:last-child{order:-1}
     .lista .busca{margin:12px 12px 8px}
     .abas-linha{margin:0 12px}
@@ -798,7 +797,7 @@
   /* ========== FUNIL ========== */
   function vFunil(){
     var V = $('#vista');
-    V.innerHTML = '<p class="dica-mob">Deslize para ver as etapas. Toque num card para mudar de etapa.</p><div class="funil" id="funil">' + ETAPAS.map(function(et, i){
+    V.innerHTML = '<div class="funil" id="funil">' + ETAPAS.map(function(et, i){
       var L = S.contatos.filter(function(c){ return c.etapa === et; });
       var tot = L.reduce(function(a, c){ return a + (c.valor || 0); }, 0);
       return '<section class="coluna" data-etapa="' + et + '" aria-label="' + et + '"><div class="ch"><div class="t">' + et + ' <small>' + L.length + '</small></div><div class="v">' + brl(tot) + '</div><div class="barra" style="background:' + COR_ETAPA[i] + '"></div></div>' +

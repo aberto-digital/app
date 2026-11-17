@@ -1,0 +1,9 @@
+{
+	email suporte.abertodigital@gmail.com
+}
+
+# API e painel do AbertoCore
+api.abertodigital.com {
+	encode zstd gzip
+	reverse_proxy ad-pocketbase:8090
+}

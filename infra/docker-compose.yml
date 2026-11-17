@@ -1,0 +1,30 @@
+# abertodigital - serviços da VPS
+# Cada projeto em seus containers, com limite de memória.
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [borda]
+    mem_limit: 256m
+
+  # abertodigital: banco, login e API do AbertoCore
+  ad-pocketbase:
+    build: ./pocketbase
+    restart: unless-stopped
+    volumes:
+      - /srv/abertodigital/pb_data:/pb/pb_data
+    networks: [borda]
+    mem_limit: 1g
+    cpus: 1.0
+
+networks:
+  borda: {}
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}

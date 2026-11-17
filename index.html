@@ -3,8 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Aberto Digital | Central de Atendimento</title>
-<meta name="description" content="Demonstração do sistema integrado da Aberto Digital: mensagens, funil, agenda, assistente de IA e relatórios num só lugar.">
+<title>AbertoCore | Aberto Digital</title>
+<meta name="description" content="AbertoCore, o sistema integrado da Aberto Digital: mensagens, funil, agenda, assistente de IA e relatórios num só lugar.">
+<meta name="theme-color" content="#1E3050">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AbertoCore">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone-192.png">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,6 +49,13 @@
 
   .principal{display:flex;flex-direction:column;min-width:0;min-height:0}
   .topo{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--linha);background:var(--branco)}
+  .marca-topo{display:flex;align-items:center;gap:9px;flex:none}
+  .marca-topo svg{width:34px;height:34px;display:none}
+  .nome-sis{font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.2rem;letter-spacing:-.01em;color:var(--ink);white-space:nowrap}
+  .nome-sis b{color:var(--ceu);font-weight:800}
+  .sep{width:1px;height:32px;background:var(--linha2);flex:none}
+  .trilho .rot{display:none}
+  .dica-mob{display:none}
   .topo h1{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:1.45rem;letter-spacing:-.01em}
   .topo .sub{color:var(--sec);font-size:13.5px}
   .topo .dir{margin-left:auto;display:flex;align-items:center;gap:10px}
@@ -77,7 +89,7 @@
 
   /* ===== Mensagens ===== */
   .inbox{display:grid;grid-template-columns:360px 1fr 300px;height:100%}
-  .lista{border-right:1px solid var(--linha);background:var(--branco);display:flex;flex-direction:column;min-height:0}
+  .lista{min-width:0;border-right:1px solid var(--linha);background:var(--branco);display:flex;flex-direction:column;min-height:0}
   .lista .busca{display:flex;align-items:center;gap:8px;margin:14px 14px 8px;padding:9px 12px;border-radius:10px;background:var(--papel);border:1px solid var(--linha)}
   .lista .busca svg{width:17px;height:17px;color:var(--muted)}
   .lista .busca input{border:0;background:none;outline:0;width:100%}
@@ -264,13 +276,28 @@
   @media (max-width:760px){
     body{font-size:14.5px}
     .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
-    .trilho{order:2;flex-direction:row;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom));gap:0;overflow-x:auto}
+    .trilho{order:2;flex-direction:row;justify-content:space-between;padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px}
     .trilho .marca,.dica{display:none}
     .trilho .fim{margin-top:0}
-    .trilho button{width:44px;height:42px;flex:none}
-    .topo{padding:10px 14px;flex-wrap:wrap;gap:6px 10px}
-    .topo .sub,.demo{display:none}
-    .inbox{grid-template-columns:1fr}
+    .trilho button{flex:1;min-width:0;width:auto;height:52px;display:flex;flex-direction:column;justify-content:center;gap:3px;border-radius:12px}
+    .trilho button[aria-current="page"]{background:rgba(47,111,237,.22);color:#fff}
+    .trilho button[aria-current="page"] svg{color:#7FA6FF}
+    .trilho svg{width:21px;height:21px}
+    .trilho .rot{display:block;font-size:10px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+    .trilho .bolha{top:3px;right:calc(50% - 20px)}
+    .topo{padding:calc(10px + env(safe-area-inset-top)) 14px 10px;gap:10px}
+    .marca-topo svg{display:block}
+    .sep,.tit,.demo{display:none}
+    .dica-mob{display:block;font-size:13px;color:var(--sec);padding:12px 14px 0}
+    .funil{scroll-snap-type:x mandatory;padding:12px 14px 14px}
+    .coluna{flex-basis:84vw;scroll-snap-align:center}
+    .agenda .painel:last-child{order:-1}
+    .lista .busca{margin:12px 12px 8px}
+    .abas{margin:0 12px}
+    .filtros{padding:10px 12px}
+    .compor{padding:10px 12px}
+    .inbox{grid-template-columns:minmax(0,1fr)}
+    .inbox>*{min-width:0}
     .inbox .conversa{display:none}
     .inbox.mostra-conv .lista{display:none}
     .inbox.mostra-conv .conversa{display:flex}
@@ -280,8 +307,6 @@
     .conv-topo .acoes .txt{display:none}
     .fio{padding:14px 12px}
     .msg{max-width:88%}
-    .funil{padding:14px}
-    .coluna{flex-basis:250px}
     .agenda,.assist,.prod,.dash,.canais{padding:14px}
     .semana{grid-template-columns:1fr}
     .dia-col{min-height:0}
@@ -296,12 +321,14 @@
 <body>
 <div class="app" id="app">
   <nav class="trilho" aria-label="Menu principal">
-    <svg class="marca" viewBox="0 0 96 96" role="img" aria-label="Aberto Digital"><rect width="96" height="96" rx="24" fill="#1E3050" stroke="rgba(255,255,255,.12)"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>
+    <svg class="marca" viewBox="0 0 96 96" role="img" aria-label="AbertoCore"><rect width="96" height="96" rx="24" fill="#1E3050" stroke="rgba(255,255,255,.12)"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>
     <div id="nav" style="display:contents"></div>
   </nav>
   <main class="principal">
     <div class="topo">
-      <div><h1 id="titulo">Mensagens</h1><div class="sub" id="subtitulo"></div></div>
+      <div class="marca-topo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nome-sis">Aberto<b>Core</b></span></div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="tit"><h1 id="titulo">Mensagens</h1><div class="sub" id="subtitulo"></div></div>
       <div class="dir">
         <span class="demo">Demonstração com dados de exemplo</span>
         <button class="aovivo" id="aovivo" aria-pressed="true" title="Simula mensagens chegando em tempo real"><i></i><span>Ao vivo</span></button>
@@ -316,6 +343,40 @@
 <script>
 (function(){
   'use strict';
+
+  /* =====================================================================
+     CONFIG: tudo o que muda de um cliente para outro fica aqui.
+     Para criar a versão de um cliente novo, copie este arquivo e edite
+     só este bloco e a função semente() (dados de exemplo).
+     ===================================================================== */
+  var CONFIG = {
+    sistema: 'AbertoCore',
+    empresa: 'Aberto Digital',
+    responsavel: 'Julio',
+    whatsapp: '(11) 99123-3627',
+    email: 'contato@abertodigital.com',
+    etapas: ['Novo contato','Qualificado','Proposta enviada','Negociação','Fechado','Perdido'],
+    coresEtapas: ['#AEB6C6','#2F6FED','#FFB020','#FFA586','#1F9D55','#D64545'],
+    etapaGanho: 'Fechado',
+    etapaPerda: 'Perdido',
+    intervaloAoVivo: 25000,
+    /* Respostas do assistente: a primeira regra que bater com a mensagem responde.
+       {nome} = primeiro nome do contato, {oi} = "Nome, " ou vazio, {resp} = responsável. */
+    regrasIA: [
+      {se: /pre[cç]o|valor|quanto|custa|or[cç]amento/, diz: 'Claro{, nome}! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 850 + R$ 49/mês e Completo por R$ 1.500 + R$ 150/mês. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.'},
+      {se: /agend|marcar|hor[aá]rio|reuni|demonstra/, diz: 'Posso marcar uma conversa de 15 minutos. Tenho amanhã às 10h ou às 15h. Qual fica melhor para você?'},
+      {se: /automat|chatbot|\bia\b|rob[oô]|responder sozinho|whats/, diz: '{oi}dá sim! O assistente de IA responde preço, horário e endereço na hora, pré-agenda e só chama você quando precisa. Ele vem no pacote Completo e no Enterprise.'},
+      {se: /crm|sistema|funil|enterprise|equipe|v[aá]rios atendentes/, diz: 'No Enterprise, WhatsApp, Instagram, Facebook e e-mail chegam numa caixa só, cada contato vira um card no funil, e a agenda e o follow-up ficam no mesmo lugar. Quer ver uma demonstração?'},
+      {se: /google|maps|aparecer/, diz: 'Para aparecer no Google, otimizamos seu perfil com fotos, horário, serviços e respostas às avaliações. Isso já vem no Start, a partir de R$ 650.'},
+      {se: /site/, diz: 'Fazemos site de 1 página, rápido no celular e com botão de WhatsApp. Ele vem a partir do pacote Start.'},
+      {se: /feriado|hor[aá]rio de funcionamento/, diz: '{oi}eu mesmo atualizo o horário de feriado no seu perfil do Google. É só me dizer o dia e o horário que vão funcionar.'},
+      {se: /onde|endere[cç]o|aruj[aá]|atende/, diz: 'Atendemos presencialmente em Arujá e região, e remoto para qualquer cidade.'},
+      {se: /auditoria/, diz: 'A auditoria é gratuita: olhamos seu Google, site e WhatsApp e mandamos um PDF de 1 página com o que está deixando clientes escaparem.'},
+      {se: /obrigad|valeu/, diz: 'Eu que agradeço! Qualquer coisa, é só chamar por aqui.'},
+      {se: /parcel|contrato|desconto|reclama|pagamento|fechar/, diz: 'Vou passar para o {resp}, que cuida disso pessoalmente. Ele responde em poucos minutos.'}
+    ],
+    respostaPadrao: 'Entendi! Vou passar para o {resp}, que responde em poucos minutos. Enquanto isso, quer receber a auditoria gratuita do seu negócio?'
+  };
 
   /* ---------- utilidades ---------- */
   var IC = {
@@ -366,8 +427,7 @@
     WhatsApp:{cor:'var(--wa)', l:'W'}, Instagram:{cor:'var(--ig)', l:'I'},
     Facebook:{cor:'var(--fb)', l:'F'}, 'E-mail':{cor:'var(--em)', l:'@'}
   };
-  var ETAPAS = ['Novo contato','Qualificado','Proposta enviada','Negociação','Fechado','Perdido'];
-  var COR_ETAPA = ['#AEB6C6','#2F6FED','#FFB020','#FFA586','#1F9D55','#D64545'];
+  var ETAPAS = CONFIG.etapas, COR_ETAPA = CONFIG.coresEtapas;
   var CORES_AV = ['#2F6FED','#1E3050','#C77700','#1F9D55','#B0417A','#5B6678','#D9603B','#3B7A8C'];
   function corAv(nome){ var h = 0; for (var i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) % 997; return CORES_AV[h % CORES_AV.length]; }
   function iniciais(nome){ var p = nome.trim().split(/\s+/); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
@@ -444,15 +504,15 @@
       {id:10, nome:'Auditoria gratuita', tipo:'Serviço', setup:0, mensal:0, ds:'PDF de 1 página com o que falta no Google, site e WhatsApp', ativo:true}
     ];
     var IA = {
-      ativo:true, nome:'Assistente da Aberto Digital', tom:'Próximo e direto',
-      horario:'Responde 24 horas. Passa para o Julio de segunda a sexta, das 9h às 18h.',
+      ativo:true, nome:'Assistente da ' + CONFIG.empresa, tom:'Próximo e direto',
+      horario:'Responde 24 horas. Passa para o ' + CONFIG.responsavel + ' de segunda a sexta, das 9h às 18h.',
       base:'Pacotes: Start R$ 650 + R$ 49/mês; Presença R$ 850 + R$ 49/mês; Completo R$ 1.500 + R$ 150/mês; Enterprise sob consulta.\nAtendimento presencial em Arujá e região, e remoto.\nAuditoria gratuita: PDF de 1 página com o que falta no Google, site e WhatsApp.\nPassar para humano: preço personalizado, reclamação, pedido de contrato.',
       humano:true, agendar:true
     };
     return {contatos:C, eventos:E, produtos:P, ia:IA, msgsCanal:{WhatsApp:312, Instagram:128, Facebook:64, 'E-mail':41}, prox:{c:C.length + 1, e:E.length + 1, p:P.length + 1}};
   }
 
-  var CHAVE = 'aberto-crm-demo-v1';
+  var CHAVE = CONFIG.sistema.toLowerCase() + '-demo-v1';
   var S;
   try { S = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { S = null; }
   if (!S || !S.contatos) S = semente();
@@ -463,30 +523,22 @@
   /* ---------- assistente (respostas por palavra-chave) ---------- */
   function respostaIA(texto, nome){
     var t = (texto || '').toLowerCase(), n = nome ? nome.split(' ')[0] : '';
-    var oi = n ? n + ', ' : '';
-    if (/pre[cç]o|valor|quanto|custa|or[cç]amento/.test(t)) return 'Claro, ' + (n || 'vamos lá') + '! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 850 + R$ 49/mês e Completo por R$ 1.500 + R$ 150/mês. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.';
-    if (/agend|marcar|hor[aá]rio|reuni|demonstra/.test(t)) return 'Posso marcar uma conversa de 15 minutos. Tenho amanhã às 10h ou às 15h. Qual fica melhor para você?';
-    if (/automat|chatbot|\bia\b|rob[oô]|responder sozinho|whats/.test(t)) return oi + 'dá sim! O assistente de IA responde preço, horário e endereço na hora, pré-agenda e só chama você quando precisa. Ele vem no pacote Completo e no Enterprise.';
-    if (/crm|sistema|funil|enterprise|equipe|v[aá]rios atendentes/.test(t)) return 'No Enterprise, WhatsApp, Instagram, Facebook e e-mail chegam numa caixa só, cada contato vira um card no funil, e a agenda e o follow-up ficam no mesmo lugar. Quer ver uma demonstração?';
-    if (/google|maps|aparecer/.test(t)) return 'Para aparecer no Google, otimizamos seu perfil com fotos, horário, serviços e respostas às avaliações. Isso já vem no Start, a partir de R$ 650.';
-    if (/site/.test(t)) return 'Fazemos site de 1 página, rápido no celular e com botão de WhatsApp. Ele vem a partir do pacote Start.';
-    if (/feriado|hor[aá]rio de funcionamento/.test(t)) return oi + 'eu mesmo atualizo o horário de feriado no seu perfil do Google. É só me dizer o dia e o horário que vão funcionar.';
-    if (/onde|endere[cç]o|aruj[aá]|atende/.test(t)) return 'Atendemos presencialmente em Arujá e região, e remoto para qualquer cidade.';
-    if (/auditoria/.test(t)) return 'A auditoria é gratuita: olhamos seu Google, site e WhatsApp e mandamos um PDF de 1 página com o que está deixando clientes escaparem.';
-    if (/obrigad|valeu/.test(t)) return 'Eu que agradeço! Qualquer coisa, é só chamar por aqui.';
-    if (/parcel|contrato|desconto|reclama/.test(t)) return 'Vou passar para o Julio, que cuida disso pessoalmente. Ele responde em poucos minutos.';
-    return 'Entendi! Vou passar para o Julio, que responde em poucos minutos. Enquanto isso, quer receber a auditoria gratuita do seu negócio?';
+    var r = CONFIG.regrasIA.filter(function(x){ return x.se.test(t); })[0];
+    return (r ? r.diz : CONFIG.respostaPadrao)
+      .replace('{, nome}', n ? ', ' + n : '').replace('{oi}', n ? n + ', ' : '')
+      .replace('{nome}', n).replace('{resp}', CONFIG.responsavel)
+      .replace(/^(.)/, function(c){ return c.toUpperCase(); });
   }
 
   /* ---------- navegação ---------- */
   var VISTAS = [
-    {id:'mensagens', nome:'Mensagens', ic:'msg', sub:'WhatsApp, Instagram, Facebook e e-mail numa caixa só'},
-    {id:'funil', nome:'Funil', ic:'funil', sub:'Cada contato é um card. Arraste entre as etapas.'},
-    {id:'agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
-    {id:'dashboard', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
-    {id:'produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
-    {id:'assistente', nome:'Assistente de IA', ic:'ia', sub:'Como a IA responde os seus clientes'},
-    {id:'canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true}
+    {id:'mensagens', curto:'Mensagens', nome:'Mensagens', ic:'msg', sub:'WhatsApp, Instagram, Facebook e e-mail numa caixa só'},
+    {id:'funil', curto:'Funil', nome:'Funil', ic:'funil', sub:'Cada contato é um card. Arraste entre as etapas.'},
+    {id:'agenda', curto:'Agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
+    {id:'dashboard', curto:'Painel', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
+    {id:'produtos', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
+    {id:'assistente', curto:'IA', nome:'Assistente de IA', ic:'ia', sub:'Como a IA responde os seus clientes'},
+    {id:'canais', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true}
   ];
   var atual = (location.hash || '#mensagens').slice(1);
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
@@ -496,7 +548,7 @@
   function desenhaNav(){
     $('#nav').innerHTML = VISTAS.map(function(v){
       var b = v.id === 'mensagens' && naoLidasTotal() ? '<span class="bolha">' + naoLidasTotal() + '</span>' : '';
-      return '<button data-v="' + v.id + '"' + (v.fim ? ' class="fim"' : '') + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="dica">' + v.nome + '</span></button>';
+      return '<button data-v="' + v.id + '"' + (v.fim ? ' class="fim"' : '') + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="rot">' + v.curto + '</span><span class="dica">' + v.nome + '</span></button>';
     }).join('');
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
@@ -504,7 +556,7 @@
   function desenha(){
     var v = VISTAS.filter(function(x){ return x.id === atual; })[0];
     $('#titulo').textContent = v.nome; $('#subtitulo').textContent = v.sub;
-    document.title = v.nome + ' | Aberto Digital';
+    document.title = v.nome + ' | ' + CONFIG.sistema;
     desenhaNav();
     ({mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAssistente, canais:vCanais})[atual]();
   }
@@ -635,14 +687,14 @@
   }
   function mudaEtapa(c, etapa){
     c.etapa = etapa;
-    if (etapa === 'Fechado' && c.tipo !== 'Cliente'){ c.tipo = 'Cliente'; aviso('Venda fechada! <b>' + esc(c.nome) + '</b> virou cliente.'); }
+    if (etapa === CONFIG.etapaGanho && c.tipo !== 'Cliente'){ c.tipo = 'Cliente'; aviso('Venda fechada! <b>' + esc(c.nome) + '</b> virou cliente.'); }
     salva();
   }
 
   /* ========== FUNIL ========== */
   function vFunil(){
     var V = $('#vista');
-    V.innerHTML = '<div class="funil" id="funil">' + ETAPAS.map(function(et, i){
+    V.innerHTML = '<p class="dica-mob">Deslize para ver as etapas. Toque num card para mudar de etapa.</p><div class="funil" id="funil">' + ETAPAS.map(function(et, i){
       var L = S.contatos.filter(function(c){ return c.etapa === et; });
       var tot = L.reduce(function(a, c){ return a + (c.valor || 0); }, 0);
       return '<section class="coluna" data-etapa="' + et + '" aria-label="' + et + '"><div class="ch"><div class="t">' + et + ' <small>' + L.length + '</small></div><div class="v">' + brl(tot) + '</div><div class="barra" style="background:' + COR_ETAPA[i] + '"></div></div>' +
@@ -662,7 +714,7 @@
       col.addEventListener('dragleave', function(e){ if (!col.contains(e.relatedTarget)) col.classList.remove('alvo'); });
       col.addEventListener('drop', function(e){
         e.preventDefault(); var c = contato(arr); if (!c) return;
-        var et = col.getAttribute('data-etapa'); if (c.etapa !== et){ mudaEtapa(c, et); if (et !== 'Fechado') aviso('<b>' + esc(c.nome) + '</b> foi para ' + et + '.'); }
+        var et = col.getAttribute('data-etapa'); if (c.etapa !== et){ mudaEtapa(c, et); if (et !== CONFIG.etapaGanho) aviso('<b>' + esc(c.nome) + '</b> foi para ' + et + '.'); }
         vFunil();
       });
     });
@@ -748,10 +800,10 @@
     var C = S.contatos;
     var abertas = C.filter(function(c){ return c.status !== 'finalizado'; }).length;
     var serie = serieLeads(), sem = serie.slice(7).reduce(function(a, x){ return a + x.n; }, 0), semAnt = serie.slice(0, 7).reduce(function(a, x){ return a + x.n; }, 0);
-    var fech = C.filter(function(c){ return c.etapa === 'Fechado'; }).length, perd = C.filter(function(c){ return c.etapa === 'Perdido'; }).length;
+    var fech = C.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).length, perd = C.filter(function(c){ return c.etapa === CONFIG.etapaPerda; }).length;
     var conv = fech + perd ? Math.round(fech / (fech + perd) * 100) : 0;
-    var prev = C.filter(function(c){ return ['Fechado','Perdido'].indexOf(c.etapa) < 0; }).reduce(function(a, c){ return a + c.valor; }, 0);
-    var receita = C.filter(function(c){ return c.etapa === 'Fechado'; }).reduce(function(a, c){ return a + c.valor; }, 0);
+    var prev = C.filter(function(c){ return [CONFIG.etapaGanho, CONFIG.etapaPerda].indexOf(c.etapa) < 0; }).reduce(function(a, c){ return a + c.valor; }, 0);
+    var receita = C.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).reduce(function(a, c){ return a + c.valor; }, 0);
     var iaResp = C.reduce(function(a, c){ return a + c.msgs.filter(function(m){ return m.de === 'ia'; }).length; }, 0) + 186;
     var V = $('#vista');
     V.innerHTML = '<div class="dash">' +
@@ -774,7 +826,7 @@
   }
   function kpi(r, n, s, id, up){ return '<div class="kpi" id="' + id + '"><div class="r">' + r + '</div><div class="n">' + n + '</div><div class="s' + (up ? ' up' : '') + '">' + s + '</div></div>'; }
   function grafLeads(serie){
-    var W = 640, H = 220, p = {l:28, r:8, t:12, b:26}, max = Math.max.apply(null, serie.map(function(x){ return x.n; })) + 2;
+    var estreito = window.innerWidth < 760, W = estreito ? 360 : 640, H = estreito ? 200 : 220, p = {l:26, r:6, t:12, b:26}, max = Math.max.apply(null, serie.map(function(x){ return x.n; })) + 2;
     var bw = (W - p.l - p.r) / serie.length;
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Novos leads por dia">';
     for (var g = 0; g <= max; g += Math.ceil(max / 4)){ var y = H - p.b - g / max * (H - p.t - p.b); s += '<line x1="' + p.l + '" x2="' + (W - p.r) + '" y1="' + y + '" y2="' + y + '" stroke="#E2E6ED"/><text x="' + (p.l - 6) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" fill="#8A93A6">' + g + '</text>'; }
@@ -782,7 +834,7 @@
       var h = x.n / max * (H - p.t - p.b), xx = p.l + i * bw + bw * .18, w = bw * .64, y = H - p.b - h;
       var hoje = x.dia === HOJE;
       s += '<rect x="' + xx + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="' + (hoje ? '#FFB020' : '#2F6FED') + '"><title>' + dataCurta(x.dia) + ': ' + x.n + ' leads</title></rect>';
-      if (i % 2 === 1 || hoje) s += '<text x="' + (xx + w / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="' + (hoje ? '#101A2C' : '#8A93A6') + '"' + (hoje ? ' font-weight="700"' : '') + '>' + (hoje ? 'hoje' : dataCurta(x.dia)) + '</text>';
+      if ((estreito ? (13 - i) % 4 === 0 : i % 2 === 1) || hoje) s += '<text x="' + (xx + w / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="' + (hoje ? '#101A2C' : '#8A93A6') + '"' + (hoje ? ' font-weight="700"' : '') + '>' + (hoje ? 'hoje' : dataCurta(x.dia)) + '</text>';
     });
     return s + '</svg>';
   }
@@ -801,7 +853,7 @@
   }
   function grafFunil(){
     var ab = ETAPAS.slice(0, 5), cont = ab.map(function(et, i){
-      return S.contatos.filter(function(c){ return ETAPAS.indexOf(c.etapa) >= i && c.etapa !== 'Perdido'; }).length;
+      return S.contatos.filter(function(c){ return ETAPAS.indexOf(c.etapa) >= i && c.etapa !== CONFIG.etapaPerda; }).length;
     });
     var W = 480, rh = 40, H = ab.length * rh, max = Math.max(cont[0], 1);
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Funil de vendas">';
@@ -866,7 +918,7 @@
         '<div class="campo"><label for="iaB">Base de conhecimento</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea></div>' +
         '<button class="btn pri" id="iaSalva">Salvar configuração</button>' +
       '</section>' +
-      '<section class="painel teste"><h2>Teste o assistente</h2><div class="fio" id="tFio"><div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>Oi! Sou o assistente da Aberto Digital. Pergunte sobre preços, horários ou agendamento.<span class="h">agora</span></div></div>' +
+      '<section class="painel teste"><h2>Teste o assistente</h2><div class="fio" id="tFio"><div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>Oi! Sou o assistente da ' + esc(CONFIG.empresa) + '. Pergunte sobre preços, horários ou agendamento.<span class="h">agora</span></div></div>' +
         '<div class="compor"><form class="linha" id="tF"><textarea id="tT" rows="1" placeholder="Ex.: quanto custa um site?" aria-label="Pergunta de teste"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div></section></div>';
     ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn') aviso('Assistente ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); }; });
     $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); aviso('Configuração do assistente salva.'); };
@@ -888,10 +940,10 @@
   /* ========== CANAIS ========== */
   function vCanais(){
     var L = [
-      ['W','var(--wa)','WhatsApp Business','ok','Conectado: (11) 99123-3627','Mensagens, áudios e fotos chegam na central. Assistente de IA ativo.'],
+      ['W','var(--wa)','WhatsApp Business','ok','Conectado: ' + CONFIG.whatsapp,'Mensagens, áudios e fotos chegam na central. Assistente de IA ativo.'],
       ['I','var(--ig)','Instagram','ok','Conectado: Direct','Mensagens do Direct e respostas aos stories.'],
       ['F','var(--fb)','Facebook Messenger','ok','Conectado: página da empresa','Mensagens da página e de anúncios.'],
-      ['@','var(--em)','E-mail','ok','Conectado: contato@abertodigital.com','Recebe e responde e-mails, e cada um vira Lead ou Cliente no funil.'],
+      ['@','var(--em)','E-mail','ok','Conectado: ' + CONFIG.email,'Recebe e responde e-mails, e cada um vira Lead ou Cliente no funil.'],
       ['G','#EA4335','Google Business','br','Em breve','Mensagens e avaliações do perfil no Google.'],
       ['T','#101A2C','TikTok','br','Em breve','Mensagens diretas do TikTok.'],
       ['S','#2F6FED','Chat do site','br','Em breve','Janela de conversa no abertodigital.com.']
@@ -942,10 +994,12 @@
     else if (atual === 'dashboard'){ vDash(); $$('.kpi').forEach(function(k){ k.classList.add('flash'); }); }
     else if (atual === 'funil') vFunil();
   }
-  function ligaVivo(){ clearInterval(timer); if (vivo) timer = setInterval(chega, 25000); }
+  function ligaVivo(){ clearInterval(timer); if (vivo) timer = setInterval(chega, CONFIG.intervaloAoVivo); }
   $('#aovivo').onclick = function(){ vivo = !vivo; this.setAttribute('aria-pressed', vivo); aviso(vivo ? 'Simulação ao vivo <b>ligada</b>.' : 'Simulação ao vivo pausada.'); ligaVivo(); };
-  if (window.matchMedia('(max-width:760px)').matches === false){ /* desktop abre direto na conversa */ }
   window.addEventListener('hashchange', function(){ var h = location.hash.slice(1); if (h && h !== atual && VISTAS.some(function(v){ return v.id === h; })) vai(h); });
+
+  var mq = window.matchMedia('(max-width:760px)');
+  (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(function(){ if (atual === 'dashboard') vDash(); });
 
   desenha();
   ligaVivo();

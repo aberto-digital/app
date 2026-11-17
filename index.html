@@ -7,6 +7,7 @@
 <meta name="description" content="AbertoCore, o sistema integrado da Aberto Digital: mensagens, funil, agenda, assistente de IA e relatórios num só lugar.">
 <meta name="theme-color" content="#1E3050">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AbertoCore">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icone-192.png">
@@ -55,6 +56,14 @@
   .nome-sis b{color:var(--ceu);font-weight:800}
   .sep{width:1px;height:32px;background:var(--linha2);flex:none}
   .trilho .rot{display:none}
+  .voltar-cfg,.cfg-btn{display:none}
+  .cfg-lista{padding:14px;display:flex;flex-direction:column;gap:10px}
+  .cfg-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);padding:14px 16px}
+  .cfg-item .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#EEF3FF;color:var(--ceu);flex:none}
+  .cfg-item .ic svg{width:22px;height:22px}
+  .cfg-item .t{font-weight:700;font-size:15.5px}
+  .cfg-item .d{font-size:13px;color:var(--sec)}
+  .cfg-item .seta{margin-left:auto;color:var(--muted);font-size:22px;line-height:1}
   .dica-mob{display:none}
   .topo h1{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:1.45rem;letter-spacing:-.01em}
   .topo .sub{color:var(--sec);font-size:13.5px}
@@ -285,9 +294,39 @@
     .trilho svg{width:21px;height:21px}
     .trilho .rot{display:block;font-size:10px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
     .trilho .bolha{top:3px;right:calc(50% - 20px)}
-    .topo{padding:calc(10px + env(safe-area-inset-top)) 14px 10px;gap:10px}
-    .marca-topo svg{display:block}
+    html{background:var(--navy)}
+    .topo{padding:calc(10px + env(safe-area-inset-top)) 12px 10px 14px;gap:10px;background:var(--navy);border-bottom:0;color:#fff;min-height:60px}
+    .marca-topo svg{display:block;width:34px;height:34px;border-radius:9px;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+    .nome-sis{color:#fff;font-size:1.25rem}
+    .nome-sis b{color:var(--ambar)}
     .sep,.tit,.demo{display:none}
+    .topo .dir{gap:8px}
+    .aovivo{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff;padding:6px 10px}
+    .cfg-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:#fff;background:rgba(255,255,255,.08)}
+    .cfg-btn svg{width:22px;height:22px}
+    .cfg-btn[aria-pressed="true"]{background:var(--ceu)}
+    .em-cfg .marca-topo{display:none}
+    .em-cfg .tit{display:block}
+    .em-cfg .topo h1{color:#fff;font-size:1.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .em-cfg .tit{min-width:0;flex:1}
+    .em-cfg .aovivo{display:none}
+    .aovivo{white-space:nowrap}
+    .tb-cab .btn{white-space:nowrap;padding:9px 13px}
+    .tb-cab h2{font-size:1.05rem}
+    .tb-prod thead{display:none}
+    .tb-prod,.tb-prod tbody{display:block;border:0;background:none}
+    .tb-prod tr{display:grid;grid-template-columns:1fr 1fr auto;gap:4px 12px;background:var(--branco);border:1px solid var(--linha);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+    .tb-prod td{border:0;padding:0}
+    .tb-prod td:first-child{grid-column:1 / -1;margin-bottom:6px}
+    .tb-prod td:nth-child(2){display:none}
+    .tb-prod td[data-l]::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:700;color:var(--sec)}
+    .tb-prod td:last-child{align-self:center}
+    .destaque td:first-child{box-shadow:none}
+    .tb-prod tr.destaque{border-left:4px solid var(--ambar)}
+    .em-cfg .topo .sub{display:none}
+    .na-sub .voltar-cfg{display:grid;place-items:center;width:36px;height:36px;margin-left:-6px;border-radius:10px;color:#fff}
+    .voltar-cfg svg{width:22px;height:22px}
+    .trilho .cfg{display:none}
     .dica-mob{display:block;font-size:13px;color:var(--sec);padding:12px 14px 0}
     .funil{scroll-snap-type:x mandatory;padding:12px 14px 14px}
     .coluna{flex-basis:84vw;scroll-snap-align:center}
@@ -312,7 +351,6 @@
     .dia-col{min-height:0}
     .kpi{grid-column:span 6;padding:12px 13px}
     .kpi .n{font-size:1.6rem}
-    .tb-prod th:nth-child(2),.tb-prod td:nth-child(2){display:none}
     th,td{padding:10px}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -326,12 +364,14 @@
   </nav>
   <main class="principal">
     <div class="topo">
+      <button class="voltar-cfg" id="voltarCfg" aria-label="Voltar para Configurações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
       <div class="marca-topo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nome-sis">Aberto<b>Core</b></span></div>
       <span class="sep" aria-hidden="true"></span>
       <div class="tit"><h1 id="titulo">Mensagens</h1><div class="sub" id="subtitulo"></div></div>
       <div class="dir">
         <span class="demo">Demonstração com dados de exemplo</span>
         <button class="aovivo" id="aovivo" aria-pressed="true" title="Simula mensagens chegando em tempo real"><i></i><span>Ao vivo</span></button>
+        <button class="cfg-btn" id="cfgBtn" aria-label="Configurações" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       </div>
     </div>
     <div class="vista" id="vista"></div>
@@ -536,9 +576,10 @@
     {id:'funil', curto:'Funil', nome:'Funil', ic:'funil', sub:'Cada contato é um card. Arraste entre as etapas.'},
     {id:'agenda', curto:'Agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
     {id:'dashboard', curto:'Painel', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
-    {id:'produtos', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
-    {id:'assistente', curto:'IA', nome:'Assistente de IA', ic:'ia', sub:'Como a IA responde os seus clientes'},
-    {id:'canais', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true}
+    {id:'produtos', grupo:'config', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
+    {id:'assistente', grupo:'config', curto:'IA', nome:'Assistente de IA', ic:'ia', sub:'Como a IA responde os seus clientes'},
+    {id:'canais', grupo:'config', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true},
+    {id:'config', curto:'Ajustes', nome:'Configurações', ic:'prod', sub:'Produtos, assistente de IA e canais', oculta:true}
   ];
   var atual = (location.hash || '#mensagens').slice(1);
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
@@ -546,9 +587,9 @@
 
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.naoLidas || 0); }, 0); }
   function desenhaNav(){
-    $('#nav').innerHTML = VISTAS.map(function(v){
+    $('#nav').innerHTML = VISTAS.filter(function(v){ return !v.oculta; }).map(function(v){
       var b = v.id === 'mensagens' && naoLidasTotal() ? '<span class="bolha">' + naoLidasTotal() + '</span>' : '';
-      return '<button data-v="' + v.id + '"' + (v.fim ? ' class="fim"' : '') + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="rot">' + v.curto + '</span><span class="dica">' + v.nome + '</span></button>';
+      return '<button data-v="' + v.id + '" class="' + (v.fim ? 'fim ' : '') + (v.grupo ? 'cfg' : '') + '"' + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="rot">' + v.curto + '</span><span class="dica">' + v.nome + '</span></button>';
     }).join('');
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
@@ -558,13 +599,26 @@
     $('#titulo').textContent = v.nome; $('#subtitulo').textContent = v.sub;
     document.title = v.nome + ' | ' + CONFIG.sistema;
     desenhaNav();
-    ({mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAssistente, canais:vCanais})[atual]();
+    var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
+    app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
+    $('#cfgBtn').setAttribute('aria-pressed', emCfg);
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAssistente, canais:vCanais})[atual]();
   }
 
   /* ---------- avisos ---------- */
   function aviso(html){
     var d = document.createElement('div'); d.innerHTML = html; $('#aviso').appendChild(d);
     setTimeout(function(){ d.remove(); }, 4200);
+  }
+
+  /* ========== CONFIGURAÇÕES (agrupa no celular) ========== */
+  $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
+  $('#voltarCfg').onclick = function(){ vai('config'); };
+  function vConfig(){
+    $('#vista').innerHTML = '<div class="cfg-lista">' + VISTAS.filter(function(v){ return v.grupo === 'config'; }).map(function(v){
+      return '<button class="cfg-item" data-v="' + v.id + '"><span class="ic">' + ic(v.ic) + '</span><span><span class="t" style="display:block">' + v.nome + '</span><span class="d">' + v.sub + '</span></span><span class="seta" aria-hidden="true">›</span></button>';
+    }).join('') + '</div>';
+    $('#vista').onclick = function(e){ var b = e.target.closest('[data-v]'); if (b) vai(b.getAttribute('data-v')); };
   }
 
   /* ========== MENSAGENS ========== */
@@ -872,7 +926,7 @@
       '<table class="tb-prod"><thead><tr><th>Nome</th><th>Tipo</th><th>Implantação</th><th>Mensalidade</th><th>Ativo</th></tr></thead><tbody>' +
       S.produtos.map(function(p){
         return '<tr' + (p.destaque ? ' class="destaque"' : '') + '><td><button data-ed="' + p.id + '" style="font-weight:700;text-align:left">' + esc(p.nome) + '</button><div class="ds">' + esc(p.ds) + '</div></td><td>' + p.tipo + '</td>' +
-          '<td class="num">' + (p.setup === 0 ? 'Grátis' : brl(p.setup)) + '</td><td class="num">' + (p.mensal === 0 ? '-' : brl(p.mensal)) + '</td>' +
+          '<td class="num" data-l="Implantação">' + (p.setup === 0 ? 'Grátis' : brl(p.setup)) + '</td><td class="num" data-l="Mensalidade">' + (p.mensal === 0 ? '-' : brl(p.mensal)) + '</td>' +
           '<td><button class="chave" role="switch" aria-checked="' + p.ativo + '" data-at="' + p.id + '" aria-label="Ativar ' + esc(p.nome) + '"></button></td></tr>';
       }).join('') + '</tbody></table></div>';
     $('#novoP').onclick = function(){ modalProduto(); };

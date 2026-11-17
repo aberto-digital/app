@@ -20,6 +20,7 @@ Sistema integrado de atendimento da **Aberto Digital**. Ele junta mensagens, fun
 | Produtos e serviços | Cadastro com implantação, mensalidade e ativo/inativo. | O mesmo, salvo no banco |
 | Assistente de IA | Liga e desliga, passa para humano, pré-agenda e tem base de conhecimento, com chat de teste. | Respostas geradas por modelo de IA usando a base de conhecimento |
 | Canais | Estado de cada canal conectado e botão para restaurar os dados de exemplo. | Conexão real de cada conta |
+| Configurações (celular) | No celular, Produtos, Assistente de IA e Canais ficam agrupados no botão de engrenagem no topo, e a barra de baixo mostra só Mensagens, Funil, Agenda e Painel. | O mesmo |
 | Ao vivo | Simula mensagens chegando a cada 25 s e a IA respondendo. | Mensagens chegando de verdade |
 
 ## Estrutura dos arquivos
@@ -92,4 +93,5 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 | Data | Mudança |
 | --- | --- |
 | 16 nov 2026 | Primeira versão do protótipo: 7 telas, dados de exemplo, simulação ao vivo |
+| 16 nov 2026 | Celular: barra superior sólida na cor da marca; Produtos, Assistente de IA e Canais agrupados no botão de Configurações (engrenagem) no topo; produtos em cards |
 | 16 nov 2026 | Nome AbertoCore, ícone da marca, navegação de app no celular, instalável na tela inicial, bloco `CONFIG` para reaproveitar com clientes |

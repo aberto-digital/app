@@ -190,6 +190,8 @@
     '.nv-chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#9aa6b6;vertical-align:0}' +
     '.nv-chip.ok i{background:#1f9d55}.nv-chip.sincronizando i{background:#FFB020}.nv-chip.erro i{background:#d64545}' +
     '@media (max-width:760px){.nv-chip{left:auto;right:10px;bottom:74px}}' +
+    '.nv-chip.local{background:#2F6FED;border-color:#2F6FED;color:#fff;font-size:13px;padding:9px 14px}.nv-chip.local i{display:none}' +
+    '.topo .dir .nv-chip{position:static;box-shadow:none;white-space:nowrap}' +
     '.nv-fundo{position:fixed;inset:0;background:rgba(15,27,45,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}' +
     '.nv-caixa{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:360px;font:15px/1.4 Inter,system-ui,sans-serif;color:#0F1B2D}' +
     '.nv-caixa h2{font-size:18px;margin:0 0 4px}.nv-caixa p{color:#5b6779;font-size:13px;margin:0 0 14px}' +
@@ -201,7 +203,7 @@
     estado = e;
     if (!chip) return;
     chip.className = 'nv-chip ' + e;
-    chip.innerHTML = '<i></i>' + (!auth ? 'Modo demonstração · Entrar' : e === 'ok' ? 'Salvo no servidor' : e === 'sincronizando' ? 'Salvando…' : e === 'erro' ? 'Sem conexão · tentar de novo' : 'Servidor');
+    chip.innerHTML = '<i></i>' + (!auth ? 'Entrar' : e === 'ok' ? 'Salvo no servidor' : e === 'sincronizando' ? 'Salvando…' : e === 'erro' ? 'Sem conexão · tentar de novo' : 'Servidor');
     chip.title = msg || (auth ? 'Conectado como ' + auth.email + '. Clique para sair.' : 'Os dados estão só neste navegador. Clique para entrar.');
   }
   function telaLogin() {
@@ -229,7 +231,8 @@
       if (estado === 'erro') return enviarAgora(true);
       if (confirm('Sair da conta ' + auth.email + '? Os dados continuam salvos no servidor.')) sair();
     };
-    document.body.appendChild(chip);
+    var dir = document.querySelector('.topo .dir');
+    if (dir) dir.insertBefore(chip, dir.firstChild); else document.body.appendChild(chip);
     marca(auth ? 'sincronizando' : 'local');
     if (auth) {
       // Atualiza com o que está no servidor ao abrir a página

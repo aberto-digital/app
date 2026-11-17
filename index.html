@@ -410,6 +410,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/dados.js"></script>
+<script src="core/nuvem.js"></script>
 <script>
 (function(){
   'use strict';
@@ -678,7 +679,7 @@
       ultY = y;
     }, {passive:true});
     $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) abre(+b.getAttribute('data-id')); });
-    if (!sel || !contato(sel)) { var p = filtrados()[0]; sel = p ? p.id : S.contatos[0].id; }
+    if (!sel || !contato(sel)) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
   }
   function filtrados(){
@@ -1083,7 +1084,7 @@
     {nome:'Ana Souza', txt:'Pode mandar o contrato sim'},
     {novo:{nome:'Gustavo Nunes', negocio:'Barbearia do Gus', canal:'Facebook', tel:'(11) 9 3xxx-6650', origem:'Facebook'}, txt:'Quero um sistema de agendamento pra barbearia, vocês fazem?'}
   ];
-  var iFila = 0, timer = null, vivo = true;
+  var iFila = 0, timer = null, vivo = !(window.Nuvem && Nuvem.logado());
   function chega(){
     var f = FILA[iFila++ % FILA.length], c;
     if (f.novo){
@@ -1109,6 +1110,7 @@
     else if (atual === 'funil') vFunil();
   }
   function ligaVivo(){ clearInterval(timer); if (vivo) timer = setInterval(chega, CONFIG.intervaloAoVivo); }
+  if (!vivo){ $('#aovivo').setAttribute('aria-pressed', 'false'); $('#aovivo').style.display = 'none'; var dm = document.querySelector('.demo'); if (dm) dm.style.display = 'none'; }
   $('#aovivo').onclick = function(){ vivo = !vivo; this.setAttribute('aria-pressed', vivo); aviso(vivo ? 'Simulação ao vivo <b>ligada</b>.' : 'Simulação ao vivo pausada.'); ligaVivo(); };
   window.addEventListener('hashchange', function(){ var h = location.hash.slice(1); if (h && h !== atual && VISTAS.some(function(v){ return v.id === h; })) vai(h); });
 

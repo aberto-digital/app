@@ -131,3 +131,11 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 | 16 nov 2026 | Janelas (modais) centralizadas no computador e como painel de baixo no celular; painel do contato com botões Fechar e Salvar |
 | 16 nov 2026 | Celular: barra superior sólida na cor da marca; Produtos, Assistente de IA e Canais agrupados no botão de Configurações (engrenagem) no topo; produtos em cards |
 | 16 nov 2026 | Nome AbertoCore, ícone da marca, navegação de app no celular, instalável na tela inicial, bloco `CONFIG` para reaproveitar com clientes |
+
+## Servidor (fase 2, desde 17/11/2026)
+
+- VPS Hostinger KVM 2 (Brasil), Ubuntu 26.04, Docker. Arquivos em `infra/`.
+- `https://api.abertodigital.com`: PocketBase (banco, login e API), atrás do Caddy (HTTPS automático).
+- Tabelas: `empresas`, `users` (com `empresa` e `papel`), `contatos`, `eventos`, `produtos`, `configuracoes`. Todas presas à empresa: cada usuário só vê e altera os dados da própria empresa (regras testadas).
+- O app continua gravando no navegador; `core/nuvem.js` envia cada alteração ao servidor e baixa os dados ao abrir. Sem login, funciona como demonstração (só no navegador).
+- Novo cliente: no painel `https://api.abertodigital.com/_/`, criar a empresa em `empresas` e o usuário em `users` ligado a ela.

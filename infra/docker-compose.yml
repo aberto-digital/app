@@ -18,6 +18,7 @@ services:
     restart: unless-stopped
     volumes:
       - /srv/abertodigital/pb_data:/pb/pb_data
+      - ./pocketbase/pb_migrations:/pb/pb_migrations:ro
     networks: [borda]
     mem_limit: 1g
     cpus: 1.0

@@ -22,7 +22,7 @@
     {nome:'Start', tipo:'Pacote', setup:650, mensal:49, prazo:7, ds:'Perfil no Google otimizado, site de 1 página, domínio no 1º ano'},
     {nome:'Presença', tipo:'Pacote', setup:850, mensal:49, prazo:10, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business com catálogo, saudação e respostas rápidas'},
     {nome:'Completo', tipo:'Pacote', setup:1500, mensal:150, prazo:14, ds:'Tudo do Presença, chatbot de IA no WhatsApp, 1 mês de acompanhamento'},
-    {nome:'Enterprise', tipo:'Pacote', setup:null, mensal:null, prazo:30, ds:'Sistema integrado AbertoCore: WhatsApp, Instagram, Facebook e e-mail numa caixa só, assistente de IA, funil, agenda, follow-up e relatórios'},
+    {nome:'Enterprise', tipo:'Pacote', setup:3000, mensal:150, prazo:30, ds:'Sistema integrado AbertoCore: WhatsApp, Instagram, Facebook e e-mail numa caixa só, assistente de IA, funil, agenda, follow-up e relatórios'},
     {nome:'Agendamento online', tipo:'Módulo', setup:null, mensal:null, ds:'Link de agenda com lembrete automático'},
     {nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:null, mensal:null, ds:'A IA sugere, o cliente aprova'},
     {nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:null, mensal:null, ds:'Para restaurantes, padarias e lojas'},
@@ -46,6 +46,7 @@
       var ex = S.produtos.filter(function(x){ return x.nome === p.nome; })[0];
       if (!ex){ var n = JSON.parse(JSON.stringify(p)); n.id = maxId(S.produtos) + 1; n.ativo = true; S.produtos.push(n); }
       else if (ex.prazo == null && p.prazo) ex.prazo = p.prazo;
+      if (ex && ex.nome === 'Enterprise' && ex.setup == null && !S.enterpriseMigrado){ ex.setup = p.setup; ex.mensal = p.mensal; S.enterpriseMigrado = true; }
     });
     S.prox.p = maxId(S.produtos) + 1;
     return S;

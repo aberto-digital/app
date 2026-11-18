@@ -282,6 +282,8 @@
     '@media (max-width:760px){.nv-chip{left:auto;right:10px;bottom:74px}}' +
     '.nv-chip.local{background:#2F6FED;border-color:#2F6FED;color:#fff;font-size:13px;padding:9px 14px}.nv-chip.local i{display:none}' +
     '.topo .dir .nv-chip{position:static;box-shadow:none;white-space:nowrap}' +
+    '.nv-ponto{flex:none;width:10px;height:10px;padding:0;margin-left:7px;border:0;border-radius:50%;background:#9aa6b6;cursor:pointer;box-shadow:0 0 0 3px rgba(154,166,182,.18)}' +
+    '.nv-ponto.ok{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.18)}.nv-ponto.sincronizando{background:#FFB020;box-shadow:0 0 0 3px rgba(255,176,32,.2)}.nv-ponto.erro{background:#d64545;box-shadow:0 0 0 3px rgba(214,69,69,.2)}' +
     '.nv-fundo{position:fixed;inset:0;background:rgba(15,27,45,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}' +
     '.nv-caixa{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:360px;font:15px/1.4 Inter,system-ui,sans-serif;color:#0F1B2D}' +
     '.nv-caixa h2{font-size:18px;margin:0 0 4px}.nv-caixa p{color:#5b6779;font-size:13px;margin:0 0 14px}' +
@@ -290,11 +292,17 @@
     '.nv-caixa button.nv-pri{background:#1E3050;color:#fff;border-color:#1E3050}.nv-erro{color:#d64545;font-size:13px;margin-top:10px;min-height:1em}';
   var chip;
   function marca(e, msg) {
+    var mudou = estado !== e;
     estado = e;
+    if (mudou) setTimeout(function () { window.dispatchEvent(new CustomEvent('nuvem:estado', { detail: { estado: e } })); }, 0);
     if (!chip) return;
-    chip.className = 'nv-chip ' + e;
-    chip.innerHTML = '<i></i>' + (!auth ? 'Entrar' : e === 'ok' ? 'Salvo no servidor' : e === 'sincronizando' ? 'Salvando…' : e === 'erro' ? 'Sem conexão · tentar de novo' : 'Servidor');
-    chip.title = msg || (auth ? 'Conectado como ' + auth.email + '. Clique para sair.' : 'Os dados estão só neste navegador. Clique para entrar.');
+    var txt = !auth ? 'Entrar' : e === 'ok' ? 'Salvo no servidor' : e === 'sincronizando' ? 'Salvando…' : e === 'erro' ? 'Sem conexão · tentar de novo' : 'Servidor';
+    chip.title = msg || (auth ? txt + ' · ' + auth.email + (e === 'erro' ? '. Toque para tentar de novo.' : '') : 'Os dados estão só neste navegador. Clique para entrar.');
+    if (chip.classList.contains('nv-ponto') || chip.getAttribute('data-ponto')) {
+      chip.className = 'nv-ponto ' + e; chip.setAttribute('aria-label', chip.title); chip.innerHTML = '';
+    } else {
+      chip.className = 'nv-chip ' + e; chip.innerHTML = '<i></i>' + txt;
+    }
   }
   function telaLogin() {
     var f = document.createElement('div'); f.className = 'nv-fundo';
@@ -319,10 +327,11 @@
     chip.onclick = function () {
       if (!auth) return telaLogin();
       if (estado === 'erro') return enviarAgora(true);
-      if (confirm('Sair da conta ' + auth.email + '? Os dados continuam salvos no servidor.')) sair();
+      window.dispatchEvent(new CustomEvent('nuvem:status', { detail: { texto: chip.title } }));
     };
-    var dir = document.querySelector('.topo .dir');
-    if (dir) dir.insertBefore(chip, dir.firstChild); else document.body.appendChild(chip);
+    var dir = document.querySelector('.topo .dir'), mt = document.querySelector('.marca-topo');
+    if (auth && mt) { chip.setAttribute('data-ponto', '1'); chip.className = 'nv-ponto'; mt.appendChild(chip); }
+    else if (dir) dir.insertBefore(chip, dir.firstChild); else document.body.appendChild(chip);
     marca(auth ? 'sincronizando' : 'local');
     if (auth) {
       // Atualiza com o que está no servidor ao abrir a página
@@ -340,6 +349,6 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciaUI); else iniciaUI();
 
   window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; },
-    waConectado: function () { return !!wa.conectado; },
+    waConectado: function () { return !!wa.conectado; }, estado: function () { return estado; }, telaLogin: telaLogin,
     ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp };
 })();

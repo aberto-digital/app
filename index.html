@@ -119,6 +119,12 @@
   .abas button[aria-selected="true"]{background:var(--branco);color:var(--ink);box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .abas small{font-size:11px;background:var(--ceu);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
   .itens{overflow:auto;flex:1}
+  .carrossel{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;min-height:0}
+  .carrossel::-webkit-scrollbar{display:none}
+  .carrossel .pane{flex:0 0 100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;min-height:0;overscroll-behavior-y:contain}
+  .ajustes{display:grid;gap:18px;padding:18px 22px;max-width:680px}
+  .seg-tema button{flex:1;padding:9px 10px;font-weight:600}
+  .pt-st{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#9aa6b6}.pt-st.ok{background:#1f9d55}.pt-st.sincronizando{background:#FFB020}.pt-st.erro{background:#d64545}
   .item{display:flex;gap:12px;width:100%;text-align:left;padding:13px 14px;border-bottom:1px solid var(--linha);border-left:3px solid transparent}
   .item:hover{background:#F8F9FB}
   .item[aria-current="true"]{background:#EEF3FF;border-left-color:var(--ceu)}
@@ -427,7 +433,7 @@
     .conv-topo .acoes .txt{display:none}
     .fio{padding:14px 12px}
     .msg{max-width:88%}
-    .agenda,.assist,.prod,.dash,.canais{padding:14px}
+    .agenda,.assist,.prod,.dash,.canais,.ajustes{padding:14px}
     .semana{grid-template-columns:1fr}
     .dia-col{min-height:0}
     .kpi{grid-column:span 6;padding:12px 13px}
@@ -446,7 +452,7 @@
   html[data-tema="escuro"] body{background:var(--papel)}
   html[data-tema="escuro"] .trilho{background:linear-gradient(180deg,#121B2A,#0A0F18);border-right:1px solid var(--linha)}
   html[data-tema="escuro"] .nome-sis,html[data-tema="escuro"] .pop-filtro .canal,html[data-tema="escuro"] .abas button[aria-selected="true"],
-  html[data-tema="escuro"] .item .ult.nova,html[data-tema="escuro"] .doc-l .btn,html[data-tema="escuro"] .cfg-btn,html[data-tema="escuro"] .tema-btn,
+  html[data-tema="escuro"] .item .ult.nova,html[data-tema="escuro"] .doc-l .btn,html[data-tema="escuro"] .cfg-btn,
   html[data-tema="escuro"] .em-cfg .topo h1,html[data-tema="escuro"] .na-sub .voltar-cfg,html[data-tema="escuro"] .btn.ia{color:var(--texto)}
   html[data-tema="escuro"] .nome-sis b,html[data-tema="escuro"] .nome-sis span{color:inherit}
   html[data-tema="escuro"] .abas button[aria-selected="true"],html[data-tema="escuro"] .seg button[aria-pressed="true"]{background:var(--sup3);box-shadow:none}
@@ -486,8 +492,6 @@
   @media (max-width:760px){
     html[data-tema="escuro"] .trilho{background:#0A0F18;border-right:0;border-top:1px solid var(--linha)}
   }
-  .tema-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:var(--ink);background:var(--papel);border:1px solid var(--linha2);flex:none}
-  .tema-btn svg{width:20px;height:20px}
 </style>
 </head>
 <body>
@@ -505,7 +509,6 @@
       <div class="dir">
         <span class="demo">Demonstração com dados de exemplo</span>
         <button class="aovivo" id="aovivo" aria-pressed="true" title="Simula mensagens chegando em tempo real"><i></i><span>Ao vivo</span></button>
-        <button class="tema-btn" id="temaBtn" aria-label="Mudar para o tema escuro" title="Tema claro ou escuro"></button>
         <button class="cfg-btn" id="cfgBtn" aria-label="Configurações" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       </div>
     </div>
@@ -516,7 +519,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/dados.js"></script>
-<script src="core/nuvem.js?v=5"></script>
+<script src="core/nuvem.js?v=6"></script>
 <script>
 (function(){
   'use strict';
@@ -804,6 +807,7 @@
     {id:'produtos', grupo:'config', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
     {id:'assistente', grupo:'config', curto:'Atendimento', nome:'Atendimento automático', ic:'ia', sub:'Chatbot de menu e Assistente de IA no WhatsApp'},
     {id:'canais', grupo:'config', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true},
+    {id:'ajustes', grupo:'config', curto:'Ajustes', nome:'Aparência e conta', ic:'config', sub:'Tema claro ou escuro, sua conta e o servidor'},
     {id:'config', curto:'Ajustes', nome:'Configurações', ic:'prod', sub:'Produtos, atendimento automático e canais', oculta:true}
   ];
   var atual = (location.hash || '#mensagens').slice(1);
@@ -830,7 +834,7 @@
     var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
     app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
     $('#cfgBtn').setAttribute('aria-pressed', emCfg);
-    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais})[atual]();
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes})[atual]();
   }
 
   /* ---------- avisos ---------- */
@@ -849,14 +853,45 @@
     $('#vista').onclick = function(e){ var b = e.target.closest('[data-v]'); if (b) vai(b.getAttribute('data-v')); };
   }
 
+  /* ========== APARÊNCIA E CONTA ========== */
+  function vAjustes(){
+    var m = temaEscolhido(), N = window.Nuvem, u = N && N.usuario();
+    var st = N ? N.estado() : 'local';
+    var stTxt = {ok:'Tudo salvo no servidor', sincronizando:'Salvando…', erro:'Sem conexão com o servidor'}[st] || 'Conectando';
+    $('#vista').innerHTML = '<div class="ajustes">' +
+      '<section class="painel"><h2>Tema</h2><p class="nota-bot">Vale só para este aparelho.</p><div class="seg seg-tema" id="segTema">' +
+        [['claro','Claro'],['escuro','Escuro'],['sistema','Igual ao aparelho']].map(function(t){ return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (m === t[0]) + '">' + t[1] + '</button>'; }).join('') +
+      '</div></section>' +
+      '<section class="painel"><h2>Conta</h2>' + (u ?
+        '<div class="linha-ch"><div><div class="t">' + esc(u.email) + '</div><div class="d"><span class="pt-st ' + st + '"></span>' + stTxt + '. A bolinha ao lado do nome AbertoCore mostra isso: verde salvo, amarela salvando, vermelha sem conexão.</div></div></div>' +
+        '<button class="btn" id="ajSair" style="margin-top:12px">Sair da conta</button>' :
+        '<p class="nota-bot">Você está vendo a demonstração, com dados só neste navegador.</p><button class="btn pri" id="ajEntrar">Entrar</button>') +
+      '</section></div>';
+    $('#segTema').onclick = function(e){
+      var b = e.target.closest('[data-t]'); if (!b) return;
+      aplicaTema(b.getAttribute('data-t'));
+      $$('#segTema button').forEach(function(x){ x.setAttribute('aria-pressed', x === b); });
+    };
+    var sa = $('#ajSair'); if (sa) sa.onclick = function(){ if (confirm('Sair da conta ' + u.email + '? Os dados continuam salvos no servidor.')) N.sair(); };
+    var en = $('#ajEntrar'); if (en) en.onclick = function(){ N.telaLogin(); };
+  }
+
   /* ========== MENSAGENS ========== */
+  var ABAS = [['entrada','Entrada'],['esperando','Esperando'],['finalizado','Finalizados']];
+  function idxAba(a){ for (var i = 0; i < ABAS.length; i++) if (ABAS[i][0] === a) return i; return 0; }
+  function vaiParaAba(a, suave){
+    var car = $('#itens'); if (!car) return;
+    var x = idxAba(a) * car.clientWidth;
+    if (Math.abs(car.scrollLeft - x) < 2) return;
+    if (suave && car.scrollTo) car.scrollTo({left:x, behavior:'smooth'}); else car.scrollLeft = x;
+  }
   function vMensagens(){
     var V = $('#vista');
     V.innerHTML = '<div class="inbox' + (convMovel && sel ? ' mostra-conv' : '') + '" id="inbox">' +
       '<section class="lista" aria-label="Conversas">' +
         '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
         '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar por origem"></button><button class="btn-novo" id="btnNovo" aria-label="Novo contato" title="Novo contato">' + ic('mais') + '</button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
-        '<div class="itens" id="itens"></div>' +
+        '<div class="itens carrossel" id="itens">' + ABAS.map(function(a){ return '<div class="pane" data-pane="' + a[0] + '"></div>'; }).join('') + '</div>' +
       '</section>' +
       '<section class="conversa" id="conversa" aria-label="Conversa"></section>' +
       '<aside class="detalhe" id="detalhe" aria-label="Dados do contato"></aside>' +
@@ -864,7 +899,7 @@
     $('#busca').addEventListener('input', function(e){ busca = e.target.value; desenhaLista(); });
     $('#btnNovo').onclick = function(){ modalContato(); };
     $('#itens').addEventListener('click', function(e){ if (e.target.closest('#vazioNovo')) modalContato(); });
-    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaLista(); } });
+    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaAbas(); vaiParaAba(aba, true); } });
     var bf = $('#btnFiltro'), pf = $('#popFiltro');
     bf.onclick = function(e){ e.stopPropagation(); var abre = pf.hidden; pf.hidden = !abre; bf.setAttribute('aria-expanded', abre); };
     pf.addEventListener('click', function(e){ e.stopPropagation(); });
@@ -876,53 +911,75 @@
       desenhaLista();
     });
     var itens = $('#itens'), ultY = 0, trava = 0;
-    itens.addEventListener('scroll', function(){
-      var y = itens.scrollTop, app = $('#app'), agora = Date.now();
+    var tCar = 0;
+    itens.addEventListener('scroll', function(e){
+      if (e.target === itens){
+        clearTimeout(tCar);
+        tCar = setTimeout(function(){
+          var i = Math.round(itens.scrollLeft / Math.max(itens.clientWidth, 1)), a = (ABAS[i] || ABAS[0])[0];
+          if (a !== aba){ aba = a; desenhaAbas(); }
+        }, 60);
+        return;
+      }
+      var pane = e.target, y = pane.scrollTop, app = $('#app'), agora = Date.now();
       if (agora < trava){ ultY = y; return; }
-      var sobra = itens.scrollHeight - itens.clientHeight;
+      var sobra = pane.scrollHeight - pane.clientHeight;
       if (y > ultY + 6 && y > 50 && sobra > 180 && !app.classList.contains('rolou')){ app.classList.add('rolou'); trava = agora + 350; }
       else if ((y < ultY - 6 || y < 10) && app.classList.contains('rolou')){ app.classList.remove('rolou'); trava = agora + 350; }
       ultY = y;
-    }, {passive:true});
+    }, {passive:true, capture:true});
+    window.addEventListener('resize', function(){ vaiParaAba(aba, false); });
     $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (!b) return; if (b.hasAttribute('data-ia')) abreIA(); else abre(+b.getAttribute('data-id')); });
     if (sel === 'ia' && !iaLogado()) sel = null;
     if (sel !== 'ia' && (!sel || !contato(sel))) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
+    vaiParaAba(aba, false);
   }
-  function filtrados(){
+  function filtrados(a){
     var q = busca.trim().toLowerCase();
     return S.contatos.filter(function(c){
-      return c.status === aba && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
+      return c.status === (a || aba) && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
         (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel).toLowerCase().indexOf(q) >= 0);
     }).sort(function(a, b){ return ultima(b).ts - ultima(a).ts; });
   }
-  function desenhaLista(){
-    if (!$('#itens')) return;
+  function desenhaAbas(){
     var cont = {entrada:0, esperando:0, finalizado:0};
     S.contatos.forEach(function(c){ cont[c.status]++; });
-    $('#abas').innerHTML = [['entrada','Entrada'],['esperando','Esperando'],['finalizado','Finalizados']].map(function(a){
+    $('#abas').innerHTML = ABAS.map(function(a){
       return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + '</button>';
     }).join('');
+  }
+  function itemContato(c){
+    var u = ultima(c), novo = c.naoLidas > 0;
+    var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
+    var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
+    return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
+      '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
+      '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
+      '<span class="l3">' + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
+  }
+  function desenhaLista(){
+    if (!$('#itens')) return;
+    desenhaAbas();
     $('#btnFiltro').innerHTML = ic('filtro') + (canaisSel.length ? '<span class="n">' + canaisSel.length + '</span>' : '');
     $('#btnFiltro').classList.toggle('ativo', canaisSel.length > 0);
     $('#popFiltro').innerHTML = '<div class="tt">Origem</div><label><input type="checkbox" value="Todos"' + (!canaisSel.length ? ' checked' : '') + '>Todas</label>' +
       Object.keys(CANAIS).map(function(k){ return '<label><input type="checkbox" data-canal value="' + k + '"' + (canaisSel.indexOf(k) >= 0 ? ' checked' : '') + '>' + chipCanal(k) + '</label>'; }).join('');
-    var L = filtrados(), q = busca.trim().toLowerCase();
+    var q = busca.trim().toLowerCase();
     var fixo = iaLogado() && (!q || 'assistente abertocore ia'.indexOf(q) >= 0) ? itemIA() : '';
-    $('#itens').innerHTML = fixo + (L.length ? L.map(function(c){
-      var u = ultima(c), novo = c.naoLidas > 0;
-      var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
-      var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
-      return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
-        '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
-        '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
-        '<span class="l3">' + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
-    }).join('') : (S.contatos.length ? '<div class="vazio">Nenhuma conversa aqui.</div>' : '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
+    ABAS.forEach(function(a){
+      var pane = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (!pane) return;
+      var L = filtrados(a[0]), y = pane.scrollTop;
+      pane.innerHTML = fixo + (L.length ? L.map(itemContato).join('') :
+        (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'finalizada'}[a[0]] + '.</div>' :
+          '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
+      pane.scrollTop = y;
+    });
   }
   function abre(id){
     sel = id; var c = contato(id);
     if (c.naoLidas){ c.naoLidas = 0; salva(); desenhaNav(); }
-    if (c.status !== aba) aba = c.status;
+    if (c.status !== aba){ aba = c.status; vaiParaAba(aba, false); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     convMovel = true; var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
   }
@@ -1198,7 +1255,15 @@
   }
 
   /* ========== DASHBOARD ========== */
+  function diaIso(ts){ var d = new Date(ts); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function diaEntrada(c){ return c.criado || (c.msgs[0] ? diaIso(c.msgs[0].ts) : ''); }
+  function dadosReais(){ return !!(window.Nuvem && Nuvem.logado()); }
   function serieLeads(){
+    if (dadosReais()){
+      var r = [];
+      for (var k = 13; k >= 0; k--){ var dd = addDias(-k); r.push({dia:dd, n:S.contatos.filter(function(c){ return diaEntrada(c) === dd; }).length}); }
+      return r;
+    }
     var base = [3,5,2,6,4,7,5,3,8,6,4,9,7,5], d = [];
     for (var i = 13; i >= 0; i--){ var dia = addDias(-i); var extra = S.contatos.filter(function(c){ return c.criado === dia; }).length; d.push({dia:dia, n:base[13 - i] + extra}); }
     return d;
@@ -1212,21 +1277,48 @@
     var prev = C.filter(function(c){ return [CONFIG.etapaGanho, CONFIG.etapaPerda].indexOf(c.etapa) < 0; }).reduce(function(a, c){ return a + c.valor; }, 0);
     var receita = C.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).reduce(function(a, c){ return a + c.valor; }, 0);
     var iaResp = C.reduce(function(a, c){ return a + c.msgs.filter(function(m){ return m.de === 'ia'; }).length; }, 0) + 186;
+    var real = dadosReais(), ini30 = Date.now() - 30 * 86400000;
+    var porCanal = null, cardIA = '';
+    if (real){
+      porCanal = {};
+      C.forEach(function(c){ var n = c.msgs.filter(function(m){ return m.de !== 'sis' && m.ts >= ini30; }).length; if (n) porCanal[c.canal] = (porCanal[c.canal] || 0) + n; });
+      var bot = 0, cards = 0, tempos = [];
+      C.forEach(function(c){
+        var espera = null;
+        c.msgs.forEach(function(m){
+          if (m.ts < ini30) return;
+          if (m.de === 'bot') bot++;
+          if (m.de === 'sis' && /^IA atualizou/.test(m.txt)) cards++;
+          if (m.de === 'cli'){ if (espera === null) espera = m.ts; }
+          else if (m.de === 'eq' && espera !== null){ tempos.push(m.ts - espera); espera = null; }
+        });
+      });
+      var med = tempos.length ? tempos.reduce(function(a, b){ return a + b; }, 0) / tempos.length : null;
+      var tTxt = med === null ? 'sem dados ainda' : med < 3600000 ? Math.max(1, Math.round(med / 60000)) + ' min' : (med / 3600000).toFixed(1).replace('.', ',') + ' h';
+      var perg = IA_CHAT.filter(function(m){ return m.de === 'eu' && m.ts >= ini30; }).length;
+      cardIA = '<section class="painel g6"><h2>Atendimento e IA (30 dias)</h2>' +
+        '<div class="dado"><span>Tempo médio de 1ª resposta da equipe</span><b>' + tTxt + '</b></div>' +
+        '<div class="dado"><span>Mensagens enviadas pelo chatbot</span><b>' + bot + '</b></div>' +
+        '<div class="dado"><span>Cards atualizados pela IA</span><b>' + cards + '</b></div>' +
+        '<div class="dado"><span>Perguntas ao assistente</span><b>' + perg + '</b></div>' +
+        (iaSt && iaSt.uso ? '<div class="dado"><span>Chamadas à IA neste mês</span><b>' + iaSt.uso.chamadas + '</b></div>' : '') +
+        '<div class="dado"><span>Receita fechada</span><b>' + brl(receita) + '</b></div>';
+    }
     var V = $('#vista');
     V.innerHTML = '<div class="dash">' +
       kpi('Conversas abertas', abertas, naoLidasTotal() + ' sem resposta', 'k1') +
-      kpi('Novos leads (7 dias)', sem, (sem >= semAnt ? '+' : '') + Math.round((sem - semAnt) / Math.max(semAnt, 1) * 100) + '% sobre a semana anterior', 'k2', sem >= semAnt) +
+      kpi('Novos leads (7 dias)', sem, semAnt ? (sem >= semAnt ? '+' : '') + Math.round((sem - semAnt) / semAnt * 100) + '% sobre a semana anterior' : (sem ? 'nenhum na semana anterior' : 'nenhum nas últimas 2 semanas'), 'k2', sem >= semAnt && semAnt > 0) +
       kpi('Taxa de conversão', conv + '%', fech + (fech === 1 ? ' fechado, ' : ' fechados, ') + perd + (perd === 1 ? ' perdido' : ' perdidos'), 'k3') +
       kpi('Em negociação', brl(prev), 'Implantação prevista no funil', 'k4') +
       '<section class="painel g8 graf"><h2>Novos leads por dia</h2>' + grafLeads(serie) + '<div class="leg">Últimos 14 dias, todos os canais.</div></section>' +
-      '<section class="painel g4 graf"><h2>Mensagens por canal</h2>' + grafCanais() + '<div class="leg">Últimos 30 dias.</div></section>' +
+      '<section class="painel g4 graf"><h2>Mensagens por canal</h2>' + grafCanais(porCanal) + '<div class="leg">Últimos 30 dias.</div></section>' +
       '<section class="painel g6 graf"><h2>Funil de vendas</h2>' + grafFunil() + '</section>' +
-      '<section class="painel g6"><h2>Assistente de IA</h2>' +
+      (real ? cardIA : '<section class="painel g6"><h2>Assistente de IA</h2>' +
         '<div class="dado"><span>Respostas dadas pela IA (30 dias)</span><b>' + iaResp + '</b></div>' +
         '<div class="dado"><span>Tempo médio de 1ª resposta com IA</span><b>8 segundos</b></div>' +
         '<div class="dado"><span>Tempo médio de 1ª resposta da equipe</span><b>14 minutos</b></div>' +
         '<div class="dado"><span>Conversas resolvidas sem humano</span><b>62%</b></div>' +
-        '<div class="dado"><span>Receita fechada</span><b>' + brl(receita) + '</b></div>' +
+        '<div class="dado"><span>Receita fechada</span><b>' + brl(receita) + '</b></div>') +
         '<div class="grupo-t" style="margin-top:14px">Últimas mensagens</div><ul class="ultimas">' +
         C.slice().sort(function(a, b){ return ultima(b).ts - ultima(a).ts; }).slice(0, 4).map(function(c){ var u = ultima(c); return '<li>' + avatar(c) + '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>' + esc(c.nome) + '</b><br><span style="color:var(--sec)">' + esc(u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ')) + '</span></span><span class="q">' + quando(u.ts) + '</span></li>'; }).join('') +
         '</ul></section></div>';
@@ -1245,16 +1337,18 @@
     });
     return s + '</svg>';
   }
-  function grafCanais(){
-    var ks = Object.keys(S.msgsCanal).sort(function(a, b){ return S.msgsCanal[b] - S.msgsCanal[a]; });
-    var max = S.msgsCanal[ks[0]], W = 320, rh = 44, H = ks.length * rh;
+  function grafCanais(dados){
+    var M = dados || S.msgsCanal;
+    var ks = Object.keys(M).sort(function(a, b){ return M[b] - M[a]; });
+    if (!ks.length) return '<div class="vazio" style="padding:24px 0">Nenhuma mensagem nos últimos 30 dias.</div>';
+    var max = Math.max(M[ks[0]], 1), W = 320, rh = 44, H = ks.length * rh;
     var cores = {WhatsApp:'#1FAF5A', Instagram:'#C13584', Facebook:'#1877F2', 'E-mail':'#5B6678', Presencial:'#8A5B00'};
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Mensagens por canal">';
     ks.forEach(function(k, i){
-      var y = i * rh, w = S.msgsCanal[k] / max * (W - 60);
+      var y = i * rh, w = M[k] / max * (W - 60);
       s += '<text x="0" y="' + (y + 13) + '" font-size="12.5" style="fill:var(--slate)" font-weight="600">' + k + '</text>' +
-        '<rect x="0" y="' + (y + 19) + '" width="' + Math.max(w, 4) + '" height="14" rx="4" fill="' + cores[k] + '"/>' +
-        '<text x="' + (w + 7) + '" y="' + (y + 31) + '" font-size="12.5" style="fill:var(--texto)" font-weight="700">' + S.msgsCanal[k] + '</text>';
+        '<rect x="0" y="' + (y + 19) + '" width="' + Math.max(w, 4) + '" height="14" rx="4" fill="' + (cores[k] || '#5B6678') + '"/>' +
+        '<text x="' + (w + 7) + '" y="' + (y + 31) + '" font-size="12.5" style="fill:var(--texto)" font-weight="700">' + M[k] + '</text>';
     });
     return s + '</svg>';
   }
@@ -1615,7 +1709,7 @@
   });
   window.addEventListener('nuvem:pronto', function(){
     if (!iaLogado() || iaSt) return;
-    Nuvem.ia('GET').then(function(j){ iaSt = j; return carregaChatIA(); }).then(function(){ desenhaNav(); if (atual === 'mensagens') recarrega(); }).catch(function(){});
+    Nuvem.ia('GET').then(function(j){ iaSt = j; return carregaChatIA(); }).then(function(){ desenhaNav(); if (atual === 'mensagens' || atual === 'dashboard') recarrega(); }).catch(function(){});
   });
   window.addEventListener('nuvem:iachat', function(e){
     var m = e.detail; if (!m || !iaChatAdd(m)) return;
@@ -1635,20 +1729,19 @@
   var mq = window.matchMedia('(max-width:760px)');
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(function(){ if (atual === 'dashboard') vDash(); });
 
-  /* tema claro / escuro */
-  var SOL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
-  var LUA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
-  function temaAtual(){ return document.documentElement.getAttribute('data-tema') === 'escuro' ? 'escuro' : 'claro'; }
-  function aplicaTema(t, salvar){
-    if (t === 'escuro') document.documentElement.setAttribute('data-tema', 'escuro'); else document.documentElement.removeAttribute('data-tema');
-    var m = document.getElementById('corTema'); if (m) m.setAttribute('content', t === 'escuro' ? '#161E2B' : '#FFFFFF');
-    var b = $('#temaBtn'); if (b){ b.innerHTML = t === 'escuro' ? SOL : LUA; b.setAttribute('aria-label', t === 'escuro' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'); }
-    if (salvar) try { localStorage.setItem('abertocore-tema', t); } catch (e){}
-    if (atual === 'dashboard') vDash();
+  /* tema claro / escuro / igual ao sistema (escolha em Configurações → Aparência e conta) */
+  function temaEscolhido(){ try { return localStorage.getItem('abertocore-tema') || 'sistema'; } catch (e){ return 'sistema'; } }
+  function sistemaEscuro(){ try { return matchMedia('(prefers-color-scheme: dark)').matches; } catch (e){ return false; } }
+  function aplicaTema(modo){
+    if (modo){ try { if (modo === 'sistema') localStorage.removeItem('abertocore-tema'); else localStorage.setItem('abertocore-tema', modo); } catch (e){} }
+    var m = temaEscolhido(), escuro = m === 'escuro' || (m === 'sistema' && sistemaEscuro());
+    if (escuro) document.documentElement.setAttribute('data-tema', 'escuro'); else document.documentElement.removeAttribute('data-tema');
+    var cor = document.getElementById('corTema'); if (cor) cor.setAttribute('content', escuro ? '#161E2B' : '#FFFFFF');
   }
-  $('#temaBtn').onclick = function(){ aplicaTema(temaAtual() === 'escuro' ? 'claro' : 'escuro', true); };
-  aplicaTema(temaAtual(), false);
-  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e){ if (!localStorage.getItem('abertocore-tema')) aplicaTema(e.matches ? 'escuro' : 'claro', false); }); } catch (e){}
+  aplicaTema();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if (temaEscolhido() === 'sistema'){ aplicaTema(); if (atual === 'dashboard') vDash(); } }); } catch (e){}
+  window.addEventListener('nuvem:status', function(e){ aviso(esc(e.detail.texto)); });
+  window.addEventListener('nuvem:estado', function(){ if (atual === 'ajustes') vAjustes(); });
 
   desenha();
   ligaVivo();

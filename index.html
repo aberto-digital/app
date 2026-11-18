@@ -285,6 +285,17 @@
   .teste .fio{background:var(--papel);padding:14px}
   .teste .compor{padding:10px}
   .assist>.teste{position:sticky;top:18px;align-self:start}
+  .av.av-ia{background:linear-gradient(135deg,#FFB020,#F5891F);color:#fff;display:grid;place-items:center}.av.av-ia svg{width:20px;height:20px}
+  .av.av-ia.grande svg{width:30px;height:30px}
+  .item-ia{background:#FFFBF2}.item-ia .nome{font-weight:700}
+  .chip.ia-int{background:#FFF1D6;color:#8A5A00}
+  .msg.resp-ia{max-width:min(620px,88%)}.msg.resp-ia .quem{color:#B7791F}
+  .msg.resp-ia.t-aviso{border-left:3px solid #F5891F}.msg.resp-ia.t-erro{border-left:3px solid #D64545}
+  .msg.resp-ia.t-resumo{border-left:3px solid #2F6FED}
+  .msg.resp-ia .abre-ct{margin-top:8px}
+  .msg.eq.pend{opacity:.7}.msg.eq .quem{color:#C9D6F5}
+  .lista-ia{margin:4px 0 0;padding-left:18px;font-size:13.5px;line-height:1.6;color:var(--sec)}
+  .teste-ia{align-self:start}
   .col-ia{display:flex;flex-direction:column;gap:18px;min-width:0}
   .ia-st{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px;padding:6px 10px;border-radius:8px;background:var(--papel);color:var(--sec);margin-bottom:12px}
   .ia-st.on{background:#E3F4EA;color:#1F7A45}.ia-st svg{width:16px;height:16px}
@@ -505,6 +516,7 @@
     info:'<path d="M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 11v6M12 7.5v.5"/>',
     ok:'<path d="M5 12.5 10 17l9-10"/>',
     x:'<path d="M6 6l12 12M18 6 6 18"/>',
+    config:'<path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     filtro:'<path d="M4 6h16M7 12h10M10 18h4"/>'
   };
   function ic(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
@@ -621,6 +633,94 @@
   try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {}
   function salva(){ try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} }
   function contato(id){ for (var i = 0; i < S.contatos.length; i++) if (S.contatos[i].id === id) return S.contatos[i]; return null; }
+  /* ========== CONVERSA "ASSISTENTE ABERTOCORE" (interna, compartilhada pela equipe) ========== */
+  var convMovel = false; // no celular: conversa aberta por cima da lista
+  var IA_CHAT = [], iaChatOk = false, iaPensando = false, CH_LIDO = 'abertocore-ia-lido';
+  function iaLido(){ try { return +localStorage.getItem(CH_LIDO) || 0; } catch (e){ return 0; } }
+  function iaMarcaLido(){ var u = IA_CHAT[IA_CHAT.length - 1]; try { localStorage.setItem(CH_LIDO, String(Math.max(iaLido(), u ? u.ts : 0))); } catch (e){} }
+  function iaNaoLidas(){ if (!iaLogado() || !iaChatOk) return 0; var l = iaLido(); return IA_CHAT.filter(function(m){ return m.de === 'ia' && m.ts > l; }).length; }
+  function iaChatAdd(m){
+    if (IA_CHAT.some(function(x){ return x.id === m.id; })) return false;
+    IA_CHAT.push(m); IA_CHAT.sort(function(a, b){ return a.ts - b.ts; }); return true;
+  }
+  function carregaChatIA(){ return Nuvem.ia('GET', '/chat').then(function(j){ IA_CHAT = j.msgs || []; iaChatOk = true; var temLido = false; try { temLido = localStorage.getItem(CH_LIDO) != null; } catch (e){} if (!temLido) iaMarcaLido(); }); }
+  function itemIA(){
+    var u = IA_CHAT[IA_CHAT.length - 1], n = sel === 'ia' ? 0 : iaNaoLidas();
+    var txt = u ? (u.de === 'eu' ? (u.autor || 'Equipe') + ': ' : '') + u.txt.replace(/\s+/g, ' ') : 'Pergunte sobre clientes, funil e agenda';
+    return '<button class="item item-ia" data-ia="1" aria-current="' + (sel === 'ia') + '"><span class="av av-ia">' + ic('ia') + '</span>' +
+      '<span class="mid"><span class="l1"><span class="nome">Assistente AbertoCore</span><span class="hora' + (n ? ' nova' : '') + '">' + (u ? quando(u.ts) : '') + '</span></span>' +
+      '<span class="ult' + (n ? ' nova' : '') + '" style="display:block">' + esc(txt) + '</span>' +
+      '<span class="l3"><span class="chip ia-int">Interno, só a equipe vê</span>' + (n ? '<span class="cont">' + n + '</span>' : '') + '</span></span></button>';
+  }
+  function abreIA(){
+    sel = 'ia'; iaMarcaLido(); desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe();
+    convMovel = true; var ib = $('#inbox'); if (ib){ ib.classList.add('mostra-conv'); ib.classList.remove('mostra-det'); }
+    if (!iaChatOk) carregaChatIA().then(function(){ iaMarcaLido(); desenhaNav(); if (sel === 'ia'){ desenhaLista(); desenhaConversa(); } }).catch(function(){});
+  }
+  function msgIA(m){
+    if (m.de === 'eu') return '<div class="msg eq' + (m.pend ? ' pend' : '') + '"><span class="quem">' + esc(m.autor || 'Equipe') + '</span>' + esc(m.txt) + '<span class="h">' + (m.pend ? 'enviando…' : hm(m.ts)) + '</span></div>';
+    var rot = {resposta:'Assistente', resumo:'Resumo do dia', aviso:'Aviso', erro:'Assistente'}[m.tipo] || 'Assistente';
+    return '<div class="msg cli resp-ia t-' + esc(m.tipo || 'resposta') + '"><span class="quem">' + ic(m.tipo === 'aviso' ? 'info' : 'ia') + rot + '</span><div class="txt-ia">' + esc(m.tipo === 'resumo' ? m.txt.replace(/^Resumo do dia [^\n]*\n+/, '') : m.txt) + '</div>' +
+      (m.contato && contato(m.contato) ? '<button class="btn peq abre-ct" data-c="' + m.contato + '">Abrir conversa com ' + esc(contato(m.contato).nome) + '</button>' : '') +
+      '<span class="h">' + hm(m.ts) + '</span></div>';
+  }
+  function desenhaIA(){
+    var box = $('#conversa'); if (!box) return;
+    var con = iaSt && iaSt.conectada, html = '', dAnt = '';
+    IA_CHAT.forEach(function(m){ var d = rotDia(m.ts); if (d !== dAnt){ html += '<div class="dia">' + d + '</div>'; dAnt = d; } html += msgIA(m); });
+    if (iaPensando) html += '<div class="digitando">pensando...</div>';
+    var intro = '<div class="msg cli resp-ia"><span class="quem">' + ic('ia') + 'Assistente</span><div class="txt-ia">' +
+      (con ? 'Oi! Sou o assistente interno do AbertoCore. Respondo sobre seus contatos, o funil e a agenda, mando o resumo do dia às 18h e aviso quando um cliente fica sem resposta. Esta conversa é da equipe toda.' :
+        'Para eu funcionar, conecte a IA em Atendimento automático → Assistente de IA.') + '</div>' +
+      (con ? '<div class="sug-ia">' + SUGESTOES_IA.map(function(q){ return '<button type="button" class="chip-ia">' + esc(q) + '</button>'; }).join('') + '</div>' : '<button class="btn pri peq" id="iaIrCfg">Conectar a IA</button>') + '</div>';
+    box.innerHTML = '<div class="conv-topo">' +
+        '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button><span class="av av-ia">' + ic('ia') + '</span>' +
+        '<div><div class="nm">Assistente AbertoCore</div><div class="ng">Interno, compartilhado com a equipe</div></div>' +
+        '<div class="acoes"><button class="btn peq" id="iaCfg">' + ic('config') + '<span class="txt">Configurar</span></button></div></div>' +
+      '<div class="fio" id="fio">' + (IA_CHAT.length ? html : intro + html) + '</div>' +
+      '<div class="compor"><form class="linha" id="fIA"><textarea id="texto" rows="1" placeholder="' + (con ? 'Pergunte algo, ex.: quem eu preciso retornar hoje?' : 'Conecte a IA para perguntar') + '" aria-label="Pergunta para o assistente"' + (con ? '' : ' disabled') + '></textarea><button class="envia" aria-label="Enviar"' + (con ? '' : ' disabled') + '>' + ic('enviar') + '</button></form></div>';
+    var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
+    $('#voltar').onclick = function(){ convMovel = false; $('#inbox').classList.remove('mostra-conv'); };
+    function cfg(){ abaAt = 'ia'; vai('assistente'); }
+    $('#iaCfg').onclick = cfg; var ic2 = $('#iaIrCfg'); if (ic2) ic2.onclick = cfg;
+    fio.addEventListener('click', function(e){
+      var c = e.target.closest('.chip-ia'); if (c) return perguntaIA(c.textContent);
+      var a = e.target.closest('.abre-ct'); if (a) abre(+a.getAttribute('data-c'));
+    });
+    var ta = $('#texto');
+    ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
+    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#fIA').requestSubmit(); } });
+    $('#fIA').addEventListener('submit', function(e){ e.preventDefault(); var t = ta.value.trim(); if (!t || iaPensando) return; ta.value = ''; perguntaIA(t); });
+  }
+  function perguntaIA(t){
+    if (!iaSt || !iaSt.conectada || iaPensando) return;
+    var u = Nuvem.usuario() || {}, tmp = {id:'tmp' + Date.now(), de:'eu', tipo:'pergunta', txt:t, autor:(u.nome || (u.email || '').split('@')[0]), ts:Date.now(), pend:true};
+    IA_CHAT.push(tmp); iaPensando = true; if (sel === 'ia') desenhaIA();
+    if (Nuvem.enviar) Nuvem.enviar();
+    Nuvem.ia('POST', '/perguntar', {pergunta:t}).then(function(j){
+      IA_CHAT = IA_CHAT.filter(function(m){ return m !== tmp; }); iaChatAdd(j.pergunta); iaChatAdd(j.resposta);
+    }).catch(function(err){
+      IA_CHAT = IA_CHAT.filter(function(m){ return m !== tmp; }); aviso(esc(err.message));
+    }).then(function(){ iaPensando = false; iaMarcaLido(); if (sel === 'ia' && atual === 'mensagens'){ desenhaLista(); desenhaIA(); } });
+  }
+  function detalheIA(){
+    var box = $('#detalhe'); if (!box) return;
+    var st = iaSt || {}, con = st.conectada;
+    box.innerHTML = '<div class="cab"><span class="av av-ia grande">' + ic('ia') + '</span><div class="nm">Assistente AbertoCore</div><div class="ng">' + (con ? 'Conectado ao Gemini' : 'IA não conectada') + '</div></div>' +
+      '<div class="campo"><span class="rot">O que ele faz</span><ul class="lista-ia">' +
+        '<li>Responde perguntas sobre contatos, funil e agenda</li>' +
+        '<li>' + (st.crm_auto ? 'Preenche' : 'Pode preencher') + ' o CRM sozinho a cada 10 minutos</li>' +
+        '<li>Resumo do dia às 18h' + (st.resumo_dia ? '' : ' (desligado)') + '</li>' +
+        '<li>Avisa quando um cliente fica 3 horas sem resposta</li></ul></div>' +
+      (con ? '<button class="btn" id="iaResDet">' + ic('ia') + 'Gerar resumo agora</button>' : '') +
+      '<button class="btn" id="iaCfgDet" style="margin-top:8px">' + ic('config') + 'Configurar a IA</button>';
+    var r = $('#iaResDet'); if (r) r.onclick = function(){
+      var b = this; b.disabled = true; b.textContent = 'Gerando…';
+      Nuvem.ia('POST', '/resumo', {}).then(function(){ return carregaChatIA(); }).then(function(){ iaMarcaLido(); if (sel === 'ia'){ desenhaLista(); desenhaIA(); } })
+        .catch(function(err){ aviso(esc(err.message)); }).then(function(){ b.disabled = false; b.innerHTML = ic('ia') + 'Gerar resumo agora'; });
+    };
+    $('#iaCfgDet').onclick = function(){ abaAt = 'ia'; vai('assistente'); };
+  }
   function resumoIA(c){
     var r = c.ia, pode = window.Nuvem && Nuvem.logado() && iaSt && iaSt.conectada && c.msgs.some(function(m){ return m.de === 'cli'; });
     if (!r && !pode) return '';
@@ -660,12 +760,12 @@
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.naoLidas || 0); }, 0); }
   function desenhaNav(){
     $('#nav').innerHTML = VISTAS.filter(function(v){ return !v.oculta; }).map(function(v){
-      var b = v.id === 'mensagens' && naoLidasTotal() ? '<span class="bolha">' + naoLidasTotal() + '</span>' : '';
+      var nl = naoLidasTotal() + iaNaoLidas(), b = v.id === 'mensagens' && nl ? '<span class="bolha">' + nl + '</span>' : '';
       return '<button data-v="' + v.id + '" class="' + (v.fim ? 'fim ' : '') + (v.grupo ? 'cfg' : '') + '"' + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="rot">' + v.curto + '</span><span class="dica">' + v.nome + '</span></button>';
     }).join('');
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
-  function vai(id){ atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
+  function vai(id){ if (id !== atual) convMovel = false; atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
   function desenha(){
     var v = VISTAS.filter(function(x){ return x.id === atual; })[0];
     $('#titulo').textContent = v.nome; $('#subtitulo').textContent = v.sub;
@@ -697,7 +797,7 @@
   /* ========== MENSAGENS ========== */
   function vMensagens(){
     var V = $('#vista');
-    V.innerHTML = '<div class="inbox" id="inbox">' +
+    V.innerHTML = '<div class="inbox' + (convMovel && sel ? ' mostra-conv' : '') + '" id="inbox">' +
       '<section class="lista" aria-label="Conversas">' +
         '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
         '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar por origem"></button><button class="btn-novo" id="btnNovo" aria-label="Novo contato" title="Novo contato">' + ic('mais') + '</button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
@@ -729,8 +829,9 @@
       else if ((y < ultY - 6 || y < 10) && app.classList.contains('rolou')){ app.classList.remove('rolou'); trava = agora + 350; }
       ultY = y;
     }, {passive:true});
-    $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (b) abre(+b.getAttribute('data-id')); });
-    if (!sel || !contato(sel)) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
+    $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (!b) return; if (b.hasAttribute('data-ia')) abreIA(); else abre(+b.getAttribute('data-id')); });
+    if (sel === 'ia' && !iaLogado()) sel = null;
+    if (sel !== 'ia' && (!sel || !contato(sel))) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
   }
   function filtrados(){
@@ -751,8 +852,9 @@
     $('#btnFiltro').classList.toggle('ativo', canaisSel.length > 0);
     $('#popFiltro').innerHTML = '<div class="tt">Origem</div><label><input type="checkbox" value="Todos"' + (!canaisSel.length ? ' checked' : '') + '>Todas</label>' +
       Object.keys(CANAIS).map(function(k){ return '<label><input type="checkbox" data-canal value="' + k + '"' + (canaisSel.indexOf(k) >= 0 ? ' checked' : '') + '>' + chipCanal(k) + '</label>'; }).join('');
-    var L = filtrados();
-    $('#itens').innerHTML = L.length ? L.map(function(c){
+    var L = filtrados(), q = busca.trim().toLowerCase();
+    var fixo = iaLogado() && (!q || 'assistente abertocore ia'.indexOf(q) >= 0) ? itemIA() : '';
+    $('#itens').innerHTML = fixo + (L.length ? L.map(function(c){
       var u = ultima(c), novo = c.naoLidas > 0;
       var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
       var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
@@ -760,16 +862,17 @@
         '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
         '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
         '<span class="l3">' + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
-    }).join('') : (S.contatos.length ? '<div class="vazio">Nenhuma conversa aqui.</div>' : '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>');
+    }).join('') : (S.contatos.length ? '<div class="vazio">Nenhuma conversa aqui.</div>' : '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
   }
   function abre(id){
     sel = id; var c = contato(id);
     if (c.naoLidas){ c.naoLidas = 0; salva(); desenhaNav(); }
     if (c.status !== aba) aba = c.status;
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
-    var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
+    convMovel = true; var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
   }
   function desenhaConversa(){
+    if (sel === 'ia') return desenhaIA();
     var c = contato(sel), box = $('#conversa'); if (!box) return;
     if (!c){ box.innerHTML = '<div class="vazio" style="margin:auto">Selecione ou cadastre um contato.</div>'; return; }
     var html = '', dAnt = '';
@@ -800,7 +903,7 @@
       '<div class="compor">' +
         '<form class="linha" id="fEnvia"><textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
-    $('#voltar').onclick = function(){ $('#inbox').classList.remove('mostra-conv'); };
+    $('#voltar').onclick = function(){ convMovel = false; $('#inbox').classList.remove('mostra-conv'); };
     $('#verDet').onclick = function(){ $('#inbox').classList.add('mostra-det'); };
     var f = $('#finaliza'); if (f) f.onclick = function(){ c.status = 'finalizado'; salva(); aviso('Conversa com <b>' + esc(c.nome) + '</b> finalizada.'); aba = 'finalizado'; desenhaLista(); desenhaConversa(); };
     var r = $('#reabre'); if (r) r.onclick = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); };
@@ -837,6 +940,7 @@
     });
   }
   function desenhaDetalhe(){
+    if (sel === 'ia') return detalheIA();
     var c = contato(sel), box = $('#detalhe'); if (!box || !c) return;
     var evs = S.eventos.filter(function(e){ return e.contato === c.id && diffDias(e.data) >= 0; });
     box.innerHTML = '<div class="det-barra"><button class="btn peq" id="fechaDet">' + ic('x') + 'Fechar</button><button class="btn pri peq" id="salvaDet">' + ic('ok') + 'Salvar</button></div>' +
@@ -1183,9 +1287,8 @@
         '<div class="campo"><label for="iaB">Base de conhecimento</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea><div class="dica">Preços, serviços, horário, endereço, regras ("orçamento só presencial") e perguntas frequentes.</div></div>' +
         '<button class="btn pri" id="iaSalva">Salvar configuração</button>' +
       '</section></div>' +
-      '<section class="painel teste"><h2>Pergunte ao AbertoCore</h2><div class="fio" id="tFio"><div class="msg ia"><span class="quem">' + ic('ia') + 'AbertoCore</span>Pergunte sobre seus contatos, o funil e a agenda. Por exemplo:<div class="sug-ia">' +
-          SUGESTOES_IA.map(function(q){ return '<button type="button" class="chip-ia">' + esc(q) + '</button>'; }).join('') + '</div></div></div>' +
-        '<div class="compor"><form class="linha" id="tF"><textarea id="tT" rows="1" placeholder="Ex.: quem eu preciso retornar hoje?" aria-label="Pergunta para a IA"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div></section></div>';
+      '<section class="painel teste-ia"><h2>Conversa com o assistente</h2><p class="nota-bot">As perguntas, os resumos do dia e os avisos ficam na conversa <b>Assistente AbertoCore</b>, fixa no topo de Mensagens. A equipe toda vê o mesmo histórico.</p>' +
+        '<button class="btn pri" id="iaAbreChat">' + ic('msg') + 'Abrir a conversa</button></section></div>';
 
     ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn') aviso('Atendimento com IA ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); }; });
     $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso('Configuração do assistente salva.'); };
@@ -1223,7 +1326,7 @@
         (st.conectada ? '<button class="btn peq" id="iaResAgora">' + ic('ia') + 'Gerar resumo agora</button>' : '');
       var g = $('#iaResAgora'); if (g) g.onclick = function(){
         var b = this; b.disabled = true; b.textContent = 'Gerando…';
-        Nuvem.ia('POST', '/resumo', {}).then(function(j){ iaSt.resumo = j; desenhaOpcoes(); }).catch(function(err){ b.disabled = false; b.textContent = 'Gerar resumo agora'; aviso(esc(err.message)); });
+        Nuvem.ia('POST', '/resumo', {}).then(function(j){ iaSt.resumo = j; desenhaOpcoes(); carregaChatIA().catch(function(){}); aviso('Resumo gerado. Ele também está na conversa do assistente.'); }).catch(function(err){ b.disabled = false; b.textContent = 'Gerar resumo agora'; aviso(esc(err.message)); });
       };
     }
     function opcao(id, campo){
@@ -1240,23 +1343,7 @@
         .catch(function(err){ $('#iaCon').innerHTML = '<p class="nota-bot">Não consegui falar com o servidor: ' + esc(err.message) + '</p>'; });
     }
 
-    var ta = $('#tT'), fio = $('#tFio');
-    function pergunta(t){
-      fio.insertAdjacentHTML('beforeend', '<div class="msg cli">' + esc(t) + '<span class="h">' + hm(agoraMs()) + '</span></div><div class="digitando" id="dig">pensando...</div>');
-      fio.scrollTop = fio.scrollHeight;
-      function responde(txt){
-        var d = $('#dig'); if (d) d.remove();
-        fio.insertAdjacentHTML('beforeend', '<div class="msg ia"><span class="quem">' + ic('ia') + 'AbertoCore</span><div class="txt-ia">' + esc(txt) + '</div><span class="h">' + hm(agoraMs()) + '</span></div>');
-        fio.scrollTop = fio.scrollHeight;
-      }
-      if (!logado){ setTimeout(function(){ responde('Na demonstração eu não leio os dados de verdade. Entre na sua conta e conecte a IA para eu responder sobre os seus contatos.'); }, 600); return; }
-      if (!iaSt || !iaSt.conectada){ responde('Conecte a IA primeiro: cole a chave da API em "Conexão com a IA".'); return; }
-      if (window.Nuvem && Nuvem.enviar) Nuvem.enviar();
-      Nuvem.ia('POST', '/perguntar', {pergunta:t}).then(function(j){ responde(j.resposta); }).catch(function(err){ responde('Não consegui responder: ' + err.message); });
-    }
-    fio.addEventListener('click', function(e){ var c = e.target.closest('.chip-ia'); if (c) pergunta(c.textContent); });
-    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#tF').requestSubmit(); } });
-    $('#tF').addEventListener('submit', function(e){ e.preventDefault(); var t = ta.value.trim(); if (!t) return; ta.value = ''; pergunta(t); });
+    $('#iaAbreChat').onclick = function(){ if (!logado){ aviso('Entre na sua conta para usar o assistente.'); return; } sel = 'ia'; vai('mensagens'); abreIA(); };
   }
 
   /* ========== ATENDIMENTO AUTOMÁTICO (chatbot + IA) ========== */
@@ -1473,7 +1560,19 @@
   });
   window.addEventListener('nuvem:pronto', function(){
     if (!iaLogado() || iaSt) return;
-    Nuvem.ia('GET').then(function(j){ var antes = iaSt; iaSt = j; if (!antes && j.conectada && atual === 'mensagens') recarrega(); }).catch(function(){});
+    Nuvem.ia('GET').then(function(j){ iaSt = j; return carregaChatIA(); }).then(function(){ desenhaNav(); if (atual === 'mensagens') recarrega(); }).catch(function(){});
+  });
+  window.addEventListener('nuvem:iachat', function(e){
+    var m = e.detail; if (!m || !iaChatAdd(m)) return;
+    var aberto = sel === 'ia' && atual === 'mensagens' && !document.hidden;
+    if (aberto){
+      iaMarcaLido();
+      if (!iaPensando){ var ta = $('#texto'), v = ta ? ta.value : ''; desenhaIA(); if (v) $('#texto').value = v; }
+      desenhaLista();
+    } else {
+      desenhaNav(); if (atual === 'mensagens') desenhaLista();
+      if (m.de === 'ia' && (m.tipo === 'aviso' || m.tipo === 'resumo')) aviso('<b>Assistente:</b> ' + esc(m.tipo === 'resumo' ? 'o resumo do dia chegou.' : m.txt.slice(0, 120)));
+    }
   });
   window.addEventListener('storage', function(e){ if (e.key === CHAVE) recarrega(); });
   window.addEventListener('pageshow', function(e){ if (e.persisted) recarrega(); });

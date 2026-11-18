@@ -2,7 +2,8 @@
 // AbertoCore: assistente de IA interno
 //   GET  /api/abertocore/ia            situação (conectada, modelo, final da chave, o que está ligado, uso do mês, último resumo)
 //   POST /api/abertocore/ia            salva modelo, chave (testada antes) e opções; {remover:true} apaga a chave
-//   POST /api/abertocore/ia/perguntar  "Pergunte ao AbertoCore"
+//   GET  /api/abertocore/ia/chat       conversa "Assistente AbertoCore" (últimas 200 mensagens)
+//   POST /api/abertocore/ia/perguntar  pergunta na conversa (pergunta e resposta ficam salvas)
 //   POST /api/abertocore/ia/resumo     gera o resumo do dia agora
 //   POST /api/abertocore/ia/analisar   atualiza o card de um contato agora
 // Rotinas: "ia-crm" a cada 10 min (cards com mensagem nova) e "ia-resumo-dia" às 21:00 UTC (18h Brasília, por e-mail).
@@ -46,13 +47,24 @@ routerAdd("POST", "/api/abertocore/ia", (e) => {
   return e.json(200, I.situacao(cfg, empresaId))
 }, $apis.requireAuth("users"))
 
+routerAdd("GET", "/api/abertocore/ia/chat", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  return e.json(200, { msgs: I.chatDaEmpresa($app, e.auth.getString("empresa"), 200) })
+}, $apis.requireAuth("users"))
+
 routerAdd("POST", "/api/abertocore/ia/perguntar", (e) => {
   const I = require(`${__hooks}/ia.js`)
-  const cfg = I.precisaCfg(e.auth.getString("empresa"))
+  const empresaId = e.auth.getString("empresa")
+  const cfg = I.precisaCfg(empresaId)
   const p = String((e.requestInfo().body || {}).pergunta || "").trim()
   if (!p) throw new BadRequestError("Escreva uma pergunta.")
-  try { return e.json(200, { resposta: I.perguntar($app, cfg, p) }) }
-  catch (err) { throw new BadRequestError(String(err.message || err)) }
+  const hist = I.chatDaEmpresa($app, empresaId, 8).filter((m) => m.tipo === "pergunta" || m.tipo === "resposta")
+  const autor = e.auth.getString("name") || e.auth.getString("email").split("@")[0]
+  const q = I.postaChat($app, empresaId, "eu", "pergunta", p, autor)
+  let r
+  try { r = I.postaChat($app, empresaId, "ia", "resposta", I.perguntar($app, cfg, p, hist), "") }
+  catch (err) { r = I.postaChat($app, empresaId, "ia", "erro", "Não consegui responder: " + String(err.message || err), "") }
+  return e.json(200, { pergunta: q, resposta: r })
 }, $apis.requireAuth("users"))
 
 routerAdd("POST", "/api/abertocore/ia/resumo", (e) => {

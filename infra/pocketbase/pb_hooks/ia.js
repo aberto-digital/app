@@ -132,6 +132,23 @@ function agendaDaEmpresa(app, empresaId, de, ate) {
     .map((r) => lerDados(r))
 }
 
+// ---------- conversa "Assistente AbertoCore" ----------
+function postaChat(app, empresaId, de, tipo, txt, autor, contato) {
+  const r = new Record(app.findCollectionByNameOrId("ia_chat"))
+  r.set("empresa", empresaId); r.set("de", de); r.set("tipo", tipo)
+  r.set("txt", String(txt || "").slice(0, 20000)); r.set("autor", autor || "")
+  if (contato) r.set("contato", contato)
+  r.set("ts", Date.now())
+  app.save(r)
+  return chatJson(r)
+}
+function chatJson(r) {
+  return { id: r.id, de: r.getString("de"), tipo: r.getString("tipo"), txt: r.getString("txt"), autor: r.getString("autor"), contato: r.getInt("contato") || null, ts: r.getInt("ts") }
+}
+function chatDaEmpresa(app, empresaId, limite) {
+  return app.findRecordsByFilter("ia_chat", "empresa = {:e}", "-ts", limite || 200, 0, { e: empresaId }).map(chatJson).reverse()
+}
+
 // ---------- 1) CRM preenchido sozinho ----------
 const SIS_ANALISE = (ctx, hoje) =>
   "Você organiza o CRM de " + ctx.nome + ". Leia a conversa de WhatsApp entre a empresa e um contato e extraia o que importa para a equipe. " +
@@ -149,6 +166,7 @@ const SIS_ANALISE = (ctx, hoje) =>
 function analisaContato(app, cfg, rec) {
   const empresaId = cfg.getString("empresa")
   const d = lerDados(rec)
+  d.id = rec.getInt("local_id")
   const u = ultimaMsg(d)
   if (!u || !(d.msgs || []).some((m) => m.de === "cli")) return null
   const ctx = contextoEmpresa(app, empresaId)
@@ -162,6 +180,7 @@ function analisaContato(app, cfg, rec) {
   const atual = app.findRecordById("contatos", rec.id)
   const dd = lerDados(atual)
   const mudou = []
+  const alertado = dd.ia && dd.ia.alertado
   dd.ia = {
     resumo: String(r.resumo || "").slice(0, 400),
     interesse: String(r.interesse || "").slice(0, 120),
@@ -169,6 +188,7 @@ function analisaContato(app, cfg, rec) {
     motivo: r.atencao ? String(r.motivo || "").slice(0, 200) : "",
     ts: Date.now(),
     ate: u.ts || 0,
+    alertado: alertado,
   }
   const v = Number(r.valor)
   if (v > 0 && !(dd.valor > 0)) { dd.valor = Math.round(v * 100) / 100; mudou.push("valor " + brl(dd.valor)) }
@@ -197,10 +217,32 @@ function pendentesDeAnalise(app, empresaId, limite) {
   }).slice(0, limite || 10)
 }
 
+// Cliente mandou mensagem há mais de 3 horas e ninguém respondeu: avisa uma vez por mensagem.
+function alertaSemResposta(app, empresaId) {
+  const agora = Date.now()
+  const desde = new Date(agora - 3 * 86400000).toISOString().replace("T", " ")
+  const recs = app.findRecordsByFilter("contatos", "empresa = {:e} && updated >= {:t}", "-updated", 300, 0, { e: empresaId, t: desde })
+  let n = 0
+  recs.forEach((r) => {
+    const d = lerDados(r), u = ultimaMsg(d)
+    if (!u || u.de !== "cli" || d.status === "finalizado") return
+    if (agora - (u.ts || 0) < 3 * 3600000 || agora - (u.ts || 0) > 3 * 86400000) return
+    if (d.ia && d.ia.alertado === u.ts) return
+    const horas = Math.round((agora - u.ts) / 3600000)
+    postaChat(app, empresaId, "ia", "aviso", (d.nome || "Um contato") + " mandou mensagem há " + horas + " horas e ninguém respondeu: \"" + String(u.txt || "").replace(/\s+/g, " ").slice(0, 140) + "\"", "", r.getInt("local_id"))
+    const atual = app.findRecordById("contatos", r.id), dd = lerDados(atual)
+    dd.ia = Object.assign({}, dd.ia || {}, { alertado: u.ts })
+    atual.set("dados", dd); app.save(atual)
+    n++
+  })
+  return n
+}
+
 function rodaCrm(app) {
   const cfgs = app.findRecordsByFilter("ia_config", "crm_auto = true && api_key != ''", "", 100, 0)
   let n = 0
   cfgs.forEach((cfg) => {
+    try { alertaSemResposta(app, cfg.getString("empresa")) } catch (e) { app.logger().warn("ia: alerta falhou", "erro", String(e)) }
     pendentesDeAnalise(app, cfg.getString("empresa"), 8).some((rec) => {
       try { analisaContato(app, cfg, rec); n++; return false }
       catch (e) {
@@ -213,7 +255,7 @@ function rodaCrm(app) {
 }
 
 // ---------- 2) Perguntas sobre o negócio ----------
-function perguntar(app, cfg, pergunta) {
+function perguntar(app, cfg, pergunta, historico) {
   const empresaId = cfg.getString("empresa")
   const ctx = contextoEmpresa(app, empresaId)
   const hoje = diaBR()
@@ -226,6 +268,7 @@ function perguntar(app, cfg, pergunta) {
   const texto = "Etapas do funil: " + ETAPAS.join(" > ") + "\n\nContatos (" + contatos.length + "):\n" +
     (contatos.map(linhaContato).join("\n") || "(nenhum)") +
     "\n\nAgenda dos próximos 30 dias:\n" + (agenda.map((ev) => dataCurta(ev.data) + " " + (ev.hora || "") + " " + (ev.titulo || "") + (ev.tipo ? " (" + ev.tipo + ")" : "")).join("\n") || "(vazia)") +
+    (historico && historico.length ? "\n\nConversa recente com a equipe (para entender a pergunta):\n" + historico.map((m) => (m.de === "eu" ? "Equipe" : "Assistente") + ": " + String(m.txt).slice(0, 600)).join("\n") : "") +
     "\n\nPergunta: " + String(pergunta).slice(0, 1000)
   return chama(app, cfg, "pergunta", sistema, texto, false, 1200)
 }
@@ -260,6 +303,7 @@ function resumoDia(app, cfg) {
   const res = { texto: saida, numeros: numeros, data: hoje, ts: Date.now() }
   cfg.set("resumo", res)
   app.save(cfg)
+  try { postaChat(app, empresaId, "ia", "resumo", "Resumo do dia " + dataCurta(hoje) + "\n\n" + saida, "") } catch (e) {}
   return res
 }
 
@@ -334,7 +378,7 @@ function precisaCfg(empresaId) {
 
 
 module.exports = {
-  podeConfigurar, situacao, precisaCfg,
+  podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
   ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes,
 }

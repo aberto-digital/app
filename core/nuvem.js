@@ -243,12 +243,18 @@
     es = new EventSource(BASE + '/api/realtime');
     es.addEventListener('PB_CONNECT', function (ev) {
       var id; try { id = JSON.parse(ev.data).clientId; } catch (e) { return; }
-      fetch(BASE + '/api/realtime', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: auth.token }, body: JSON.stringify({ clientId: id, subscriptions: ['contatos'] }) }).catch(function () {});
+      fetch(BASE + '/api/realtime', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: auth.token }, body: JSON.stringify({ clientId: id, subscriptions: ['contatos', 'ia_chat'] }) }).catch(function () {});
     });
     es.addEventListener('contatos', function (ev) {
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d || !d.record || d.record.empresa !== auth.empresa) return;
       if (d.action === 'create' || d.action === 'update') aplicaContato(d.record);
+    });
+    es.addEventListener('ia_chat', function (ev) {
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (!d || !d.record || d.record.empresa !== auth.empresa || d.action !== 'create') return;
+      var r = d.record;
+      window.dispatchEvent(new CustomEvent('nuvem:iachat', { detail: { id: r.id, de: r.de, tipo: r.tipo, txt: r.txt, autor: r.autor, contato: r.contato || null, ts: r.ts } }));
     });
   }
   function statusWa() {

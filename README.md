@@ -105,8 +105,8 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 
 | Fase | Entrega | Tecnologia prevista |
 | --- | --- | --- |
-| 2 | Login e dados salvos de verdade (contatos, funil, agenda, produtos) | Supabase (banco Postgres e autenticação) |
-| 3 | WhatsApp real com IA respondendo | WhatsApp Cloud API (Meta) ou plataforma parceira, recebendo por webhook numa Edge Function do Supabase |
+| 2 (pronta) | Login e dados salvos de verdade (contatos, funil, agenda, produtos) | Servidor próprio: PocketBase na VPS Hostinger, backup na Cloudflare R2 |
+| 3 (em andamento) | WhatsApp real, chatbot de menu e IA respondendo | WhatsApp Cloud API direto, webhook no PocketBase (`pb_hooks`) |
 | 3 | Instagram Direct e Messenger | Graph API da Meta (exige app aprovado pela Meta e conta comercial) |
 | 3 | E-mail | Gmail API ou IMAP/SMTP do provedor do domínio |
 | 4 | IA de verdade | Modelo de linguagem com a base de conhecimento do cliente, regras de passar para humano e registro de cada resposta |
@@ -122,6 +122,8 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 
 | Data | Mudança |
 | --- | --- |
+| 17 nov 2026 | WhatsApp Cloud API: webhook com assinatura, envio de texto, status de entrega, tempo real no app; chatbot de menu com botões e lista; tela Atendimento automático (chatbot + IA) |
+| 17 nov 2026 | Servidor próprio (fase 2): login, dados no servidor, cadastro de contatos, backup diário com aviso por e-mail |
 | 16 nov 2026 | Primeira versão do protótipo: 7 telas, dados de exemplo, simulação ao vivo |
 | 17 nov 2026 | Auditoria, briefing, proposta e contrato conectados ao contato do CRM; proposta e contrato gerados com um clique; novos módulos Gestão mensal do Google e Instagram profissional |
 | 17 nov 2026 | Página de auditoria com nota, gráficos, perdas, pacote sugerido e impressão em PDF |
@@ -139,3 +141,16 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 - Tabelas: `empresas`, `users` (com `empresa` e `papel`), `contatos`, `eventos`, `produtos`, `configuracoes`. Todas presas à empresa: cada usuário só vê e altera os dados da própria empresa (regras testadas).
 - O app continua gravando no navegador; `core/nuvem.js` envia cada alteração ao servidor e baixa os dados ao abrir. Sem login, funciona como demonstração (só no navegador).
 - Novo cliente: no painel `https://api.abertodigital.com/_/`, criar a empresa em `empresas` e o usuário em `users` ligado a ela.
+
+## WhatsApp Cloud API e chatbot (fase 3, desde 17/11/2026)
+
+- **Coleções (só superusuário):** `meta_app` (app_id, app_secret, verify_token, versao_api) e `canais` (empresa, phone_number_id, waba_id, numero, access_token, ativo). O token nunca vai para o navegador. `contatos.wa_id` guarda o número do WhatsApp do contato.
+- **Rotas** (`infra/pocketbase/pb_hooks/whatsapp.pb.js` e `wa.js`):
+  - `GET/POST /api/whatsapp/webhook`: verificação da Meta e recebimento, com conferência do `X-Hub-Signature-256`. Cria o contato se o número for novo e grava status (enviada, entregue, lida, falhou).
+  - `GET /api/abertocore/whatsapp`: o app pergunta se a empresa tem número conectado.
+  - `POST /api/abertocore/whatsapp/enviar`: envia texto pelo número da empresa do usuário logado. Avisa quando passou a janela de 24 horas.
+  - Trava em `onRecordUpdateRequest(contatos)`: o app nunca apaga mensagens que só o servidor recebeu (união por `k`/`wa`).
+- **Chatbot de menu:** configurado no app (`configuracoes.dados.bot`). Responde com botões (até 3), lista (4 a 9) ou texto numerado; `op_N` identifica a opção tocada. Opções podem passar para a equipe; quando a equipe responde, o robô fica quieto por `pausaHoras`. `0` ou `menu` traz o menu de volta.
+- **Tempo real:** `core/nuvem.js` assina `contatos` pelo realtime do PocketBase (SSE) e junta as mensagens sem perder o rascunho digitado.
+- **Meta:** portfólio Abertodigital (2323231835078676), app AbertoCore (2125617558075863, Provedor de Tecnologia), usuário do sistema `abertocore-servidor` com token sem validade. O app só recebe eventos reais depois de publicado, o que exige a verificação da empresa aprovada.
+- **Testes locais:** `ABERTOCORE_GRAPH_BASE=http://127.0.0.1:9999 ./pocketbase serve` troca a API da Meta por um servidor de teste.

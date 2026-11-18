@@ -543,10 +543,10 @@
     /* Respostas do assistente: a primeira regra que bater com a mensagem responde.
        {nome} = primeiro nome do contato, {oi} = "Nome, " ou vazio, {resp} = responsável. */
     regrasIA: [
-      {se: /pre[cç]o|valor|quanto|custa|or[cç]amento/, diz: 'Claro{, nome}! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 990 + R$ 99/mês, Completo por R$ 1.900 + R$ 249/mês e Enterprise por R$ 3.500 + R$ 450/mês. Nos planos de 6 e 12 meses a mensalidade tem 15% e 30% de desconto. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.'},
+      {se: /pre[cç]o|valor|quanto|custa|or[cç]amento/, diz: 'Claro{, nome}! Os pacotes são: Start por R$ 650 + R$ 49/mês, Presença por R$ 1.650 + R$ 150/mês e Completo por R$ 3.500 + R$ 450/mês. Nos planos de 6 e 12 meses a mensalidade tem 15% e 30% de desconto. Se quiser, faço uma auditoria gratuita do seu negócio para indicar o melhor.'},
       {se: /agend|marcar|hor[aá]rio|reuni|demonstra/, diz: 'Posso marcar uma conversa de 15 minutos. Tenho amanhã às 10h ou às 15h. Qual fica melhor para você?'},
-      {se: /automat|chatbot|\bia\b|rob[oô]|responder sozinho|whats/, diz: '{oi}dá sim! O assistente de IA responde preço, horário e endereço na hora, pré-agenda e só chama você quando precisa. Ele vem no pacote Completo e no Enterprise.'},
-      {se: /crm|sistema|funil|enterprise|equipe|v[aá]rios atendentes/, diz: 'No Enterprise, WhatsApp, Instagram, Facebook e e-mail chegam numa caixa só, cada contato vira um card no funil, e a agenda e o follow-up ficam no mesmo lugar. Quer ver uma demonstração?'},
+      {se: /automat|chatbot|\bia\b|rob[oô]|responder sozinho|whats/, diz: '{oi}dá sim! O assistente de IA responde preço, horário e endereço na hora, pré-agenda e só chama você quando precisa. O chatbot vem a partir do Presença, e a IA que atende sozinha vem no Completo.'},
+      {se: /crm|sistema|funil|enterprise|equipe|v[aá]rios atendentes/, diz: 'No Completo, WhatsApp, Instagram, Facebook e e-mail chegam numa caixa só, cada contato vira um card no funil, e a agenda e o follow-up ficam no mesmo lugar. Quer ver uma demonstração?'},
       {se: /google|maps|aparecer/, diz: 'Para aparecer no Google, otimizamos seu perfil com fotos, horário, serviços e respostas às avaliações. Isso já vem no Start, a partir de R$ 650.'},
       {se: /site/, diz: 'Fazemos site de 1 página, rápido no celular e com botão de WhatsApp. Ele vem a partir do pacote Start.'},
       {se: /feriado|hor[aá]rio de funcionamento/, diz: '{oi}eu mesmo atualizo o horário de feriado no seu perfil do Google. É só me dizer o dia e o horário que vão funcionar.'},
@@ -637,7 +637,7 @@
         ['ia','Oi, Rogério! O pacote Start sai por R$ 650 + R$ 49/mês e inclui perfil no Google otimizado, site de 1 página e domínio no 1º ano. Quer que eu marque uma conversa rápida para entender sua oficina?',94],
         ['cli','Quero sim. Tenho muita gente perguntando preço de troca de óleo no WhatsApp',12],
         ['cli','Dá pra automatizar isso?',11]], naoLidas:2},
-      {nome:'Camila Duarte', negocio:'Bella Estética', canal:'Instagram', tipo:'Lead', etapa:'Novo contato', valor:3000, followup:addDias(1), status:'entrada', tel:'(11) 9 7xxx-4410', origem:'Instagram', nota:'Clínica com 3 profissionais. Perfil ideal para o Enterprise.', msgs:[
+      {nome:'Camila Duarte', negocio:'Bella Estética', canal:'Instagram', tipo:'Lead', etapa:'Novo contato', valor:3000, followup:addDias(1), status:'entrada', tel:'(11) 9 7xxx-4410', origem:'Instagram', nota:'Clínica com 3 profissionais. Perfil ideal para o Completo.', msgs:[
         ['cli','Olá! Vocês fazem sistema de agendamento com WhatsApp pra clínica? Hoje anoto tudo no caderno 😅',38]], naoLidas:1},
       {nome:'Luciana Ferreira', negocio:'Ótica Visão Clara', canal:'WhatsApp', tipo:'Cliente', etapa:'Fechado', valor:1500, followup:null, status:'entrada', tel:'(11) 9 9xxx-3377', origem:'Indicação', nota:'Cliente do Completo desde setembro.', msgs:[
         ['eq','Luciana, o relatório de outubro já está no seu e-mail. As rotas pelo Google subiram 34%.',60*26],
@@ -654,8 +654,8 @@
       {nome:'Paulo Santos', negocio:'Contabilidade Santos', canal:'E-mail', tipo:'Lead', etapa:'Qualificado', valor:1500, followup:addDias(4), status:'entrada', tel:'(11) 9 3xxx-7781', origem:'Indicação', nota:'', msgs:[
         ['cli','Assunto: Atendimento de clientes\n\nRecebemos muitas dúvidas repetidas sobre DAS e MEI. Um assistente de IA ajudaria?',60*5],
         ['ia','Olá, Paulo! Ajudaria sim: o assistente responde dúvidas frequentes 24 horas e passa para a sua equipe só o que precisa de um contador. Posso agendar uma demonstração de 15 minutos?',60*5-1]], naoLidas:0},
-      {nome:'Thiago Martins', negocio:'Arujá Fitness', canal:'Facebook', tipo:'Lead', etapa:'Proposta enviada', valor:3000, followup:addDias(3), status:'esperando', tel:'(11) 9 2xxx-9902', origem:'Facebook', nota:'Academia com 400 alunos. Proposta Enterprise.', msgs:[
-        ['eq','Thiago, segue a proposta do Enterprise com CRM, WhatsApp e agenda de aulas experimentais.',60*45]], naoLidas:0},
+      {nome:'Thiago Martins', negocio:'Arujá Fitness', canal:'Facebook', tipo:'Lead', etapa:'Proposta enviada', valor:3000, followup:addDias(3), status:'esperando', tel:'(11) 9 2xxx-9902', origem:'Facebook', nota:'Academia com 400 alunos. Proposta Completo.', msgs:[
+        ['eq','Thiago, segue a proposta do Completo com CRM, WhatsApp e agenda de aulas experimentais.',60*45]], naoLidas:0},
       {nome:'Marcos Pereira', negocio:'Padaria Pão Dourado', canal:'WhatsApp', tipo:'Cliente', etapa:'Fechado', valor:850, followup:null, status:'finalizado', tel:'(11) 9 1xxx-4455', origem:'Visita', nota:'Cardápio com QR Code no ar.', msgs:[
         ['cli','O cardápio novo ficou ótimo, os clientes estão usando o QR Code!',60*50],
         ['eq','Que bom, Marcos! Qualquer ajuste é só falar.',60*49]], naoLidas:0},
@@ -667,7 +667,7 @@
     C.forEach(function(c, i){ c.id = i + 1; c.msgs = c.msgs.map(function(m){ return {de:m[0], txt:m[1], ts:min(m[2])}; }); });
     var E = [
       {id:1, contato:1, titulo:'Diagnóstico da oficina', data:addDias(0), hora:'15:00', tipo:'Visita'},
-      {id:2, contato:2, titulo:'Demonstração do Enterprise', data:addDias(1), hora:'10:00', tipo:'Reunião'},
+      {id:2, contato:2, titulo:'Demonstração do Completo', data:addDias(1), hora:'10:00', tipo:'Reunião'},
       {id:3, contato:6, titulo:'Assinatura do contrato', data:addDias(2), hora:'14:30', tipo:'Reunião'},
       {id:4, contato:7, titulo:'Demonstração do assistente de IA', data:addDias(4), hora:'09:30', tipo:'Ligação'},
       {id:5, contato:3, titulo:'Revisão mensal de resultados', data:addDias(5), hora:'11:00', tipo:'Ligação'},
@@ -677,7 +677,7 @@
     var IA = {
       ativo:true, nome:'Assistente da ' + CONFIG.empresa, tom:'Próximo e direto',
       horario:'Responde 24 horas. Passa para o ' + CONFIG.responsavel + ' de segunda a sexta, das 9h às 18h.',
-      base:'Pacotes: Start R$ 650 + R$ 49/mês; Presença R$ 990 + R$ 99/mês; Completo R$ 1.900 + R$ 249/mês; Enterprise R$ 3.500 + R$ 450/mês.\nPlanos: mensal sem fidelidade; 6 meses com 15% de desconto na mensalidade; 12 meses com 30%.\nAtendimento presencial em Arujá e região, e remoto.\nAuditoria gratuita: PDF de 1 página com o que falta no Google, site e WhatsApp.\nPassar para humano: preço personalizado, reclamação, pedido de contrato.',
+      base:'Pacotes: Start R$ 650 + R$ 49/mês; Presença R$ 1.650 + R$ 150/mês; Completo R$ 3.500 + R$ 450/mês.\nPlanos: mensal sem fidelidade; 6 meses com 15% de desconto na mensalidade; 12 meses com 30%.\nAtendimento presencial em Arujá e região, e remoto.\nAuditoria gratuita: PDF de 1 página com o que falta no Google, site e WhatsApp.\nPassar para humano: preço personalizado, reclamação, pedido de contrato.',
       humano:true, agendar:true
     };
     return {contatos:C, eventos:E, produtos:P, ia:IA, msgsCanal:{WhatsApp:312, Instagram:128, Facebook:64, 'E-mail':41}, prox:{c:C.length + 1, e:E.length + 1, p:P.length + 1}};
@@ -1426,7 +1426,7 @@
         '<div class="linha-ch"><div><div class="t">Resumo do dia às 18h</div><div class="d">Chega no e-mail do dono: números do dia, quem precisa de você e o que tem amanhã</div></div><button class="chave" role="switch" id="iaRes" aria-checked="false" aria-label="Resumo do dia às 18h"' + (logado ? '' : ' disabled') + '></button></div>' +
         '<div id="iaResumo"></div>' +
       '</section>' +
-      '<section class="painel"><h2>Atendimento com IA (Enterprise)</h2><p class="nota-bot">A IA atende o cliente sozinha até agendar ou fechar e passa para a equipe quando precisa. Começa a responder no WhatsApp depois que a Meta aprovar a conta. A base de conhecimento já é usada pela IA interna.</p>' +
+      '<section class="painel"><h2>Atendimento com IA (pacote Completo)</h2><p class="nota-bot">A IA atende o cliente sozinha até agendar ou fechar e passa para a equipe quando precisa. Começa a responder no WhatsApp depois que a Meta aprovar a conta. A base de conhecimento já é usada pela IA interna.</p>' +
         '<div class="linha-ch"><div><div class="t">Atender clientes sozinha</div><div class="d">WhatsApp, Instagram e Facebook</div></div><button class="chave" role="switch" id="iaOn" aria-checked="' + A.ativo + '" aria-label="Atender clientes sozinha"></button></div>' +
         '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede uma pessoa, pede preço personalizado ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
         '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Agendar"></button></div>' +
@@ -1502,7 +1502,7 @@
     $('#vista').innerHTML = '<div class="topo-at"><div class="abas-at" role="tablist" aria-label="Atendimento automático">' +
       '<button role="tab" data-t="chatbot" aria-selected="' + (abaAt === 'chatbot') + '">' + ic('msg') + 'Chatbot de menu<span class="st-at ' + (bot ? 'on' : '') + '">' + (bot ? 'ligado' : 'desligado') + '</span></button>' +
       '<button role="tab" data-t="ia" aria-selected="' + (abaAt === 'ia') + '">' + ic('ia') + 'Assistente de IA<span class="st-at ' + (ia ? 'on' : '') + '">' + (ia ? 'ligado' : 'desligado') + '</span></button>' +
-      '</div><p class="nota-at">O chatbot cuida do menu e das perguntas frequentes. A IA organiza o CRM para a equipe e, no Enterprise, atende o cliente sozinha. Quando a equipe responde, os dois saem da conversa.</p></div><div id="vistaSub"></div>';
+      '</div><p class="nota-at">O chatbot cuida do menu e das perguntas frequentes. A IA organiza o CRM para a equipe e, no pacote Completo, atende o cliente sozinha. Quando a equipe responde, os dois saem da conversa.</p></div><div id="vistaSub"></div>';
     $('.abas-at').onclick = function(e){ var b = e.target.closest('[data-t]'); if (!b || b.getAttribute('data-t') === abaAt) return; abaAt = b.getAttribute('data-t'); vAtendimento(); };
     (abaAt === 'ia' ? vAssistente : vChatbot)();
   }

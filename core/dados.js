@@ -20,9 +20,8 @@
      cada solução usada pela auditoria exista no catálogo. */
   var PRODUTOS_BASE = [
     {nome:'Start', tipo:'Pacote', setup:650, mensal:49, prazo:7, ds:'Perfil no Google otimizado e verificado, site de 1 página com botão de WhatsApp, domínio .com.br no 1º ano, hospedagem e 1 alteração por mês'},
-    {nome:'Presença', tipo:'Pacote', setup:990, mensal:99, prazo:10, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business configurado com catálogo e respostas rápidas, 1º mês de acompanhamento com relatório e reunião, relatório mensal do Google a partir do 2º mês'},
-    {nome:'Completo', tipo:'Pacote', setup:1900, mensal:249, prazo:15, ds:'Tudo do Presença, AbertoCore com o WhatsApp e até 2 usuários, chatbot de menu que faz a triagem dos contatos, assistente de IA que sugere respostas e lembra os follow-ups, funil de vendas e agenda'},
-    {nome:'Enterprise', tipo:'Pacote', setup:3500, mensal:450, prazo:30, ds:'Tudo do Completo, Instagram + Facebook + e-mail na mesma caixa de mensagens, atendimento com IA 24h que responde e qualifica e agenda sozinho, CRM completo com follow-up automático, agendamento online, usuários ilimitados, e-mail com o domínio da empresa, painel de resultados e ajustes sob medida'},
+    {nome:'Presença', tipo:'Pacote', setup:1650, mensal:150, prazo:15, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business configurado com catálogo e respostas rápidas, AbertoCore com o WhatsApp e até 2 usuários, chatbot de menu com botões, assistente de IA interno com resumo do dia, funil e agenda com lembrete de retorno, 1º mês de acompanhamento com reunião e relatório mensal do Google'},
+    {nome:'Completo', tipo:'Pacote', setup:3500, mensal:450, prazo:30, ds:'Tudo do Presença, atendimento com IA 24h que responde, qualifica e agenda sozinho, Instagram + Facebook + e-mail na mesma caixa de mensagens, agendamento online, usuários ilimitados, e-mail com o domínio da empresa, painel de resultados e ajustes sob medida'},
     {nome:'Chatbot de menu (triagem)', tipo:'Módulo', setup:600, mensal:199, ds:'Menu numerado no WhatsApp que responde as perguntas frequentes e separa os interessados dos curiosos'},
     {nome:'Gestão mensal do perfil no Google', tipo:'Módulo', setup:0, mensal:149, ds:'4 postagens por mês, fotos novas, horários de feriado e respostas às avaliações'},
     {nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:0, mensal:79, ds:'A IA sugere a resposta e nós revisamos e publicamos em até 48h'},
@@ -34,8 +33,9 @@
     {nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:350, mensal:0, ds:'Página com cardápio ou catálogo e QR Code impresso para o balcão e as mesas'},
     {nome:'Auditoria gratuita', tipo:'Serviço', setup:0, mensal:0, ds:'Relatório com nota e o que falta no Google, site, WhatsApp e redes'}
   ];
-  var CATALOGO_VERSAO = 2;
-  var ORDEM_PACOTES = ['Start', 'Presença', 'Completo', 'Enterprise'];
+  var CATALOGO_VERSAO = 3; // v3 (18/11/2026): 3 pacotes; o Completo antigo entrou no Presença e o Enterprise virou Completo
+  var ORDEM_PACOTES = ['Start', 'Presença', 'Completo'];
+  var PACOTES_ANTIGOS = ['Enterprise'];
   /* Planos de contratação: desconto na mensalidade em troca de prazo mínimo. */
   var PLANOS = [
     {nome:'Mensal', meses:0, desconto:0, txt:'sem fidelidade'},
@@ -45,7 +45,7 @@
   function plano(nome){ return PLANOS.filter(function(p){ return p.nome === nome; })[0] || PLANOS[0]; }
   function mensalPlano(valor, nome){ if (valor == null) return null; return Math.round(valor * (1 - plano(nome).desconto) * 100) / 100; }
   /* O que cada pacote já inclui (além dos pacotes abaixo dele). */
-  var INCLUSOS = {Completo:['Chatbot de menu (triagem)'], Enterprise:['Agendamento online']};
+  var INCLUSOS = {'Presença':['Chatbot de menu (triagem)'], Completo:['Agendamento online']};
 
   function maxId(L){ return L.reduce(function(m, x){ return Math.max(m, x.id || 0); }, 0); }
   function garante(S){
@@ -60,6 +60,7 @@
       else if (migra){ ex.setup = p.setup; ex.mensal = p.mensal; ex.ds = p.ds; if (p.prazo) ex.prazo = p.prazo; }
       else if (ex.prazo == null && p.prazo) ex.prazo = p.prazo;
     });
+    if (migra) S.produtos.forEach(function(x){ if (PACOTES_ANTIGOS.indexOf(x.nome) >= 0) x.ativo = false; });
     S.catalogoV = CATALOGO_VERSAO;
     S.prox.p = maxId(S.produtos) + 1;
     return S;

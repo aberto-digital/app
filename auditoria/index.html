@@ -228,7 +228,7 @@
         perda:'Visual amador ou diferente em cada canal reduz a confiança', acao:'Criar identidade visual e aplicar em todos os canais'}
     ]},
     {id:'atend', nome:'Atendimento', peso:25, itens:[
-      {id:'tempo', sol:'Completo', q:'Teste: quanto tempo levou para responder uma mensagem?', peso:35, tipo:'op', ops:[['Até 15 min',1],['Até 2 horas',.6],['Mais de 2 horas',.2],['Não respondeu',0]],
+      {id:'tempo', sol:'Presença', q:'Teste: quanto tempo levou para responder uma mensagem?', peso:35, tipo:'op', ops:[['Até 15 min',1],['Até 2 horas',.6],['Mais de 2 horas',.2],['Não respondeu',0]],
         perda:'O cliente que espera fecha com quem respondeu antes', acao:'Assistente de IA que responde na hora, 24 horas'},
       {id:'wa_bus', sol:'Presença', q:'Usa WhatsApp Business (e não o pessoal)?', peso:15, tipo:'op', ops:[['Sim',1],['Não',0]],
         perda:'Sem perfil comercial, o atendimento fica desorganizado e pouco profissional', acao:'Configurar WhatsApp Business com perfil completo'},
@@ -301,7 +301,7 @@
       if (i >= 0) nivel = Math.max(nivel, i);
       else if (mods.indexOf(p.it.sol) < 0) mods.push(p.it.sol);
     });
-    if ((parseInt(A.msgs, 10) || 0) >= 30) nivel = 3;
+    if ((parseInt(A.msgs, 10) || 0) >= 30) nivel = 2;
     var pac = nivel >= 0 ? ordem[nivel] : '';
     mods = mods.filter(function(m){ return !pac || !Core.incluso(pac, m); });
     return {pacote:pac, modulos:mods, produtos:S.produtos};

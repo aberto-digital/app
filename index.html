@@ -133,6 +133,10 @@
   .item .cont{margin-left:auto;background:var(--ceu);color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
   .vazio{padding:40px 20px;text-align:center;color:var(--sec)}
   .vazio .btn{margin-top:12px}
+  .bot-op{border:1px solid var(--linha);border-radius:12px;padding:10px;margin-bottom:10px;background:#fff}
+  .bot-op-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}.bot-op-top .num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+  .bot-op-top input{flex:1;min-width:0}.bot-op textarea{width:100%}.op-h{display:flex;gap:8px;align-items:center;justify-content:flex-start;font-size:13px;font-weight:500;color:var(--sec);margin-top:6px;cursor:pointer}.bot-op .op-h input[type=checkbox]{width:18px;height:18px;flex:none;margin:0;padding:0;accent-color:var(--navy)}
+  .nota-bot{font-size:13px;color:var(--sec);margin:-4px 0 14px}.dica{font-size:12px;color:var(--sec);margin-top:4px}
   .nota-sis{align-self:center;max-width:90%;margin:6px auto;padding:6px 12px;border-radius:999px;background:var(--papel);border:1px solid var(--linha);color:var(--sec);font-size:12.5px;text-align:center}
   .btn-novo{flex:none;width:40px;border-radius:10px;border:0;background:var(--azul,#2F6FED);color:#fff;display:grid;place-items:center;cursor:pointer}
   .btn-novo svg{width:20px;height:20px}
@@ -417,7 +421,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/dados.js"></script>
-<script src="core/nuvem.js?v=3"></script>
+<script src="core/nuvem.js?v=4"></script>
 <script>
 (function(){
   'use strict';
@@ -607,6 +611,7 @@
     {id:'agenda', curto:'Agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
     {id:'dashboard', curto:'Painel', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
     {id:'produtos', grupo:'config', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
+    {id:'chatbot', grupo:'config', curto:'Chatbot', nome:'Chatbot de menu', ic:'msg', sub:'Menu automático no WhatsApp: "digite 1 para…"'},
     {id:'assistente', grupo:'config', curto:'IA', nome:'Assistente de IA', ic:'ia', sub:'Como a IA responde os seus clientes'},
     {id:'canais', grupo:'config', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true},
     {id:'config', curto:'Ajustes', nome:'Configurações', ic:'prod', sub:'Produtos, assistente de IA e canais', oculta:true}
@@ -633,7 +638,7 @@
     var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
     app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
     $('#cfgBtn').setAttribute('aria-pressed', emCfg);
-    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAssistente, canais:vCanais})[atual]();
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAssistente, chatbot:vChatbot, canais:vCanais})[atual]();
   }
 
   /* ---------- avisos ---------- */
@@ -712,7 +717,7 @@
     var L = filtrados();
     $('#itens').innerHTML = L.length ? L.map(function(c){
       var u = ultima(c), novo = c.naoLidas > 0;
-      var pre = u.de === 'ia' ? 'IA: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
+      var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
       var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
       return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
         '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
@@ -734,7 +739,7 @@
     c.msgs.forEach(function(m){
       var d = rotDia(m.ts); if (d !== dAnt){ html += '<div class="dia">' + d + '</div>'; dAnt = d; }
       if (m.de === 'sis'){ html += '<div class="nota-sis">' + esc(m.txt) + '</div>'; return; }
-      var cls = m.de === 'cli' ? 'cli' : m.de === 'ia' ? 'ia' : 'eq';
+      var cls = m.de === 'cli' ? 'cli' : (m.de === 'ia' || m.de === 'bot') ? 'ia' : 'eq';
       var corpo = esc(m.txt).replace(/^Assunto: (.*)\n+/, '<span class="assunto">$1</span>');
       var st = '';
       if (m.de !== 'cli'){
@@ -744,7 +749,7 @@
         else if (m.st === 'delivered') st = ' <span class="st" aria-label="entregue">✓✓</span>';
         else if (m.st === 'sent') st = ' <span class="st" aria-label="enviada">✓</span>';
       }
-      html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
+      html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : m.de === 'bot' ? '<span class="quem">' + ic('msg') + 'Chatbot</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
     });
     box.innerHTML = '<div class="conv-topo">' +
         '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button>' + avatar(c) +
@@ -1133,6 +1138,99 @@
         fio.insertAdjacentHTML('beforeend', '<div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>' + esc(respostaIA(t)) + '<span class="h">' + hm(agoraMs()) + '</span></div>');
         fio.scrollTop = fio.scrollHeight;
       }, 900);
+    });
+  }
+
+
+  /* ========== CHATBOT DE MENU ========== */
+  var BOT_PADRAO = {
+    ativo:false,
+    saudacao:'Olá! 👋 Aqui é {empresa}. Como podemos ajudar? Responda com o número da opção:',
+    opcoes:[
+      {titulo:'Orçamento', resposta:'Ótimo! Conte em poucas palavras o que você precisa que alguém da equipe já te responde.', humano:true},
+      {titulo:'Horário de atendimento', resposta:'Atendemos de segunda a sexta, das 9h às 18h.', humano:false},
+      {titulo:'Falar com uma pessoa', resposta:'Certo! Já avisei a equipe, em instantes alguém te responde.', humano:true}
+    ],
+    rodape:'Digite 0 para ver o menu de novo.',
+    pausaHoras:12
+  };
+  function botCfg(){ if (!S.bot) S.bot = JSON.parse(JSON.stringify(BOT_PADRAO)); return S.bot; }
+  function menuTexto(B){
+    var nomeEmp = (window.Nuvem && Nuvem.logado()) ? 'abertodigital' : CONFIG.empresa;
+    return String(B.saudacao || '').replace(/\{empresa\}/g, nomeEmp) + '\n\n' +
+      B.opcoes.filter(function(o){ return String(o.titulo || '').trim(); }).map(function(o, i){ return (i + 1) + ' - ' + o.titulo.trim(); }).join('\n') +
+      (B.rodape ? '\n\n' + B.rodape : '');
+  }
+  function vChatbot(){
+    var B = JSON.parse(JSON.stringify(botCfg()));
+    var conectado = window.Nuvem && Nuvem.logado() && Nuvem.waConectado();
+    function linhasOpcoes(){
+      return B.opcoes.map(function(o, i){
+        return '<div class="bot-op" data-i="' + i + '"><div class="bot-op-top"><span class="num" aria-hidden="true">' + (i + 1) + '</span>' +
+          '<input class="op-t" aria-label="Título da opção ' + (i + 1) + '" value="' + esc(o.titulo) + '" placeholder="Ex.: Orçamento" maxlength="60">' +
+          '<button class="btn peq op-x" type="button" aria-label="Remover opção ' + (i + 1) + '">' + ic('x') + '</button></div>' +
+          '<textarea class="op-r" rows="2" aria-label="Resposta da opção ' + (i + 1) + '" placeholder="O que o robô responde quando o cliente digita ' + (i + 1) + '">' + esc(o.resposta) + '</textarea>' +
+          '<label class="op-h"><input type="checkbox" class="op-hum"' + (o.humano ? ' checked' : '') + '> Depois de responder, passar a conversa para a equipe</label></div>';
+      }).join('');
+    }
+    $('#vista').innerHTML = '<div class="assist">' +
+      '<section class="painel"><h2>Chatbot de menu</h2>' +
+        '<p class="nota-bot">' + (conectado ? 'Funciona no WhatsApp conectado (' + esc(Nuvem.waNumero()) + '). Quando alguém da equipe responde, o robô sai da conversa.' : 'O robô responde no WhatsApp oficial assim que o número estiver conectado. Você já pode montar o menu.') + '</p>' +
+        '<div class="linha-ch"><div><div class="t">Chatbot ligado</div><div class="d">Manda o menu na primeira mensagem do cliente</div></div><button class="chave" role="switch" id="botOn" aria-checked="' + !!B.ativo + '" aria-label="Chatbot ligado"></button></div>' +
+        '<div class="campo"><label for="botS">Mensagem de boas-vindas</label><textarea id="botS" rows="3" maxlength="600">' + esc(B.saudacao) + '</textarea><div class="dica">{empresa} vira o nome da empresa.</div></div>' +
+        '<div class="campo"><span class="rot">Opções do menu</span><div id="botOps">' + linhasOpcoes() + '</div>' +
+        '<button class="btn peq" type="button" id="botAdd">' + ic('mais') + 'Adicionar opção</button></div>' +
+        '<div class="duas"><div class="campo"><label for="botR">Rodapé do menu</label><input id="botR" value="' + esc(B.rodape) + '" maxlength="120"></div>' +
+        '<div class="campo"><label for="botP">Robô fica quieto depois que a equipe assume</label><select id="botP">' + [2,6,12,24,48].map(function(h){ return '<option value="' + h + '"' + (h === +B.pausaHoras ? ' selected' : '') + '>' + h + ' horas</option>'; }).join('') + '</select></div></div>' +
+        '<button class="btn pri" id="botSalva">Salvar chatbot</button>' +
+      '</section>' +
+      '<section class="painel teste"><h2>Teste o menu</h2><div class="fio" id="bFio"></div>' +
+        '<div class="compor"><form class="linha" id="bF"><textarea id="bT" rows="1" placeholder="Escreva como cliente, ex.: oi ou 1" aria-label="Mensagem de teste"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div></section></div>';
+    function coleta(){
+      B.saudacao = $('#botS').value; B.rodape = $('#botR').value; B.pausaHoras = +$('#botP').value;
+      B.opcoes = [].map.call(document.querySelectorAll('.bot-op'), function(el){ return {titulo:el.querySelector('.op-t').value, resposta:el.querySelector('.op-r').value, humano:el.querySelector('.op-hum').checked}; });
+    }
+    function redesenhaOps(){ $('#botOps').innerHTML = linhasOpcoes(); $('#botAdd').disabled = B.opcoes.length >= 9; }
+    redesenhaOps();
+    $('#botOps').addEventListener('click', function(e){
+      var x = e.target.closest('.op-x'); if (!x) return;
+      coleta(); B.opcoes.splice(+x.closest('.bot-op').getAttribute('data-i'), 1); redesenhaOps();
+    });
+    $('#botAdd').onclick = function(){ coleta(); if (B.opcoes.length < 9){ B.opcoes.push({titulo:'', resposta:'', humano:false}); redesenhaOps(); var ins = document.querySelectorAll('.op-t'); ins[ins.length - 1].focus(); } };
+    $('#botOn').onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); B.ativo = v; };
+    $('#botSalva').onclick = function(){
+      coleta();
+      B.opcoes = B.opcoes.filter(function(o){ return o.titulo.trim(); });
+      if (B.ativo && !B.opcoes.length){ aviso('Adicione pelo menos uma opção antes de ligar o chatbot.'); return; }
+      S.bot = JSON.parse(JSON.stringify(B)); salva(); redesenhaOps();
+      aviso('Chatbot salvo' + (B.ativo ? ' e <b>ligado</b>.' : ' (desligado).'));
+      reinicia();
+    };
+    // simulador
+    var est = {humano:false, menu:false};
+    function bolha(de, txt){
+      var fio = $('#bFio');
+      fio.insertAdjacentHTML('beforeend', de === 'cli' ? '<div class="msg cli">' + esc(txt) + '<span class="h">' + hm(agoraMs()) + '</span></div>'
+        : '<div class="msg ia"><span class="quem">' + ic('msg') + 'Chatbot</span>' + esc(txt).replace(/\n/g, '<br>') + '<span class="h">' + hm(agoraMs()) + '</span></div>');
+      fio.scrollTop = fio.scrollHeight;
+    }
+    function reinicia(){ est = {humano:false, menu:false}; $('#bFio').innerHTML = '<div class="nota-sis">Simulação. Nada é enviado ao WhatsApp.</div>'; }
+    reinicia();
+    var ta = $('#bT');
+    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#bF').requestSubmit(); } });
+    $('#bF').addEventListener('submit', function(e){
+      e.preventDefault(); var t = ta.value.trim(); if (!t) return; ta.value = ''; coleta();
+      var C = {saudacao:B.saudacao, rodape:B.rodape, opcoes:B.opcoes.filter(function(o){ return o.titulo.trim(); })};
+      bolha('cli', t);
+      setTimeout(function(){
+        if (!C.opcoes.length){ bolha('bot', 'Adicione opções ao menu para testar.'); return; }
+        if (t === '0' || /^menu$/i.test(t)){ est.humano = false; est.menu = true; bolha('bot', menuTexto(C)); return; }
+        if (est.humano){ $('#bFio').insertAdjacentHTML('beforeend', '<div class="nota-sis">A equipe assumiu a conversa. O robô fica quieto.</div>'); return; }
+        var m = t.match(/^(\d{1,2})[\s.)-]*$/);
+        if (m){ var o = C.opcoes[+m[1] - 1]; if (o){ bolha('bot', o.resposta.trim() || 'Certo!'); if (o.humano){ est.humano = true; $('#bFio').insertAdjacentHTML('beforeend', '<div class="nota-sis">Conversa passada para a equipe.</div>'); } } else bolha('bot', 'Não encontrei essa opção. ' + menuTexto(C)); return; }
+        if (!est.menu){ est.menu = true; bolha('bot', menuTexto(C)); }
+        else $('#bFio').insertAdjacentHTML('beforeend', '<div class="nota-sis">Texto livre depois do menu: fica para a equipe ler.</div>');
+      }, 500);
     });
   }
 

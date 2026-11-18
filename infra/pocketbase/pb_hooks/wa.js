@@ -150,6 +150,7 @@ function processaWebhook(app, corpo) {
         rec.set("dados", d)
         app.save(rec)
         n++
+        try { rodaBot(app, canal, rec, txt) } catch (e) { app.logger().error("whatsapp: erro no robô", "erro", String(e)) }
       })
 
       // status das mensagens enviadas (entregue / lida / falhou)
@@ -172,9 +173,85 @@ function processaWebhook(app, corpo) {
   return n
 }
 
+
+// ---------- chatbot de menu ----------
+const BOT_PADRAO = {
+  ativo: false,
+  saudacao: "Olá! 👋 Aqui é {empresa}. Como podemos ajudar? Responda com o número da opção:",
+  opcoes: [
+    { titulo: "Orçamento", resposta: "Ótimo! Conte em poucas palavras o que você precisa que alguém da equipe já te responde.", humano: true },
+    { titulo: "Horário de atendimento", resposta: "Atendemos de segunda a sexta, das 9h às 18h.", humano: false },
+    { titulo: "Falar com uma pessoa", resposta: "Certo! Já avisei a equipe, em instantes alguém te responde.", humano: true },
+  ],
+  rodape: "Digite 0 para ver o menu de novo.",
+  pausaHoras: 12,
+}
+
+function configBot(app, empresaId) {
+  let c = {}
+  try { c = lerDados(app.findFirstRecordByFilter("configuracoes", "empresa = {:e}", { e: empresaId })) } catch (e) {}
+  const b = Object.assign({}, BOT_PADRAO, c.bot || {})
+  b.opcoes = (b.opcoes || []).filter((o) => o && String(o.titulo || "").trim())
+  return b
+}
+
+function nomeEmpresa(app, empresaId) {
+  try { return app.findRecordById("empresas", empresaId).getString("nome") || "nossa empresa" } catch (e) { return "nossa empresa" }
+}
+
+function textoMenu(app, empresaId, b) {
+  const linhas = b.opcoes.map((o, i) => (i + 1) + " - " + String(o.titulo).trim())
+  return String(b.saudacao || "").replace(/\{empresa\}/g, nomeEmpresa(app, empresaId)) + "\n\n" + linhas.join("\n") + (b.rodape ? "\n\n" + b.rodape : "")
+}
+
+// Decide a resposta do robô para a mensagem que acabou de chegar.
+// Retorna { texto, humano } ou null (robô fica quieto).
+function decideBot(app, empresaId, d, txt) {
+  const b = configBot(app, empresaId)
+  if (!b.ativo || !b.opcoes.length) return null
+  const agora = Date.now(), st = d.bot || {}
+  const t = String(txt || "").trim()
+  const pediuMenu = t === "0" || /^menu$/i.test(t)
+  if (st.modo === "humano" && agora < (st.ate || 0) && !pediuMenu) return null
+  if (pediuMenu) return { texto: textoMenu(app, empresaId, b), menu: true, volta: true }
+  const m = t.match(/^(\d{1,2})[\s.)-]*$/)
+  if (m) {
+    const o = b.opcoes[parseInt(m[1], 10) - 1]
+    if (o) return { texto: String(o.resposta || "").trim() || "Certo!", humano: !!o.humano, pausa: b.pausaHoras }
+    return { texto: "Não encontrei essa opção. " + textoMenu(app, empresaId, b), menu: true }
+  }
+  // texto livre: manda o menu se ainda não mandou nesta conversa recente
+  const janela = (b.pausaHoras || 12) * 3600000
+  if (!st.ultimoMenu || agora - st.ultimoMenu > janela) return { texto: textoMenu(app, empresaId, b), menu: true }
+  return null
+}
+
+// Executa a resposta do robô (envia e grava). Chamado depois de salvar a mensagem do cliente.
+function rodaBot(app, canal, rec, txtCliente) {
+  const empresaId = canal.getString("empresa")
+  const d = lerDados(rec)
+  const r = decideBot(app, empresaId, d, txtCliente)
+  if (!r) return false
+  let waId = null, erro = null
+  try { waId = enviaTexto(app, canal, rec.getString("wa_id"), r.texto) } catch (e) { erro = String(e.message || e) }
+  const agora = Date.now()
+  d.bot = d.bot || {}
+  if (r.menu) d.bot.ultimoMenu = agora
+  if (r.volta) { delete d.bot.modo; delete d.bot.ate }
+  if (r.humano) { d.bot.modo = "humano"; d.bot.ate = agora + (r.pausa || 12) * 3600000 }
+  const msg = { de: "bot", txt: r.texto, ts: agora, st: waId ? "sent" : undefined, wa: waId || undefined }
+  if (erro) msg.erro = erro
+  d.msgs = unirMsgs(d.msgs, [msg])
+  rec.set("dados", d)
+  app.save(rec)
+  if (erro) app.logger().error("whatsapp: robô não conseguiu responder", "erro", erro)
+  return true
+}
+
 // Envia texto pelo WhatsApp. Retorna o id da mensagem na Meta.
 function enviaTexto(app, canal, para, texto) {
-  const url = "https://graph.facebook.com/" + versao(app) + "/" + canal.getString("phone_number_id") + "/messages"
+  const base = $os.getenv("ABERTOCORE_GRAPH_BASE") || "https://graph.facebook.com"
+  const url = base + "/" + versao(app) + "/" + canal.getString("phone_number_id") + "/messages"
   const res = $http.send({
     url: url,
     method: "POST",
@@ -190,4 +267,4 @@ function enviaTexto(app, canal, para, texto) {
   return j.messages[0].id
 }
 
-module.exports = { digitos, telBonito, mesmoNumero, lerDados, unirMsgs, metaApp, canalDaEmpresa, processaWebhook, enviaTexto }
+module.exports = { digitos, telBonito, mesmoNumero, lerDados, unirMsgs, metaApp, canalDaEmpresa, processaWebhook, enviaTexto, decideBot, BOT_PADRAO }

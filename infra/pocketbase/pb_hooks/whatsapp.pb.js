@@ -82,6 +82,8 @@ routerAdd("POST", "/api/abertocore/whatsapp/enviar", (e) => {
   d.msgs = W.unirMsgs(d.msgs, [{ de: "eq", txt: texto, ts: Date.now(), wa: waId, k: b.k || undefined, st: "sent" }])
   d.status = "esperando"
   d.wa = para
+  // alguém da equipe respondeu: o robô sai da conversa por um tempo
+  d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + 12 * 3600000 })
   rec.set("wa_id", para)
   rec.set("dados", d)
   $app.save(rec)
@@ -105,6 +107,8 @@ onRecordUpdateRequest((e) => {
     }
   }
   if (velho.wa && !novo.wa) novo.wa = velho.wa
+  const vb = velho.bot, nb = novo.bot
+  if (vb && (!nb || (vb.ate || 0) > (nb.ate || 0) || (vb.ultimoMenu || 0) > (nb.ultimoMenu || 0))) novo.bot = Object.assign({}, nb || {}, vb)
   e.record.set("dados", novo)
   if (!e.record.getString("wa_id") && orig.getString("wa_id")) e.record.set("wa_id", orig.getString("wa_id"))
   e.next()

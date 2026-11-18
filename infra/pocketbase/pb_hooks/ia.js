@@ -85,14 +85,21 @@ function chama(app, cfg, tipo, sistema, texto, json, maxTokens) {
 
 // ---------- contexto do negócio ----------
 function contextoEmpresa(app, empresaId) {
-  let nome = "", base = ""
-  try { nome = app.findRecordById("empresas", empresaId).getString("nome") } catch (e) {}
+  let nome = "", base = "", perfil = {}
+  try {
+    const emp = app.findRecordById("empresas", empresaId)
+    nome = emp.getString("nome")
+    try { perfil = JSON.parse(emp.getString("perfil") || "{}") || {} } catch (e) {}
+  } catch (e) {}
   try {
     const c = app.findFirstRecordByFilter("configuracoes", "empresa = {:e}", { e: empresaId })
     const d = lerDados(c)
     base = (d.ia && d.ia.base) || ""
   } catch (e) {}
-  return { nome: nome || "a empresa", base: base }
+  const etapas = Array.isArray(perfil.etapas) && perfil.etapas.length > 2 ? perfil.etapas : ETAPAS
+  const finais = [perfil.etapaGanho || "Fechado", perfil.etapaPerda || "Perdido"]
+  const desc = perfil.descEtapas || "Qualificado = cliente explicou o que precisa; Proposta enviada = a empresa mandou preço ou orçamento; Negociação = discutindo preço, prazo ou condições; Fechado = cliente confirmou a compra; Perdido = cliente desistiu"
+  return { nome: nome || "a empresa", base: base, etapas: etapas, finais: finais, desc: desc }
 }
 
 function ultimaMsg(d) {
@@ -114,12 +121,13 @@ function linhaContato(d) {
     "etapa " + (d.etapa || ETAPAS[0]),
     "valor " + brl(d.valor),
     "retorno " + (d.followup ? dataCurta(d.followup) : "-"),
+    d.ficha && d.ficha.proxima ? "próxima manutenção " + dataCurta(d.ficha.proxima) + (d.ficha.metodo ? " (" + d.ficha.metodo + ")" : "") : "",
     "conversa " + ({ entrada: "aguardando a equipe", esperando: "aguardando o cliente", finalizado: "finalizada" }[d.status] || d.status || "-"),
   ]
   if (u) partes.push("última msg " + dataHoraBR(u.ts || 0) + " de " + quem(u.de) + ": \"" + String(u.txt || "").replace(/\s+/g, " ").slice(0, 120) + "\"")
   if (d.ia && d.ia.resumo) partes.push("resumo: " + d.ia.resumo)
   if (d.ia && d.ia.atencao) partes.push("ATENÇÃO: " + (d.ia.motivo || "precisa de resposta"))
-  return partes.join(" | ")
+  return partes.filter(Boolean).join(" | ")
 }
 
 function contatosDaEmpresa(app, empresaId, limite) {
@@ -157,7 +165,7 @@ const SIS_ANALISE = (ctx, hoje) =>
   "\"interesse\": string (produto ou serviço, curto; vazio se não souber), " +
   "\"valor\": number ou null (valor em reais combinado ou orçado na conversa; null se não houver número claro), " +
   "\"proximo_retorno\": string AAAA-MM-DD ou null (quando a equipe deve voltar a falar com o cliente, se a conversa indicar), " +
-  "\"etapa\": uma de " + JSON.stringify(ETAPAS) + " (Qualificado = cliente explicou o que precisa; Proposta enviada = a empresa mandou preço ou orçamento; Negociação = discutindo preço, prazo ou condições; Fechado = cliente confirmou a compra; Perdido = cliente desistiu), " +
+  "\"etapa\": uma de " + JSON.stringify(ctx.etapas) + " (" + ctx.desc + "), " +
   "\"atencao\": boolean (true se a última mensagem é do cliente e ele espera resposta da equipe, ou se ele reclamou), " +
   "\"motivo\": string (por que precisa de atenção, curto; vazio se atencao for false)}\n" +
   "Não invente valores, datas ou nomes. Use português do Brasil." +
@@ -172,7 +180,7 @@ function analisaContato(app, cfg, rec) {
   const ctx = contextoEmpresa(app, empresaId)
   const hoje = diaBR()
   const texto = "Contato: " + (d.nome || "Sem nome") + (d.negocio ? " (" + d.negocio + ")" : "") +
-    "\nEtapa atual no funil: " + (d.etapa || ETAPAS[0]) + "\nValor atual no card: " + brl(d.valor) +
+    "\nEtapa atual no funil: " + (d.etapa || ctx.etapas[0]) + "\nValor atual no card: " + brl(d.valor) +
     "\nPróximo retorno atual: " + (d.followup || "nenhum") + "\n\nConversa (mais antiga primeiro):\n" + conversa(d, 30)
   const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 600)
 
@@ -196,8 +204,9 @@ function analisaContato(app, cfg, rec) {
     dd.followup = r.proximo_retorno; mudou.push("retorno em " + dataCurta(dd.followup))
   }
   // a IA só avança o card nas etapas do meio; fechar ou perder fica com a equipe
-  const iNova = ETAPAS.indexOf(r.etapa), iAtual = ETAPAS.indexOf(dd.etapa || ETAPAS[0])
-  if (iNova > iAtual && FINAIS.indexOf(r.etapa) < 0 && FINAIS.indexOf(dd.etapa) < 0) {
+  const ET = ctx.etapas, FI = ctx.finais
+  const iNova = ET.indexOf(r.etapa), iAtual = ET.indexOf(dd.etapa || ET[0])
+  if (iNova > iAtual && FI.indexOf(r.etapa) < 0 && FI.indexOf(dd.etapa) < 0) {
     dd.etapa = r.etapa; atual.set("etapa", r.etapa); mudou.push("etapa " + r.etapa)
   }
   if (mudou.length) dd.msgs = (dd.msgs || []).concat([{ de: "sis", txt: "IA atualizou o card: " + mudou.join(", ") + ".", ts: Date.now() }])
@@ -265,7 +274,7 @@ function perguntar(app, cfg, pergunta, historico) {
     "Responde perguntas do dono e da equipe sobre os contatos, o funil, a agenda e os números do negócio, usando só os dados abaixo. " +
     "Hoje é " + hoje + " (Brasília). Responda em português do Brasil, curto e direto, em texto simples (listas com hífen quando ajudar). " +
     "Cite os contatos pelo nome. Se os dados não respondem, diga isso. Não invente."
-  const texto = "Etapas do funil: " + ETAPAS.join(" > ") + "\n\nContatos (" + contatos.length + "):\n" +
+  const texto = "Etapas do funil: " + ctx.etapas.join(" > ") + "\n\nContatos (" + contatos.length + "):\n" +
     (contatos.map(linhaContato).join("\n") || "(nenhum)") +
     "\n\nAgenda dos próximos 30 dias:\n" + (agenda.map((ev) => dataCurta(ev.data) + " " + (ev.hora || "") + " " + (ev.titulo || "") + (ev.tipo ? " (" + ev.tipo + ")" : "")).join("\n") || "(vazia)") +
     (historico && historico.length ? "\n\nConversa recente com a equipe (para entender a pergunta):\n" + historico.map((m) => (m.de === "eu" ? "Equipe" : "Assistente") + ": " + String(m.txt).slice(0, 600)).join("\n") : "") +
@@ -281,9 +290,9 @@ function resumoDia(app, cfg) {
   const contatos = contatosDaEmpresa(app, empresaId, 500)
   const doDia = contatos.filter((d) => (d.msgs || []).some((m) => m.de !== "sis" && diaBR(m.ts || 0) === hoje))
   const novos = contatos.filter((d) => { const p = (d.msgs || [])[0]; return p && diaBR(p.ts || 0) === hoje })
-  const atencao = contatos.filter((d) => d.status === "entrada" && FINAIS.indexOf(d.etapa) < 0 && (d.ia && d.ia.atencao || (ultimaMsg(d) || {}).de === "cli"))
-  const retornos = contatos.filter((d) => d.followup && d.followup <= amanha && FINAIS.indexOf(d.etapa) < 0)
-  const negociando = contatos.filter((d) => FINAIS.indexOf(d.etapa) < 0)
+  const atencao = contatos.filter((d) => d.status === "entrada" && ctx.finais.indexOf(d.etapa) < 0 && (d.ia && d.ia.atencao || (ultimaMsg(d) || {}).de === "cli"))
+  const retornos = contatos.filter((d) => d.followup && d.followup <= amanha && ctx.finais.indexOf(d.etapa) < 0)
+  const negociando = contatos.filter((d) => ctx.finais.indexOf(d.etapa) < 0)
   const emAberto = negociando.reduce((a, d) => a + (d.valor || 0), 0)
   const agenda = agendaDaEmpresa(app, empresaId, hoje, amanha)
   const numeros = {

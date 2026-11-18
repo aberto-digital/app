@@ -16,6 +16,7 @@
   var CHAVE_CONTRATADA = 'abertocore-contratada-v1';
   var CHAVE_AUTH = 'abertocore-auth-v1';
   var CHAVE_SYNC = 'abertocore-sync-v1';
+  var CHAVE_PERFIL = 'abertocore-perfil-v1'; // perfil da empresa (etapas, tipos de horário...) lido pelo app ao abrir
   var COLS = ['contatos', 'eventos', 'produtos'];
 
   var auth = ler(CHAVE_AUTH);
@@ -56,15 +57,37 @@
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identity: email, password: senha })
     }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error('E-mail ou senha incorretos.'); return j; }); })
-      .then(function (j) {
-        if (!j.record || !j.record.empresa) throw new Error('Este usuário ainda não está ligado a uma empresa.');
-        auth = { token: j.token, id: j.record.id, email: j.record.email, empresa: j.record.empresa, papel: j.record.papel };
-        gravar(CHAVE_AUTH, auth);
-        mapa = {}; gravar(CHAVE_SYNC, mapa); pronto = true;
-        return primeiraSincronizacao();
-      });
+      .then(entrarComResposta);
   }
-  function sairLocal() { auth = null; localStorage.removeItem(CHAVE_AUTH); localStorage.removeItem(CHAVE_SYNC); mapa = {}; marca('local'); }
+  // resposta de login do PocketBase (senha ou convite)
+  function entrarComResposta(j) {
+    if (!j || !j.record || !j.record.empresa) throw new Error('Este usuário ainda não está ligado a uma empresa.');
+    auth = { token: j.token, id: j.record.id, email: j.record.email, empresa: j.record.empresa, papel: j.record.papel };
+    gravar(CHAVE_AUTH, auth);
+    mapa = {}; gravar(CHAVE_SYNC, mapa); pronto = true;
+    return baixarPerfil().then(primeiraSincronizacao);
+  }
+  // perfil da empresa: devolve true se mudou desde a última vez
+  function baixarPerfil() {
+    if (!auth) return Promise.resolve(false);
+    return api('GET', '/api/collections/empresas/records/' + auth.empresa).then(function (r) {
+      var p = r && r.perfil && typeof r.perfil === 'object' && Object.keys(r.perfil).length ? r.perfil : null;
+      var antes = localStorage.getItem(CHAVE_PERFIL), depois = p ? JSON.stringify(p) : null;
+      if (antes === depois) return false;
+      if (depois) gravar(CHAVE_PERFIL, depois); else localStorage.removeItem(CHAVE_PERFIL);
+      return true;
+    }).catch(function () { return false; });
+  }
+  // chamada genérica à API (publico = sem login, não derruba a sessão em 401)
+  function req(metodo, caminho, corpo, publico) {
+    if (!publico) return api(metodo, caminho, corpo);
+    var op = { method: metodo, headers: {} };
+    if (corpo !== undefined) { op.headers['Content-Type'] = 'application/json'; op.body = JSON.stringify(corpo); }
+    return fetch(BASE + caminho, op).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j && j.message || ('Erro ' + r.status)); return j; });
+    });
+  }
+  function sairLocal() { auth = null; localStorage.removeItem(CHAVE_AUTH); localStorage.removeItem(CHAVE_SYNC); localStorage.removeItem(CHAVE_PERFIL); mapa = {}; marca('local'); }
   function sair() { sairLocal(); location.reload(); }
 
   /* ---------- baixar do servidor ---------- */
@@ -201,7 +224,7 @@
     return out;
   }
   // Junta um contato que veio do servidor com o que está no navegador
-  var ETAPAS_ORD = ['Novo contato', 'Qualificado', 'Proposta enviada', 'Negociação', 'Fechado', 'Perdido'];
+  var ETAPAS_ORD = (function () { var p = ler(CHAVE_PERFIL); return p && p.etapas || ['Novo contato', 'Qualificado', 'Proposta enviada', 'Negociação', 'Fechado', 'Perdido']; })();
   function aplicaContato(rec) {
     var S = ler(CHAVE); if (!S || !S.contatos) return;
     var srv = rec.dados || {}; srv.id = rec.local_id;
@@ -336,7 +359,11 @@
     marca(auth ? 'sincronizando' : 'local');
     if (auth) {
       // Atualiza com o que está no servidor ao abrir a página
-      baixar().then(function (r) {
+      baixarPerfil().then(function (mudouPerfil) {
+        if (mudouPerfil && !sessionStorage.getItem('nv-perfil')) { sessionStorage.setItem('nv-perfil', '1'); location.reload(); return new Promise(function () {}); }
+        sessionStorage.removeItem('nv-perfil');
+        return baixar();
+      }).then(function (r) {
         pronto = true;
         var local = ler(CHAVE);
         if (r.vazio) { tempoReal(); statusWa(); return enviarAgora(true); }
@@ -351,5 +378,6 @@
 
   window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; },
     waConectado: function () { return !!wa.conectado; }, estado: function () { return estado; }, telaLogin: telaLogin,
+    req: req, entrarComResposta: entrarComResposta,
     ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp };
 })();

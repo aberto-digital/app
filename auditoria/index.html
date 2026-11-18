@@ -77,23 +77,29 @@
   .rel-cab .meta{text-align:right;font-size:12.5px;color:var(--sec)}
   .rel h1{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:2.1rem;line-height:1.05;letter-spacing:-.01em}
   .rel .sub{color:var(--sec);margin-top:4px}
-  .topo-rel{display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:center;margin:22px 0 26px}
+  .topo-rel{display:grid;grid-template-columns:230px 1fr;gap:30px;align-items:center;margin:22px 0 26px}
+  .topo-rel .resumo{margin-top:10px;font-size:13.5px;color:var(--slate);text-align:center}
   .gauge{text-align:center}
   .gauge svg{width:100%;height:auto;display:block}
   .gauge .nivel{font-weight:700;margin-top:-4px}
   .pilares .p{margin-bottom:13px}
+  .resumo-rel{margin:-8px 0 4px;font-size:14px;color:var(--slate)}
   .pilares .p .l{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:5px}
   .pilares .p .l b{font-variant-numeric:tabular-nums}
   .pilares .trilho-b{height:10px;border-radius:5px;background:#EDF0F5;overflow:hidden}
   .pilares .trilho-b i{display:block;height:100%;border-radius:5px;transition:width .4s}
   .rel h3{font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.25rem;margin:26px 0 10px}
-  .perdas{list-style:none;display:flex;flex-direction:column;gap:10px}
-  .perdas li{display:grid;grid-template-columns:8px 1fr;gap:12px;padding:12px 14px;border-radius:10px;background:#FBF3F3}
-  .perdas li i{border-radius:4px;background:var(--ruim)}
+  .perdas{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .perdas li.cab{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px;font-weight:700;color:var(--sec);padding:0 14px 0 34px;background:none}
+  .perdas li{display:grid;grid-template-columns:8px 1fr 1fr;gap:12px;padding:11px 14px;border-radius:10px;background:#FBF3F3;align-items:start}
+  .perdas li i{border-radius:4px;background:var(--ruim);align-self:stretch}
   .perdas li.media{background:#FFF8EC}
   .perdas li.media i{background:var(--medio)}
-  .perdas li b{display:block;font-size:14.5px}
-  .perdas li span{font-size:13.5px;color:var(--slate)}
+  .perdas li b{display:block;font-size:14px}
+  .perdas li span{display:block;font-size:12.5px;color:var(--slate);margin-top:2px}
+  .perdas li .sol{border-left:1px dashed rgba(16,26,44,.18);padding-left:12px}
+  .perdas li .sol b{color:#146B3A}
+  .perdas li .sol b::before{content:"✓ ";}
   .ok-tudo{padding:12px 14px;border-radius:10px;background:#EEF8F2;color:#146B3A;font-weight:600}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--linha);vertical-align:top}
@@ -135,6 +141,9 @@
     .btn{padding:9px 11px}
     .topo-rel{grid-template-columns:1fr;gap:12px}
     .gauge{max-width:260px;margin:0 auto}
+    .perdas li.cab{display:none}
+    .perdas li:not(.cab){grid-template-columns:8px 1fr}
+    .perdas li .sol{grid-column:2;border-left:0;padding-left:0;border-top:1px dashed rgba(16,26,44,.18);padding-top:8px}
     .rel h1{font-size:1.7rem}
     input,select{font-size:16px!important}
   }
@@ -148,6 +157,11 @@
     .rel{display:block!important;position:static;border:0;padding:0;border-radius:0}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .perdas li,.plano,.comp .c,table tr{break-inside:avoid}
+    .topo-rel{grid-template-columns:200px 1fr!important;gap:26px!important}
+    .gauge{max-width:none!important;margin:0!important}
+    .perdas li.cab{display:grid!important}
+    .perdas li:not(.cab){grid-template-columns:8px 1fr 1fr!important}
+    .perdas li .sol{grid-column:auto!important;border-top:0!important;padding-top:0!important;border-left:1px dashed rgba(16,26,44,.18)!important;padding-left:12px!important}
     h3{break-after:avoid}
   }
 </style>
@@ -229,7 +243,7 @@
     ]},
     {id:'atend', nome:'Atendimento', peso:25, itens:[
       {id:'tempo', sol:'Presença', q:'Teste: quanto tempo levou para responder uma mensagem?', peso:35, tipo:'op', ops:[['Até 15 min',1],['Até 2 horas',.6],['Mais de 2 horas',.2],['Não respondeu',0]],
-        perda:'O cliente que espera fecha com quem respondeu antes', acao:'Assistente de IA que responde na hora, 24 horas'},
+        perda:'O cliente que espera fecha com quem respondeu antes', acao:'Chatbot que responde na hora, 24 horas'},
       {id:'wa_bus', sol:'Presença', q:'Usa WhatsApp Business (e não o pessoal)?', peso:15, tipo:'op', ops:[['Sim',1],['Não',0]],
         perda:'Sem perfil comercial, o atendimento fica desorganizado e pouco profissional', acao:'Configurar WhatsApp Business com perfil completo'},
       {id:'catalogo', sol:'Presença', q:'Tem catálogo ou lista de preços no WhatsApp?', peso:15, tipo:'op', ops:SIM,
@@ -372,7 +386,7 @@
       emp + ' está praticamente invisível ou passa pouca confiança na internet. Muitos clientes escolhem o concorrente antes mesmo de chegar até ela.';
     var pil = c.areas.map(function(a){ var nv = nivel(a.nota); return '<div class="p"><div class="l"><span>' + a.nome + '</span><b style="color:' + nv.c + '">' + (a.nota === null ? '–' : a.nota) + '</b></div><div class="trilho-b"><i style="width:' + (a.nota || 0) + '%;background:' + nv.c + '"></i></div></div>'; }).join('');
     var perdasHtml = !L.length ? (c.geral === null ? '<p class="vazio-rel">Os pontos fracos aparecem aqui conforme você preenche.</p>' : '<div class="ok-tudo">Nenhum ponto fraco encontrado nos itens avaliados.</div>') :
-      '<ul class="perdas">' + L.slice(0, 6).map(function(p){ return '<li class="' + (p.v >= .5 ? 'media' : '') + '"><i></i><div><b>' + esc(p.it.perda) + '</b><span>' + p.ar.nome + ': ' + esc(p.it.q.replace(/\?$/, '').replace('[ramo]', A.ramo || 'ramo').replace('[cidade]', (A.cidade || '').split('/')[0])) + '</span></div></li>'; }).join('') + '</ul>';
+      '<ul class="perdas"><li class="cab" aria-hidden="true"><span>Ponto fraco</span><span>Nossa solução</span></li>' + L.slice(0, 6).map(function(p){ var solNome = Core.ORDEM_PACOTES.indexOf(p.it.sol) >= 0 ? 'Pacote ' + (rec.pacote || p.it.sol) : p.it.sol; return '<li class="' + (p.v >= .5 ? 'media' : '') + '"><i></i><div><b>' + esc(p.it.perda) + '</b><span>' + p.ar.nome + ': ' + esc(p.it.q.replace(/\?$/, '').replace('[ramo]', A.ramo || 'ramo').replace('[cidade]', (A.cidade || '').split('/')[0])) + '</span></div><div class="sol"><b>' + esc(p.it.acao) + '</b>' + (solNome !== p.it.acao ? '<span>' + esc(solNome) + '</span>' : '') + '</div></li>'; }).join('') + '</ul>';
     var tab = '<table><thead><tr><th></th><th>Item avaliado</th><th>Resultado</th></tr></thead><tbody>' + AREAS.map(function(ar){
       return '<tr class="area-t"><td colspan="3">' + ar.nome + '</td></tr>' + ar.itens.map(function(it){
         var v = valor(it), raw = A.r[it.id], res = '';
@@ -401,7 +415,7 @@
     $('#rel').innerHTML = '<div class="rel-cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
         '<div class="meta">Auditoria de presença digital<br>' + dataBR(A.data) + (A.resp ? '<br>Para: ' + esc(A.resp) : '') + '</div></div>' +
       '<h1>' + esc(emp) + '</h1><div class="sub">' + esc([A.ramo, A.cidade].filter(Boolean).join(', ')) + '</div>' +
-      '<div class="topo-rel"><div class="gauge">' + gauge(c.geral) + '</div><div><p style="margin-bottom:14px">' + esc(resumo) + '</p><div class="pilares">' + pil + '</div></div></div>' +
+      '<div class="topo-rel"><div class="gauge">' + gauge(c.geral) + '</div><div class="pilares">' + pil + '</div></div>' + '<p class="resumo-rel">' + esc(resumo) + '</p>' +
       '<h3>O que ' + esc(emp) + ' está perdendo hoje</h3>' + perdasHtml + comp + plano +
       '<h3>Detalhes da auditoria</h3>' + tab +
       '<div class="rodape"><span>abertodigital · Julio Romanelli · WhatsApp (11) 99123-3627 · abertodigital.com</span><span>Avaliação feita em ' + dataBR(A.data) + ' com base no que é visível publicamente.</span></div>';

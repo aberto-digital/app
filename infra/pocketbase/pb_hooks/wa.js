@@ -140,7 +140,9 @@ function processaWebhook(app, corpo) {
         if (txt === null) return
         const rec = contatoPorNumero(app, empresaId, m.from, perfis[m.from])
         const d = lerDados(rec)
-        const msg = { de: "cli", txt: txt, ts: (parseInt(m.timestamp, 10) || Math.floor(Date.now() / 1000)) * 1000, wa: m.id }
+        const ultimo = (d.msgs || []).reduce((x, y) => Math.max(x, y.ts || 0), 0)
+        const tsMeta = (parseInt(m.timestamp, 10) || Math.floor(Date.now() / 1000)) * 1000
+        const msg = { de: "cli", txt: txt, ts: Math.max(tsMeta, Math.min(ultimo + 1, Date.now())), wa: m.id }
         const antes = (d.msgs || []).length
         d.msgs = unirMsgs(d.msgs, [msg])
         if (d.msgs.length === antes) return // repetida (a Meta reenvia às vezes)
@@ -150,7 +152,12 @@ function processaWebhook(app, corpo) {
         rec.set("dados", d)
         app.save(rec)
         n++
-        try { rodaBot(app, canal, rec, txt) } catch (e) { app.logger().error("whatsapp: erro no robô", "erro", String(e)) }
+        let escolha = null
+        const it = m.interactive || {}
+        const rid = (it.button_reply && it.button_reply.id) || (it.list_reply && it.list_reply.id) || ""
+        const mm = String(rid).match(/^op_(\d{1,2})$/)
+        if (mm) escolha = parseInt(mm[1], 10)
+        try { rodaBot(app, canal, rec, txt, escolha) } catch (e) { app.logger().error("whatsapp: erro no robô", "erro", String(e)) }
       })
 
       // status das mensagens enviadas (entregue / lida / falhou)
@@ -177,14 +184,15 @@ function processaWebhook(app, corpo) {
 // ---------- chatbot de menu ----------
 const BOT_PADRAO = {
   ativo: false,
-  saudacao: "Olá! 👋 Aqui é {empresa}. Como podemos ajudar? Responda com o número da opção:",
+  saudacao: "Olá! 👋 Aqui é {empresa}. Como podemos ajudar? Escolha uma opção:",
   opcoes: [
     { titulo: "Orçamento", resposta: "Ótimo! Conte em poucas palavras o que você precisa que alguém da equipe já te responde.", humano: true },
-    { titulo: "Horário de atendimento", resposta: "Atendemos de segunda a sexta, das 9h às 18h.", humano: false },
+    { titulo: "Horário e endereço", resposta: "Atendemos de segunda a sexta, das 9h às 18h.", humano: false },
     { titulo: "Falar com uma pessoa", resposta: "Certo! Já avisei a equipe, em instantes alguém te responde.", humano: true },
   ],
   rodape: "Digite 0 para ver o menu de novo.",
   pausaHoras: 12,
+  estilo: "botoes", // "botoes" (botões / lista do WhatsApp) ou "texto" (menu numerado)
 }
 
 function configBot(app, empresaId) {
@@ -206,46 +214,94 @@ function textoMenu(app, empresaId, b) {
 
 // Decide a resposta do robô para a mensagem que acabou de chegar.
 // Retorna { texto, humano } ou null (robô fica quieto).
-function decideBot(app, empresaId, d, txt) {
+function decideBot(app, empresaId, d, txt, escolha) {
   const b = configBot(app, empresaId)
   if (!b.ativo || !b.opcoes.length) return null
   const agora = Date.now(), st = d.bot || {}
   const t = String(txt || "").trim()
   const pediuMenu = t === "0" || /^menu$/i.test(t)
   if (st.modo === "humano" && agora < (st.ate || 0) && !pediuMenu) return null
-  if (pediuMenu) return { texto: textoMenu(app, empresaId, b), menu: true, volta: true }
-  const m = t.match(/^(\d{1,2})[\s.)-]*$/)
+  if (pediuMenu) return { texto: textoMenu(app, empresaId, b), menu: true, volta: true, b: b }
+  const m = escolha ? [null, String(escolha)] : t.match(/^(\d{1,2})[\s.)-]*$/)
   if (m) {
     const o = b.opcoes[parseInt(m[1], 10) - 1]
     if (o) return { texto: String(o.resposta || "").trim() || "Certo!", humano: !!o.humano, pausa: b.pausaHoras }
-    return { texto: "Não encontrei essa opção. " + textoMenu(app, empresaId, b), menu: true }
+    return { texto: "Não encontrei essa opção. " + textoMenu(app, empresaId, b), menu: true, prefixo: "Não encontrei essa opção.", b: b }
   }
   // texto livre: manda o menu se ainda não mandou nesta conversa recente
   const janela = (b.pausaHoras || 12) * 3600000
-  if (!st.ultimoMenu || agora - st.ultimoMenu > janela) return { texto: textoMenu(app, empresaId, b), menu: true }
+  if (!st.ultimoMenu || agora - st.ultimoMenu > janela) return { texto: textoMenu(app, empresaId, b), menu: true, b: b }
   return null
 }
 
 // Executa a resposta do robô (envia e grava). Chamado depois de salvar a mensagem do cliente.
-function rodaBot(app, canal, rec, txtCliente) {
+function rodaBot(app, canal, rec, txtCliente, escolha) {
   const empresaId = canal.getString("empresa")
   const d = lerDados(rec)
-  const r = decideBot(app, empresaId, d, txtCliente)
+  const r = decideBot(app, empresaId, d, txtCliente, escolha)
   if (!r) return false
-  let waId = null, erro = null
-  try { waId = enviaTexto(app, canal, rec.getString("wa_id"), r.texto) } catch (e) { erro = String(e.message || e) }
+  let waId = null, erro = null, botoes = null, corpo = r.texto
+  const interativo = r.menu && r.b && r.b.estilo !== "texto"
+  if (interativo) {
+    const b = r.b
+    corpo = (r.prefixo ? r.prefixo + " " : "") + String(b.saudacao || "").replace(/\{empresa\}/g, nomeEmpresa(app, empresaId))
+    botoes = b.opcoes.map((o) => String(o.titulo).trim())
+  }
+  try {
+    waId = interativo ? enviaMenu(app, canal, rec.getString("wa_id"), corpo, botoes, r.b.rodape)
+      : enviaTexto(app, canal, rec.getString("wa_id"), r.texto)
+  } catch (e) { erro = String(e.message || e) }
   const agora = Date.now()
   d.bot = d.bot || {}
   if (r.menu) d.bot.ultimoMenu = agora
   if (r.volta) { delete d.bot.modo; delete d.bot.ate }
   if (r.humano) { d.bot.modo = "humano"; d.bot.ate = agora + (r.pausa || 12) * 3600000 }
-  const msg = { de: "bot", txt: r.texto, ts: agora, st: waId ? "sent" : undefined, wa: waId || undefined }
+  const msg = { de: "bot", txt: interativo ? corpo : r.texto, ts: agora, st: waId ? "sent" : undefined, wa: waId || undefined }
+  if (botoes) { msg.botoes = botoes; msg.lista = botoes.length > 3 }
   if (erro) msg.erro = erro
   d.msgs = unirMsgs(d.msgs, [msg])
   rec.set("dados", d)
   app.save(rec)
   if (erro) app.logger().error("whatsapp: robô não conseguiu responder", "erro", erro)
   return true
+}
+
+
+// Envia o menu como botões (até 3 opções) ou lista (até 10). Retorna o id da mensagem.
+function enviaMenu(app, canal, para, corpo, titulos, rodape) {
+  const corta = (t, n) => { t = String(t || "").trim(); return t.length > n ? t.slice(0, n - 1) + "…" : t }
+  let interactive
+  if (titulos.length <= 3) {
+    interactive = {
+      type: "button",
+      body: { text: corta(corpo, 1024) },
+      action: { buttons: titulos.map((t, i) => ({ type: "reply", reply: { id: "op_" + (i + 1), title: corta(t, 20) } })) },
+    }
+  } else {
+    interactive = {
+      type: "list",
+      body: { text: corta(corpo, 1024) },
+      action: { button: "Ver opções", sections: [{ title: "Opções", rows: titulos.slice(0, 10).map((t, i) => ({ id: "op_" + (i + 1), title: corta(t, 24) })) }] },
+    }
+  }
+  if (rodape) interactive.footer = { text: corta(rodape, 60) }
+  return enviaGraph(app, canal, { messaging_product: "whatsapp", recipient_type: "individual", to: para, type: "interactive", interactive: interactive })
+}
+
+function enviaGraph(app, canal, payload) {
+  const base = $os.getenv("ABERTOCORE_GRAPH_BASE") || "https://graph.facebook.com"
+  const res = $http.send({
+    url: base + "/" + versao(app) + "/" + canal.getString("phone_number_id") + "/messages",
+    method: "POST",
+    headers: { "Authorization": "Bearer " + canal.getString("access_token"), "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    timeout: 20,
+  })
+  const j = res.json || {}
+  if (res.statusCode >= 300 || !j.messages || !j.messages.length) {
+    throw new Error((j.error && (j.error.error_user_msg || j.error.message)) || ("HTTP " + res.statusCode))
+  }
+  return j.messages[0].id
 }
 
 // Envia texto pelo WhatsApp. Retorna o id da mensagem na Meta.

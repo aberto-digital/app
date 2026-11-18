@@ -8,6 +8,7 @@ cp -r /srv/infra-src/infra/* /srv/infra/
 rm -rf /srv/infra-src
 cd /srv/infra
 docker compose up -d --build
+docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile >/dev/null 2>&1 || true
 sleep 3
 docker compose ps
 echo "--- últimas linhas do PocketBase ---"

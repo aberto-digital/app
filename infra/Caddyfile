@@ -7,3 +7,14 @@ api.abertodigital.com {
 	encode zstd gzip
 	reverse_proxy ad-pocketbase:8090
 }
+
+# Sites de clientes (arquivos em infra/sites/<cliente>, servidos daqui com HTTPS automático)
+megahairmarcela.com.br, marcela.abertodigital.com {
+	encode zstd gzip
+	root * /srv/sites/megahairmarcela
+	file_server
+	header /fotos/* Cache-Control "public, max-age=604800"
+}
+www.megahairmarcela.com.br {
+	redir https://megahairmarcela.com.br{uri} permanent
+}

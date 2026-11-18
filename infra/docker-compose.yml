@@ -7,6 +7,7 @@ services:
     ports: ["80:80", "443:443", "443:443/udp"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./sites:/srv/sites:ro
       - caddy_data:/data
       - caddy_config:/config
     networks: [borda]

@@ -519,7 +519,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/dados.js"></script>
-<script src="core/nuvem.js?v=6"></script>
+<script src="core/nuvem.js?v=7"></script>
 <script>
 (function(){
   'use strict';
@@ -1740,7 +1740,7 @@
   }
   aplicaTema();
   try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if (temaEscolhido() === 'sistema'){ aplicaTema(); if (atual === 'dashboard') vDash(); } }); } catch (e){}
-  window.addEventListener('nuvem:status', function(e){ aviso(esc(e.detail.texto)); });
+  window.addEventListener('nuvem:status', function(e){ e.preventDefault(); aviso(esc(e.detail.texto)); });
   window.addEventListener('nuvem:estado', function(){ if (atual === 'ajustes') vAjustes(); });
 
   desenha();

@@ -1,0 +1,25 @@
+/* Tema escuro das páginas de auditoria, briefing, proposta e contrato.
+   Só na tela: a impressão e o PDF continuam brancos. */
+@media screen{
+  html[data-tema="escuro"]{
+    color-scheme:dark;
+    --ink:#E7EBF2; --papel:#0D131D; --branco:#161E2B; --sec:#A2ACBE; --muted:#7F8AA0;
+    --linha:#243044; --linha2:#2F3B52; --slate:#B9C2D3; --navy:#C9D6F5; --fundo-arco:#223047;
+  }
+  html[data-tema="escuro"] body{background:var(--papel);color:var(--ink)}
+  html[data-tema="escuro"] .btn:hover,html[data-tema="escuro"] .barra .voltar:hover{background:#1C2636}
+  html[data-tema="escuro"] .aviso{background:#E7EBF2;color:#101A2C}
+  html[data-tema="escuro"] .abas-mob button[aria-selected="true"]{background:#2B4A8F;color:#fff}
+  html[data-tema="escuro"] .campo.falta input,html[data-tema="escuro"] .faltas{border-color:#5A4614;background:#2A2312}
+  html[data-tema="escuro"] .folha .destaque,html[data-tema="escuro"] .plano{background:#18284A}
+  html[data-tema="escuro"] .plano table{background:var(--branco)}
+  html[data-tema="escuro"] .folha .falta,html[data-tema="escuro"] .mods .rec{background:#3A2E12;color:#FFCF6B}
+  html[data-tema="escuro"] .progresso,html[data-tema="escuro"] .pilares .trilho-b{background:#223047}
+  html[data-tema="escuro"] .ops button[aria-pressed="true"].v1{background:#14382A;border-color:#2C6B4C;color:#7CDCA6}
+  html[data-tema="escuro"] .ops button[aria-pressed="true"].v2{background:#3A2E12;border-color:#6B5418;color:#FFCF6B}
+  html[data-tema="escuro"] .ops button[aria-pressed="true"].v3{background:#3D1C1F;border-color:#7A3236;color:#FF9C9C}
+  html[data-tema="escuro"] .perdas li{background:#2C1A1C}
+  html[data-tema="escuro"] .perdas li.media{background:#2A2312}
+  html[data-tema="escuro"] .ok-tudo{background:#14382A;color:#7CDCA6}
+  html[data-tema="escuro"] .barra .marca svg rect{stroke:rgba(255,255,255,.18)}
+}

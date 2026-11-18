@@ -281,7 +281,7 @@
     '.nv-chip.ok i{background:#1f9d55}.nv-chip.sincronizando i{background:#FFB020}.nv-chip.erro i{background:#d64545}' +
     '@media (max-width:760px){.nv-chip{left:auto;right:10px;bottom:74px}}' +
     '.nv-chip.local{background:#2F6FED;border-color:#2F6FED;color:#fff;font-size:13px;padding:9px 14px}.nv-chip.local i{display:none}' +
-    '.topo .dir .nv-chip{position:static;box-shadow:none;white-space:nowrap}' +
+    '.topo .dir .nv-chip,.barra .dir .nv-chip{position:static;box-shadow:none;white-space:nowrap}.barra .dir .nv-ponto{margin:0 4px}' +
     '.nv-ponto{flex:none;width:10px;height:10px;padding:0;margin-left:7px;border:0;border-radius:50%;background:#9aa6b6;cursor:pointer;box-shadow:0 0 0 3px rgba(154,166,182,.18)}' +
     '.nv-ponto.ok{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.18)}.nv-ponto.sincronizando{background:#FFB020;box-shadow:0 0 0 3px rgba(255,176,32,.2)}.nv-ponto.erro{background:#d64545;box-shadow:0 0 0 3px rgba(214,69,69,.2)}' +
     '.nv-fundo{position:fixed;inset:0;background:rgba(15,27,45,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}' +
@@ -327,10 +327,11 @@
     chip.onclick = function () {
       if (!auth) return telaLogin();
       if (estado === 'erro') return enviarAgora(true);
-      window.dispatchEvent(new CustomEvent('nuvem:status', { detail: { texto: chip.title } }));
+      if (window.dispatchEvent(new CustomEvent('nuvem:status', { cancelable: true, detail: { texto: chip.title } }))) alert(chip.title);
     };
-    var dir = document.querySelector('.topo .dir'), mt = document.querySelector('.marca-topo');
+    var dir = document.querySelector('.topo .dir') || document.querySelector('.barra .dir'), mt = document.querySelector('.marca-topo');
     if (auth && mt) { chip.setAttribute('data-ponto', '1'); chip.className = 'nv-ponto'; mt.appendChild(chip); }
+    else if (auth && dir) { chip.setAttribute('data-ponto', '1'); chip.className = 'nv-ponto'; dir.insertBefore(chip, dir.firstChild); }
     else if (dir) dir.insertBefore(chip, dir.firstChild); else document.body.appendChild(chip);
     marca(auth ? 'sincronizando' : 'local');
     if (auth) {

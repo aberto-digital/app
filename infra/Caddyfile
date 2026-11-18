@@ -9,7 +9,7 @@ api.abertodigital.com {
 }
 
 # Sites de clientes (arquivos em infra/sites/<cliente>, servidos daqui com HTTPS automático)
-megahairmarcela.com.br, marcela.abertodigital.com {
+megahairmarcela.com.br {
 	encode zstd gzip
 	root * /srv/sites/megahairmarcela
 	file_server

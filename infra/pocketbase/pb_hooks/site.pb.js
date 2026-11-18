@@ -51,7 +51,7 @@ routerAdd("POST", "/api/site/chat/iniciar", (e) => {
   rec.set("site_sessao", sessao)
   S.chegou(rec, txt)
   const sd = c.getString("saudacao")
-  if (sd) {
+  if (!S.respondeIA($app, c, rec) && sd) {
     let t = sd.replace("{nome}", nome !== "Visitante do site" ? ", " + nome.split(" ")[0] : "")
     if (tel && t.indexOf(" Se preferir") > 0) t = t.slice(0, t.indexOf(" Se preferir")) + " Anotamos seu WhatsApp " + tel + " também."
     S.chegou(rec, t, "bot")
@@ -74,6 +74,7 @@ routerAdd("POST", "/api/site/chat/enviar", (e) => {
   try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && site_sessao = {:s}", { e: c.getString("empresa"), s: sessao }) }
   catch (err) { throw new NotFoundError("Conversa não encontrada.") }
   S.chegou(rec, txt)
+  S.respondeIA($app, c, rec)
   $app.save(rec)
   return e.json(200, { msgs: S.msgsPublicas(rec) })
 })

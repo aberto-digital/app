@@ -95,4 +95,46 @@ function msgsPublicas(rec) {
     .map((m) => ({ de: m.de === "cli" ? "cli" : "eq", txt: m.txt, ts: m.ts }))
 }
 
-module.exports = { canal, limita, limpa, novoContato, telefone, acharPorTelefone, chegou, avisaEquipe, msgsPublicas }
+// atendimento pela IA no chat do site (24h). Devolve true se a IA respondeu.
+// Não responde se alguém da equipe falou na conversa nos últimos 30 minutos.
+function respondeIA(app, canalRec, rec) {
+  if (!canalRec.getBool("ia")) return false
+  const IA = require(`${__hooks}/ia.js`)
+  const empresaId = canalRec.getString("empresa")
+  const cfg = IA.cfgDaEmpresa(app, empresaId)
+  if (!cfg || !cfg.getString("api_key")) return false
+  const d = W.lerDados(rec)
+  const agora = Date.now()
+  const humano = (d.msgs || []).some((m) => m.de === "eq" && agora - (m.ts || 0) < 30 * 60000)
+  if (humano) return false
+  const ctx = IA.contextoEmpresa(app, empresaId)
+  const sistema = [
+    "Você é o atendente virtual de " + ctx.nome + " no chat do site. Responda em português do Brasil, curto (até 3 frases), simpático e direto, como alguém da equipe.",
+    "Use só as informações abaixo. Se não souber algo, diga que a equipe confirma e peça o WhatsApp. Nunca invente preços, prazos, descontos ou promessas.",
+    "Objetivo: tirar dúvidas, entender o negócio do cliente e o que ele precisa, e levar ao próximo passo (auditoria gratuita ou conversa com a equipe). Peça nome e WhatsApp com naturalidade quando fizer sentido, sem insistir.",
+    "Se perguntarem, diga que você é o assistente virtual e que a equipe acompanha a conversa.",
+    "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo que não está nas informações, reclamar ou falar com uma pessoa.",
+    'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"motivo":"","nome":"","whatsapp":""}. Preencha nome e whatsapp só se o cliente informou na conversa.',
+    "", "Informações do negócio:", limpa(canalRec.getString("contexto"), 8000), limpa(ctx.base, 6000),
+  ].join("\n")
+  let r
+  try { r = IA.chama(app, cfg, "site", sistema, "Conversa até agora:\n" + IA.conversa(d, 16) + "\n\nResponda à última mensagem do cliente.", true, 600) }
+  catch (e) { app.logger().warn("site: IA não respondeu", "erro", String(e)); return false }
+  const txt = limpa(r && r.resposta, 1200)
+  if (!txt) return false
+  chegou(rec, txt, "ia")
+  const d2 = W.lerDados(rec)
+  let mudou = false
+  const nome = limpa(r.nome, 80)
+  if (nome && /^Visitante/.test(rec.getString("nome"))) { rec.set("nome", nome); d2.nome = nome; mudou = true }
+  const tel = telefone(r.whatsapp)
+  if (tel && !rec.getString("telefone")) { rec.set("telefone", tel); d2.tel = tel; mudou = true }
+  if (r.chamar_equipe && !d2.siteChamou) {
+    d2.siteChamou = Date.now(); mudou = true
+    avisaEquipe(app, empresaId, "Chat do site: " + (d2.nome || "visitante") + " quer falar com a equipe" + (r.motivo ? " (" + limpa(r.motivo, 160) + ")" : "") + ".", rec.getInt("local_id"))
+  }
+  if (mudou) rec.set("dados", d2)
+  return true
+}
+
+module.exports = { respondeIA, canal, limita, limpa, novoContato, telefone, acharPorTelefone, chegou, avisaEquipe, msgsPublicas }

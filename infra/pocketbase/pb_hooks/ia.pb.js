@@ -1,0 +1,90 @@
+/// <reference path="../pb_data/types.d.ts" />
+// AbertoCore: assistente de IA interno
+//   GET  /api/abertocore/ia            situação (conectada, modelo, final da chave, o que está ligado, uso do mês, último resumo)
+//   POST /api/abertocore/ia            salva modelo, chave (testada antes) e opções; {remover:true} apaga a chave
+//   POST /api/abertocore/ia/perguntar  "Pergunte ao AbertoCore"
+//   POST /api/abertocore/ia/resumo     gera o resumo do dia agora
+//   POST /api/abertocore/ia/analisar   atualiza o card de um contato agora
+// Rotinas: "ia-crm" a cada 10 min (cards com mensagem nova) e "ia-resumo-dia" às 21:00 UTC (18h Brasília, por e-mail).
+
+routerAdd("GET", "/api/abertocore/ia", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  const empresaId = e.auth.getString("empresa")
+  return e.json(200, I.situacao(I.cfgDaEmpresa($app, empresaId), empresaId))
+}, $apis.requireAuth("users"))
+
+routerAdd("POST", "/api/abertocore/ia", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  if (!I.podeConfigurar(e.auth)) throw new ForbiddenError("Só o dono da conta pode mudar a configuração da IA.")
+  const empresaId = e.auth.getString("empresa")
+  if (!empresaId) throw new BadRequestError("Usuário sem empresa.")
+  const b = e.requestInfo().body || {}
+  let cfg = I.cfgDaEmpresa($app, empresaId)
+  if (!cfg) {
+    cfg = new Record($app.findCollectionByNameOrId("ia_config"))
+    cfg.set("empresa", empresaId); cfg.set("provedor", "gemini"); cfg.set("modelo", I.MODELO_PADRAO)
+    cfg.set("crm_auto", true); cfg.set("resumo_dia", true)
+  }
+  const modelo = String(b.modelo || cfg.getString("modelo") || I.MODELO_PADRAO).trim()
+  if (!/^[a-z0-9.\-]{3,80}$/i.test(modelo)) throw new BadRequestError("Nome de modelo inválido.")
+  cfg.set("modelo", modelo)
+  if (typeof b.crm_auto === "boolean") cfg.set("crm_auto", b.crm_auto)
+  if (typeof b.resumo_dia === "boolean") cfg.set("resumo_dia", b.resumo_dia)
+
+  if (b.remover) { cfg.set("api_key", ""); cfg.set("final_chave", "") }
+  const chave = String(b.chave || "").trim()
+  if (chave) {
+    if (chave.length < 20 || /\s/.test(chave)) throw new BadRequestError("Essa chave não parece completa. Copie de novo no Google AI Studio.")
+    try { I.chamaGemini(chave, modelo, "Responda apenas: ok", "teste de conexão", false, 64) }
+    catch (err) { throw new BadRequestError(String(err.message || err)) }
+    cfg.set("api_key", chave); cfg.set("final_chave", chave.slice(-4))
+  } else if (b.modelo && cfg.getString("api_key") && b.testar) {
+    try { I.chamaGemini(cfg.getString("api_key"), modelo, "Responda apenas: ok", "teste de conexão", false, 64) }
+    catch (err) { throw new BadRequestError(String(err.message || err)) }
+  }
+  $app.save(cfg)
+  return e.json(200, I.situacao(cfg, empresaId))
+}, $apis.requireAuth("users"))
+
+routerAdd("POST", "/api/abertocore/ia/perguntar", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  const cfg = I.precisaCfg(e.auth.getString("empresa"))
+  const p = String((e.requestInfo().body || {}).pergunta || "").trim()
+  if (!p) throw new BadRequestError("Escreva uma pergunta.")
+  try { return e.json(200, { resposta: I.perguntar($app, cfg, p) }) }
+  catch (err) { throw new BadRequestError(String(err.message || err)) }
+}, $apis.requireAuth("users"))
+
+routerAdd("POST", "/api/abertocore/ia/resumo", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  const cfg = I.precisaCfg(e.auth.getString("empresa"))
+  try { return e.json(200, I.resumoDia($app, cfg)) }
+  catch (err) { throw new BadRequestError(String(err.message || err)) }
+}, $apis.requireAuth("users"))
+
+routerAdd("POST", "/api/abertocore/ia/analisar", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  const empresaId = e.auth.getString("empresa")
+  const cfg = I.precisaCfg(empresaId)
+  const localId = parseInt((e.requestInfo().body || {}).contato, 10)
+  let rec
+  try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }) }
+  catch (err) { throw new NotFoundError("Contato não encontrado no servidor. Aguarde salvar e tente de novo.") }
+  let ia
+  try { ia = I.analisaContato($app, cfg, rec) }
+  catch (err) { throw new BadRequestError(String(err.message || err)) }
+  if (!ia) throw new BadRequestError("Este contato ainda não tem mensagens do cliente para analisar.")
+  const atual = $app.findRecordById("contatos", rec.id)
+  return e.json(200, { ia: ia, dados: I.lerDados(atual) })
+}, $apis.requireAuth("users"))
+
+cronAdd("ia-crm", "*/10 * * * *", () => {
+  const I = require(`${__hooks}/ia.js`)
+  const n = I.rodaCrm($app)
+  if (n) $app.logger().info("ia: cards atualizados", "n", n)
+})
+
+cronAdd("ia-resumo-dia", "0 21 * * *", () => {
+  const I = require(`${__hooks}/ia.js`)
+  I.rodaResumoDia($app)
+})

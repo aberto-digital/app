@@ -201,6 +201,7 @@
     return out;
   }
   // Junta um contato que veio do servidor com o que está no navegador
+  var ETAPAS_ORD = ['Novo contato', 'Qualificado', 'Proposta enviada', 'Negociação', 'Fechado', 'Perdido'];
   function aplicaContato(rec) {
     var S = ler(CHAVE); if (!S || !S.contatos) return;
     var srv = rec.dados || {}; srv.id = rec.local_id;
@@ -217,6 +218,13 @@
       var cliDepois = final.msgs.filter(function (m) { return m.de === 'cli'; }).length;
       if (cliDepois > cliAntes) { final.naoLidas = Math.max(final.naoLidas || 0, srv.naoLidas || 0); final.status = 'entrada'; }
       if (srv.wa) final.wa = srv.wa;
+      // o que a IA preencheu no servidor vale sobre uma cópia local mais antiga
+      if (srv.ia && (!final.ia || (final.ia.ts || 0) < (srv.ia.ts || 0))) {
+        final.ia = srv.ia;
+        if (!(final.valor > 0) && srv.valor > 0) final.valor = srv.valor;
+        if (!final.followup && srv.followup) final.followup = srv.followup;
+        if (srv.etapa && ETAPAS_ORD.indexOf(final.etapa) < ETAPAS_ORD.indexOf(srv.etapa)) final.etapa = srv.etapa;
+      }
     }
     var mesmo = antes && JSON.stringify(antes) === JSON.stringify(final);
     if (mesmo) return;
@@ -245,7 +253,8 @@
   }
   function statusWa() {
     if (!auth) return Promise.resolve(wa);
-    return api('GET', '/api/abertocore/whatsapp').then(function (j) { wa = j || wa; return wa; }).catch(function () { return wa; });
+    return api('GET', '/api/abertocore/whatsapp').then(function (j) { wa = j || wa; return wa; }).catch(function () { return wa; })
+      .then(function (w) { window.dispatchEvent(new CustomEvent('nuvem:pronto')); return w; });
   }
   function enviarWhatsApp(localId, texto, k) {
     // garante que o contato já está no servidor antes de enviar
@@ -325,5 +334,6 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciaUI); else iniciaUI();
 
   window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; },
-    waConectado: function () { return !!wa.conectado; }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp };
+    waConectado: function () { return !!wa.conectado; },
+    ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp };
 })();

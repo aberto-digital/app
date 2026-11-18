@@ -284,6 +284,21 @@
   .teste h2{padding:16px 18px 0}
   .teste .fio{background:var(--papel);padding:14px}
   .teste .compor{padding:10px}
+  .assist>.teste{position:sticky;top:18px;align-self:start}
+  .col-ia{display:flex;flex-direction:column;gap:18px;min-width:0}
+  .ia-st{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px;padding:6px 10px;border-radius:8px;background:var(--papel);color:var(--sec);margin-bottom:12px}
+  .ia-st.on{background:#E3F4EA;color:#1F7A45}.ia-st svg{width:16px;height:16px}
+  .alerta-ia{display:flex;gap:8px;font-size:12.5px;line-height:1.45;background:#FFF6E0;color:#6B4E00;border-radius:10px;padding:10px 12px;margin:4px 0 14px}.alerta-ia svg{flex:none;width:16px;height:16px;margin-top:1px}
+  .botoes-ia{display:flex;gap:8px;flex-wrap:wrap}
+  .uso-ia{font-size:12.5px;color:var(--sec);margin:12px 0 0}
+  .resumo-ia{background:var(--papel);border-radius:10px;padding:12px 14px;margin:12px 0 10px}.resumo-ia .rt{font-weight:600;font-size:13px;margin-bottom:4px}.resumo-ia .rx{white-space:pre-wrap;font-size:13.5px;line-height:1.5}
+  #iaResumo .btn{margin-top:10px}
+  .sug-ia{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip-ia{font:inherit;font-size:12.5px;border:1px solid var(--linha);background:#fff;border-radius:999px;padding:5px 10px;cursor:pointer;text-align:left}.chip-ia:hover{border-color:var(--azul,#2F6FED)}
+  .txt-ia{white-space:pre-wrap}
+  .res-ia{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;background:#FFF9EB;border-bottom:1px solid var(--linha);font-size:13px;line-height:1.45}
+  .res-ia>svg{flex:none;width:16px;height:16px;margin-top:2px;color:#B7791F}.res-ia .rc{flex:1;min-width:0}.res-ia .int{display:inline-block;font-size:11.5px;background:#fff;border:1px solid var(--linha);border-radius:999px;padding:0 8px;margin-left:4px}
+  .res-ia .at{color:#B42318;font-weight:600;margin-top:2px}.res-ia.aten{background:#FFF1EE}.res-ia .btn{flex:none}
   .linha-ch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--linha)}
   .linha-ch:last-child{border-bottom:0}
   .linha-ch .t{font-weight:600}
@@ -435,7 +450,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/dados.js"></script>
-<script src="core/nuvem.js?v=4"></script>
+<script src="core/nuvem.js?v=5"></script>
 <script>
 (function(){
   'use strict';
@@ -606,6 +621,13 @@
   try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {}
   function salva(){ try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} }
   function contato(id){ for (var i = 0; i < S.contatos.length; i++) if (S.contatos[i].id === id) return S.contatos[i]; return null; }
+  function resumoIA(c){
+    var r = c.ia, pode = window.Nuvem && Nuvem.logado() && iaSt && iaSt.conectada && c.msgs.some(function(m){ return m.de === 'cli'; });
+    if (!r && !pode) return '';
+    return '<div class="res-ia' + (r && r.atencao ? ' aten' : '') + '">' + ic('ia') + '<div class="rc">' +
+      (r ? '<div>' + esc(r.resumo || 'Sem resumo ainda.') + (r.interesse ? ' <span class="int">' + esc(r.interesse) + '</span>' : '') + '</div>' + (r.atencao ? '<div class="at">Precisa de atenção' + (r.motivo ? ': ' + esc(r.motivo) : '') + '</div>' : '') : '<div>A IA ainda não leu esta conversa.</div>') +
+      '</div>' + (pode ? '<button class="btn peq" id="iaAtu">' + (r ? 'Atualizar resumo' : 'Resumir agora') + '</button>' : '') + '</div>';
+  }
   function ultima(c){ return c.msgs[c.msgs.length - 1] || {de:'sis', txt:'Sem mensagens ainda', ts:c.criadoTs || 0}; }
 
   /* ---------- assistente (respostas por palavra-chave) ---------- */
@@ -773,8 +795,9 @@
           '<button class="btn peq det-btn" id="verDet">' + ic('info') + '<span class="txt">Detalhes</span></button>' +
           (c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('ok') + '<span class="txt">Finalizar</span></button>' : '<button class="btn peq" id="reabre"><span>Reabrir</span></button>') +
         '</div></div>' +
+      resumoIA(c) +
       '<div class="fio" id="fio">' + html + '</div>' +
-      '<div class="compor"><div class="ferr"><button class="btn ia peq" id="sugere">' + ic('ia') + 'Sugerir resposta com IA</button><span class="info">' + (S.ia.ativo && c.canal !== 'E-mail' ? 'Assistente ativo nesta conversa' : c.canal === 'E-mail' ? 'Resposta vai por e-mail' : 'Assistente pausado') + '</span></div>' +
+      '<div class="compor">' +
         '<form class="linha" id="fEnvia"><textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
     $('#voltar').onclick = function(){ $('#inbox').classList.remove('mostra-conv'); };
@@ -784,9 +807,15 @@
     var ta = $('#texto');
     ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
     ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#fEnvia').requestSubmit(); } });
-    $('#sugere').onclick = function(){
-      var ult = c.msgs.filter(function(m){ return m.de === 'cli'; }).pop();
-      ta.value = respostaIA(ult ? ult.txt : '', c.nome); ta.dispatchEvent(new Event('input')); ta.focus();
+    var atu = $('#iaAtu'); if (atu) atu.onclick = function(){
+      var b = this, cid = c.id; b.disabled = true; b.textContent = 'Lendo a conversa…';
+      if (Nuvem.enviar) Nuvem.enviar();
+      setTimeout(function(){
+        Nuvem.ia('POST', '/analisar', {contato:cid}).then(function(j){
+          var x = Core.contato(S, cid); if (x){ x.ia = j.dados.ia; x.valor = j.dados.valor; x.followup = j.dados.followup; x.etapa = j.dados.etapa; x.msgs = j.dados.msgs; salva(); }
+          desenhaLista(); desenhaConversa();
+        }).catch(function(err){ b.disabled = false; b.textContent = 'Atualizar resumo'; aviso(esc(err.message)); });
+      }, 800);
     };
     $('#fEnvia').addEventListener('submit', function(e){
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
@@ -1124,48 +1153,120 @@
   }
 
   /* ========== ASSISTENTE ========== */
+  /* ========== ASSISTENTE DE IA (interno + atendimento) ========== */
+  var iaSt = null; // situação vinda do servidor (/api/abertocore/ia)
+  var MODELOS_IA = [
+    {id:'gemini-flash-lite-latest', nome:'Flash-Lite (recomendado)'},
+    {id:'gemini-flash-latest', nome:'Flash (mais capaz)'}
+  ];
+  var SUGESTOES_IA = ['Quem eu preciso retornar hoje?', 'Quais orçamentos estão parados há mais de 5 dias?', 'Quanto está em negociação agora?', 'Quem está esperando resposta da equipe?'];
+  function iaLogado(){ return window.Nuvem && Nuvem.logado(); }
+  function numBR(n){ return (n || 0).toLocaleString('pt-BR'); }
   function vAssistente(){
-    var A = S.ia;
-    $('#vistaSub').innerHTML = '<div class="assist">' +
-      '<section class="painel"><h2>Configuração</h2>' +
-        '<div class="linha-ch"><div><div class="t">Assistente ligado</div><div class="d">Responde sozinho no WhatsApp, Instagram e Facebook</div></div><button class="chave" role="switch" id="iaOn" aria-checked="' + A.ativo + '" aria-label="Assistente ligado"></button></div>' +
-        '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede preço personalizado, contrato ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
-        '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Pré-agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Pré-agendar"></button></div>' +
+    var A = S.ia, V = $('#vistaSub');
+    var logado = iaLogado();
+    V.innerHTML = '<div class="assist">' +
+      '<div class="col-ia">' +
+      '<section class="painel"><h2>Conexão com a IA</h2><div id="iaCon">' + (logado ? '<p class="nota-bot">Carregando…</p>' : '<p class="nota-bot">Entre na sua conta (botão Entrar, no topo) para conectar a IA. Sem login, esta tela mostra só a demonstração.</p>') + '</div></section>' +
+      '<section class="painel"><h2>IA interna</h2><p class="nota-bot">Trabalha para a equipe: não fala com o cliente. Lê as conversas, organiza o CRM e avisa o que precisa de atenção.</p>' +
+        '<div class="linha-ch"><div><div class="t">Preencher o CRM sozinha</div><div class="d">A cada 10 minutos lê as conversas novas, escreve um resumo, anota valor e próximo retorno e avança o card no funil (fechar ou perder fica com a equipe)</div></div><button class="chave" role="switch" id="iaCrm" aria-checked="false" aria-label="Preencher o CRM sozinha"' + (logado ? '' : ' disabled') + '></button></div>' +
+        '<div class="linha-ch"><div><div class="t">Resumo do dia às 18h</div><div class="d">Chega no e-mail do dono: números do dia, quem precisa de você e o que tem amanhã</div></div><button class="chave" role="switch" id="iaRes" aria-checked="false" aria-label="Resumo do dia às 18h"' + (logado ? '' : ' disabled') + '></button></div>' +
+        '<div id="iaResumo"></div>' +
+      '</section>' +
+      '<section class="painel"><h2>Atendimento com IA (Enterprise)</h2><p class="nota-bot">A IA atende o cliente sozinha até agendar ou fechar e passa para a equipe quando precisa. Começa a responder no WhatsApp depois que a Meta aprovar a conta. A base de conhecimento já é usada pela IA interna.</p>' +
+        '<div class="linha-ch"><div><div class="t">Atender clientes sozinha</div><div class="d">WhatsApp, Instagram e Facebook</div></div><button class="chave" role="switch" id="iaOn" aria-checked="' + A.ativo + '" aria-label="Atender clientes sozinha"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede uma pessoa, pede preço personalizado ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
+        '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Agendar"></button></div>' +
         '<div class="duas"><div class="campo"><label for="iaN">Nome do assistente</label><input id="iaN" value="' + esc(A.nome) + '"></div>' +
         '<div class="campo"><label for="iaT">Tom de voz</label><select id="iaT">' + ['Próximo e direto','Formal','Animado'].map(function(t){ return '<option' + (t === A.tom ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
         '<div class="campo"><label for="iaH">Horário de atendimento</label><input id="iaH" value="' + esc(A.horario) + '"></div>' +
-        '<div class="campo"><label for="iaB">Base de conhecimento</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea></div>' +
+        '<div class="campo"><label for="iaB">Base de conhecimento</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea><div class="dica">Preços, serviços, horário, endereço, regras ("orçamento só presencial") e perguntas frequentes.</div></div>' +
         '<button class="btn pri" id="iaSalva">Salvar configuração</button>' +
-      '</section>' +
-      '<section class="painel teste"><h2>Teste o assistente</h2><div class="fio" id="tFio"><div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>Oi! Sou o assistente da ' + esc(CONFIG.empresa) + '. Pergunte sobre preços, horários ou agendamento.<span class="h">agora</span></div></div>' +
-        '<div class="compor"><form class="linha" id="tF"><textarea id="tT" rows="1" placeholder="Ex.: quanto custa um site?" aria-label="Pergunta de teste"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div></section></div>';
-    ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn'){ stAt('ia', v); aviso('Assistente ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); } }; });
-    $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); aviso('Configuração do assistente salva.'); };
-    var ta = $('#tT');
-    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#tF').requestSubmit(); } });
-    $('#tF').addEventListener('submit', function(e){
-      e.preventDefault(); var t = ta.value.trim(); if (!t) return; ta.value = '';
-      var fio = $('#tFio'), agora = hm(agoraMs());
-      fio.insertAdjacentHTML('beforeend', '<div class="msg cli">' + esc(t) + '<span class="h">' + agora + '</span></div><div class="digitando" id="dig">digitando...</div>');
+      '</section></div>' +
+      '<section class="painel teste"><h2>Pergunte ao AbertoCore</h2><div class="fio" id="tFio"><div class="msg ia"><span class="quem">' + ic('ia') + 'AbertoCore</span>Pergunte sobre seus contatos, o funil e a agenda. Por exemplo:<div class="sug-ia">' +
+          SUGESTOES_IA.map(function(q){ return '<button type="button" class="chip-ia">' + esc(q) + '</button>'; }).join('') + '</div></div></div>' +
+        '<div class="compor"><form class="linha" id="tF"><textarea id="tT" rows="1" placeholder="Ex.: quem eu preciso retornar hoje?" aria-label="Pergunta para a IA"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div></section></div>';
+
+    ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn') aviso('Atendimento com IA ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); }; });
+    $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso('Configuração do assistente salva.'); };
+
+    function desenhaCon(){
+      var st = iaSt || {}, el = $('#iaCon'); if (!el) return;
+      var mod = st.modelo || MODELOS_IA[0].id;
+      el.innerHTML = '<div class="ia-st ' + (st.conectada ? 'on' : '') + '">' + (st.conectada ? ic('ok') + 'Conectada ao Gemini · chave ••••' + esc(st.final || '') : 'Ainda não conectada') + '</div>' +
+        '<div class="duas"><div class="campo"><label for="iaProv">Provedor</label><select id="iaProv"><option value="gemini">Google Gemini</option></select><div class="dica">Claude e OpenAI entram depois.</div></div>' +
+        '<div class="campo"><label for="iaMod">Modelo</label><select id="iaMod">' + MODELOS_IA.map(function(m){ return '<option value="' + m.id + '"' + (m.id === mod ? ' selected' : '') + '>' + esc(m.nome) + '</option>'; }).join('') +
+          (MODELOS_IA.some(function(m){ return m.id === mod; }) ? '' : '<option value="' + esc(mod) + '" selected>' + esc(mod) + '</option>') + '</select></div></div>' +
+        '<div class="campo"><label for="iaKey">' + (st.conectada ? 'Trocar a chave da API' : 'Chave da API') + '</label><input id="iaKey" type="password" autocomplete="off" spellcheck="false" placeholder="Cole aqui a chave do Google AI Studio">' +
+          '<div class="dica">Pegue em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. A chave vai direto para o servidor e não aparece mais na tela.</div></div>' +
+        '<p class="alerta-ia">' + ic('info') + '<span><b>Camada grátis só para testes.</b> Nela o Google pode usar as conversas para melhorar os produtos dele, e pessoas podem revisá-las. Com clientes reais, ative o faturamento no Google Cloud (a mesma chave passa a ser paga e as conversas deixam de ser usadas).</span></p>' +
+        '<div class="botoes-ia"><button class="btn pri" id="iaConSalva">' + (st.conectada ? 'Salvar e testar' : 'Conectar') + '</button>' + (st.conectada ? '<button class="btn" id="iaConRem">Remover chave</button>' : '') + '</div>' +
+        (st.uso ? '<p class="uso-ia">Este mês: ' + numBR(st.uso.chamadas) + ' chamadas à IA' + (st.uso.erros ? ' (' + numBR(st.uso.erros) + ' com erro)' : '') + ' · ' + numBR(st.uso.tokens_in) + ' tokens lidos e ' + numBR(st.uso.tokens_out) + ' escritos.</p>' : '');
+      $('#iaConSalva').onclick = function(){
+        var b = this, chave = $('#iaKey').value.trim(), corpo = {modelo:$('#iaMod').value, testar:true};
+        if (chave) corpo.chave = chave;
+        else if (!st.conectada){ aviso('Cole a chave da API primeiro.'); $('#iaKey').focus(); return; }
+        b.disabled = true; b.textContent = 'Testando…';
+        Nuvem.ia('POST', '', corpo).then(function(j){ iaSt = j; stAt('ia', j.conectada); desenhaCon(); desenhaOpcoes(); aviso('IA <b>conectada</b>. O teste com o Gemini funcionou.'); })
+          .catch(function(err){ b.disabled = false; b.textContent = st.conectada ? 'Salvar e testar' : 'Conectar'; aviso(esc(err.message)); });
+      };
+      var rm = $('#iaConRem'); if (rm) rm.onclick = function(){
+        if (!confirm('Remover a chave da IA? O CRM automático e o resumo do dia param até você colar outra.')) return;
+        Nuvem.ia('POST', '', {remover:true}).then(function(j){ iaSt = j; stAt('ia', false); desenhaCon(); aviso('Chave removida.'); }).catch(function(err){ aviso(esc(err.message)); });
+      };
+    }
+    function desenhaOpcoes(){
+      var st = iaSt || {};
+      $('#iaCrm').setAttribute('aria-checked', !!st.crm_auto); $('#iaRes').setAttribute('aria-checked', !!st.resumo_dia);
+      var r = st.resumo, el = $('#iaResumo');
+      el.innerHTML = (r ? '<div class="resumo-ia"><div class="rt">Resumo de ' + esc(dataCurta(r.data)) + '</div><div class="rx">' + esc(r.texto) + '</div></div>' : '') +
+        (st.conectada ? '<button class="btn peq" id="iaResAgora">' + ic('ia') + 'Gerar resumo agora</button>' : '');
+      var g = $('#iaResAgora'); if (g) g.onclick = function(){
+        var b = this; b.disabled = true; b.textContent = 'Gerando…';
+        Nuvem.ia('POST', '/resumo', {}).then(function(j){ iaSt.resumo = j; desenhaOpcoes(); }).catch(function(err){ b.disabled = false; b.textContent = 'Gerar resumo agora'; aviso(esc(err.message)); });
+      };
+    }
+    function opcao(id, campo){
+      $('#' + id).onclick = function(e){
+        if (!logado) return;
+        var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true', corpo = {};
+        corpo[campo] = v; b.setAttribute('aria-checked', v);
+        Nuvem.ia('POST', '', corpo).then(function(j){ iaSt = j; }).catch(function(err){ b.setAttribute('aria-checked', !v); aviso(esc(err.message)); });
+      };
+    }
+    opcao('iaCrm', 'crm_auto'); opcao('iaRes', 'resumo_dia');
+    if (logado){
+      Nuvem.ia('GET').then(function(j){ iaSt = j; stAt('ia', j.conectada); desenhaCon(); desenhaOpcoes(); })
+        .catch(function(err){ $('#iaCon').innerHTML = '<p class="nota-bot">Não consegui falar com o servidor: ' + esc(err.message) + '</p>'; });
+    }
+
+    var ta = $('#tT'), fio = $('#tFio');
+    function pergunta(t){
+      fio.insertAdjacentHTML('beforeend', '<div class="msg cli">' + esc(t) + '<span class="h">' + hm(agoraMs()) + '</span></div><div class="digitando" id="dig">pensando...</div>');
       fio.scrollTop = fio.scrollHeight;
-      setTimeout(function(){
+      function responde(txt){
         var d = $('#dig'); if (d) d.remove();
-        fio.insertAdjacentHTML('beforeend', '<div class="msg ia"><span class="quem">' + ic('ia') + esc(A.nome) + '</span>' + esc(respostaIA(t)) + '<span class="h">' + hm(agoraMs()) + '</span></div>');
+        fio.insertAdjacentHTML('beforeend', '<div class="msg ia"><span class="quem">' + ic('ia') + 'AbertoCore</span><div class="txt-ia">' + esc(txt) + '</div><span class="h">' + hm(agoraMs()) + '</span></div>');
         fio.scrollTop = fio.scrollHeight;
-      }, 900);
-    });
+      }
+      if (!logado){ setTimeout(function(){ responde('Na demonstração eu não leio os dados de verdade. Entre na sua conta e conecte a IA para eu responder sobre os seus contatos.'); }, 600); return; }
+      if (!iaSt || !iaSt.conectada){ responde('Conecte a IA primeiro: cole a chave da API em "Conexão com a IA".'); return; }
+      if (window.Nuvem && Nuvem.enviar) Nuvem.enviar();
+      Nuvem.ia('POST', '/perguntar', {pergunta:t}).then(function(j){ responde(j.resposta); }).catch(function(err){ responde('Não consegui responder: ' + err.message); });
+    }
+    fio.addEventListener('click', function(e){ var c = e.target.closest('.chip-ia'); if (c) pergunta(c.textContent); });
+    ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#tF').requestSubmit(); } });
+    $('#tF').addEventListener('submit', function(e){ e.preventDefault(); var t = ta.value.trim(); if (!t) return; ta.value = ''; pergunta(t); });
   }
-
-
 
   /* ========== ATENDIMENTO AUTOMÁTICO (chatbot + IA) ========== */
   function stAt(t, on){ var e = document.querySelector('.abas-at [data-t="' + t + '"] .st-at'); if (e){ e.textContent = on ? 'ligado' : 'desligado'; e.classList.toggle('on', !!on); } }
   function vAtendimento(){
-    var bot = S.bot && S.bot.ativo, ia = S.ia && S.ia.ativo;
+    var bot = S.bot && S.bot.ativo, ia = iaSt ? iaSt.conectada : (S.ia && S.ia.ativo);
     $('#vista').innerHTML = '<div class="topo-at"><div class="abas-at" role="tablist" aria-label="Atendimento automático">' +
       '<button role="tab" data-t="chatbot" aria-selected="' + (abaAt === 'chatbot') + '">' + ic('msg') + 'Chatbot de menu<span class="st-at ' + (bot ? 'on' : '') + '">' + (bot ? 'ligado' : 'desligado') + '</span></button>' +
       '<button role="tab" data-t="ia" aria-selected="' + (abaAt === 'ia') + '">' + ic('ia') + 'Assistente de IA<span class="st-at ' + (ia ? 'on' : '') + '">' + (ia ? 'ligado' : 'desligado') + '</span></button>' +
-      '</div><p class="nota-at">O chatbot cuida do menu e das perguntas frequentes. A IA responde perguntas livres usando a base de conhecimento. Quando a equipe responde, os dois saem da conversa.</p></div><div id="vistaSub"></div>';
+      '</div><p class="nota-at">O chatbot cuida do menu e das perguntas frequentes. A IA organiza o CRM para a equipe e, no Enterprise, atende o cliente sozinha. Quando a equipe responde, os dois saem da conversa.</p></div><div id="vistaSub"></div>';
     $('.abas-at').onclick = function(e){ var b = e.target.closest('[data-t]'); if (!b || b.getAttribute('data-t') === abaAt) return; abaAt = b.getAttribute('data-t'); vAtendimento(); };
     (abaAt === 'ia' ? vAssistente : vChatbot)();
   }
@@ -1369,6 +1470,10 @@
     recarrega();
     var d = e.detail || {};
     if (d.novas && d.nome) aviso('Nova mensagem de <b>' + esc(d.nome) + '</b> no WhatsApp.');
+  });
+  window.addEventListener('nuvem:pronto', function(){
+    if (!iaLogado() || iaSt) return;
+    Nuvem.ia('GET').then(function(j){ var antes = iaSt; iaSt = j; if (!antes && j.conectada && atual === 'mensagens') recarrega(); }).catch(function(){});
   });
   window.addEventListener('storage', function(e){ if (e.key === CHAVE) recarrega(); });
   window.addEventListener('pageshow', function(e){ if (e.persisted) recarrega(); });

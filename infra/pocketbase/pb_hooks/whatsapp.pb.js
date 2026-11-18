@@ -109,6 +109,17 @@ onRecordUpdateRequest((e) => {
   if (velho.wa && !novo.wa) novo.wa = velho.wa
   const vb = velho.bot, nb = novo.bot
   if (vb && (!nb || (vb.ate || 0) > (nb.ate || 0) || (vb.ultimoMenu || 0) > (nb.ultimoMenu || 0))) novo.bot = Object.assign({}, nb || {}, vb)
+  // o app tinha uma cópia antiga: mantém o que a IA preencheu no card
+  const via = velho.ia, nia = novo.ia
+  if (via && (!nia || (nia.ts || 0) < (via.ts || 0))) {
+    novo.ia = via
+    if (!(novo.valor > 0) && velho.valor > 0) novo.valor = velho.valor
+    if (!novo.followup && velho.followup) novo.followup = velho.followup
+    const ET = ["Novo contato", "Qualificado", "Proposta enviada", "Negociação", "Fechado", "Perdido"]
+    if (ET.indexOf(novo.etapa) < ET.indexOf(velho.etapa) && ["Fechado", "Perdido"].indexOf(velho.etapa) < 0) {
+      novo.etapa = velho.etapa; e.record.set("etapa", velho.etapa)
+    }
+  }
   e.record.set("dados", novo)
   if (!e.record.getString("wa_id") && orig.getString("wa_id")) e.record.set("wa_id", orig.getString("wa_id"))
   e.next()

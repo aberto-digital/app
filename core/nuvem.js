@@ -185,6 +185,81 @@
     if (this === localStorage && !aplicandoRemoto && (k === CHAVE || k === CHAVE_CONTRATADA)) agenda();
   };
 
+
+  /* ---------- tempo real e WhatsApp ---------- */
+  var wa = { conectado: false, numero: '' };
+  function chaveMsg(m) { return m.k || m.wa || (m.de + '|' + m.ts + '|' + m.txt); }
+  function unirMsgs(a, b) {
+    var vistos = {}, out = [];
+    (a || []).concat(b || []).forEach(function (m) {
+      if (!m) return;
+      var k = chaveMsg(m);
+      if (vistos[k] !== undefined) { var i = vistos[k]; out[i] = Object.assign({}, out[i], m); if (!(out[i].pend && m.pend)) delete out[i].pend; return; }
+      vistos[k] = out.length; out.push(m);
+    });
+    out.sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); });
+    return out;
+  }
+  // Junta um contato que veio do servidor com o que está no navegador
+  function aplicaContato(rec) {
+    var S = ler(CHAVE); if (!S || !S.contatos) return;
+    var srv = rec.dados || {}; srv.id = rec.local_id;
+    var i = -1;
+    for (var j = 0; j < S.contatos.length; j++) if (S.contatos[j].id === rec.local_id) { i = j; break; }
+    var antes = i >= 0 ? S.contatos[i] : null;
+    var cliAntes = antes ? (antes.msgs || []).filter(function (m) { return m.de === 'cli'; }).length : 0;
+    var final;
+    if (!antes) final = srv;
+    else {
+      var localMudou = !mapa.contatos || !mapa.contatos[rec.local_id] || mapa.contatos[rec.local_id].h !== hash(antes);
+      final = localMudou ? Object.assign({}, antes) : Object.assign({}, srv);
+      final.msgs = unirMsgs(antes.msgs, srv.msgs);
+      var cliDepois = final.msgs.filter(function (m) { return m.de === 'cli'; }).length;
+      if (cliDepois > cliAntes) { final.naoLidas = Math.max(final.naoLidas || 0, srv.naoLidas || 0); final.status = 'entrada'; }
+      if (srv.wa) final.wa = srv.wa;
+    }
+    var mesmo = antes && JSON.stringify(antes) === JSON.stringify(final);
+    if (mesmo) return;
+    if (i >= 0) S.contatos[i] = final; else { S.contatos.push(final); S.prox = S.prox || {}; S.prox.c = Math.max(S.prox.c || 1, rec.local_id + 1); }
+    mapa.contatos = mapa.contatos || {};
+    mapa.contatos[rec.local_id] = { rid: rec.id, h: hash(srv) };
+    aplicandoRemoto = true; gravar(CHAVE, S); gravar(CHAVE_SYNC, mapa); aplicandoRemoto = false;
+    // se o navegador tinha alterações que o servidor ainda não tem, envia
+    if (hash(final) !== hash(srv)) agenda();
+    var novas = (final.msgs || []).filter(function (m) { return m.de === 'cli'; }).length - cliAntes;
+    window.dispatchEvent(new CustomEvent('nuvem:atualizado', { detail: { novas: novas > 0 ? novas : 0, nome: final.nome } }));
+  }
+  var es = null;
+  function tempoReal() {
+    if (!auth || !window.EventSource || es) return;
+    es = new EventSource(BASE + '/api/realtime');
+    es.addEventListener('PB_CONNECT', function (ev) {
+      var id; try { id = JSON.parse(ev.data).clientId; } catch (e) { return; }
+      fetch(BASE + '/api/realtime', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: auth.token }, body: JSON.stringify({ clientId: id, subscriptions: ['contatos'] }) }).catch(function () {});
+    });
+    es.addEventListener('contatos', function (ev) {
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (!d || !d.record || d.record.empresa !== auth.empresa) return;
+      if (d.action === 'create' || d.action === 'update') aplicaContato(d.record);
+    });
+  }
+  function statusWa() {
+    if (!auth) return Promise.resolve(wa);
+    return api('GET', '/api/abertocore/whatsapp').then(function (j) { wa = j || wa; return wa; }).catch(function () { return wa; });
+  }
+  function enviarWhatsApp(localId, texto, k) {
+    // garante que o contato já está no servidor antes de enviar
+    clearTimeout(timer);
+    function tenta() { return api('POST', '/api/abertocore/whatsapp/enviar', { contato: localId, texto: texto, k: k }); }
+    return enviarAgora(false).then(tenta).catch(function (e) {
+      if (!/não encontrado/i.test(e.message)) throw e;
+      return new Promise(function (ok) { setTimeout(ok, 1500); }).then(function () { return enviarAgora(false); }).then(tenta);
+    }).then(function (j) {
+      if (j && j.dados) aplicaContato({ local_id: localId, id: (mapa.contatos && mapa.contatos[localId] || {}).rid, dados: j.dados });
+      return j;
+    });
+  }
+
   /* ---------- indicador e tela de login ---------- */
   var css = '.nv-chip{position:fixed;left:84px;bottom:14px;z-index:9999;font:600 12px/1 Inter,system-ui,sans-serif;padding:8px 11px;border-radius:999px;border:1px solid #d7dde6;background:#fff;color:#1E3050;cursor:pointer;box-shadow:0 2px 8px rgba(15,27,45,.08)}' +
     '.nv-chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#9aa6b6;vertical-align:0}' +
@@ -239,9 +314,9 @@
       baixar().then(function (r) {
         pronto = true;
         var local = ler(CHAVE);
-        if (r.vazio) return enviarAgora(true);
+        if (r.vazio) { tempoReal(); statusWa(); return enviarAgora(true); }
         var mudou = JSON.stringify(r.S.contatos) !== JSON.stringify((local || {}).contatos) || JSON.stringify(r.S.eventos) !== JSON.stringify((local || {}).eventos) || JSON.stringify(r.S.produtos) !== JSON.stringify((local || {}).produtos);
-        aplicarRemoto(r); marca('ok');
+        aplicarRemoto(r); marca('ok'); tempoReal(); statusWa();
         if (mudou && !sessionStorage.getItem('nv-recarregou')) { sessionStorage.setItem('nv-recarregou', '1'); location.reload(); }
         else { sessionStorage.removeItem('nv-recarregou'); if (esperando) { esperando = false; agenda(); } }
       }).catch(function (e) { marca('erro', e.message); });
@@ -249,5 +324,6 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciaUI); else iniciaUI();
 
-  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; } };
+  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; },
+    waConectado: function () { return !!wa.conectado; }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp };
 })();

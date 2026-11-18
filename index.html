@@ -151,6 +151,8 @@
   .msg.cli{align-self:flex-start;border-top-left-radius:4px}
   .msg.eq{align-self:flex-end;background:var(--navy);color:#fff;border-top-right-radius:4px}
   .msg.eq .h{color:#AEB6C6}
+  .msg .st{margin-left:4px;letter-spacing:-2px}.msg .st.lida{color:#7CC4FF}.msg .st.erro{letter-spacing:0;color:#FFB4B4;font-weight:600}
+  .msg.falhou{opacity:.85;outline:2px solid #d64545;outline-offset:1px}.msg .erro-msg{display:block;margin-top:6px;font-size:12px;color:#FFD2D2}
   .msg.ia{align-self:flex-end;background:#FFF8E6;border:1px solid #F5D98F;border-top-right-radius:4px}
   .msg .quem{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:#8A5B00;margin-bottom:3px}
   .msg .quem svg{width:13px;height:13px}
@@ -415,7 +417,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/dados.js"></script>
-<script src="core/nuvem.js?v=2"></script>
+<script src="core/nuvem.js?v=3"></script>
 <script>
 (function(){
   'use strict';
@@ -734,7 +736,15 @@
       if (m.de === 'sis'){ html += '<div class="nota-sis">' + esc(m.txt) + '</div>'; return; }
       var cls = m.de === 'cli' ? 'cli' : m.de === 'ia' ? 'ia' : 'eq';
       var corpo = esc(m.txt).replace(/^Assunto: (.*)\n+/, '<span class="assunto">$1</span>');
-      html += '<div class="msg ' + cls + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + '</span></div>';
+      var st = '';
+      if (m.de !== 'cli'){
+        if (m.erro) st = ' <span class="st erro" title="' + esc(m.erro) + '">não enviada</span>';
+        else if (m.pend) st = ' <span class="st">enviando…</span>';
+        else if (m.st === 'read') st = ' <span class="st lida" aria-label="lida">✓✓</span>';
+        else if (m.st === 'delivered') st = ' <span class="st" aria-label="entregue">✓✓</span>';
+        else if (m.st === 'sent') st = ' <span class="st" aria-label="enviada">✓</span>';
+      }
+      html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
     });
     box.innerHTML = '<div class="conv-topo">' +
         '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button>' + avatar(c) +
@@ -760,9 +770,21 @@
     };
     $('#fEnvia').addEventListener('submit', function(e){
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
-      c.msgs.push({de:'eq', txt:t, ts:agoraMs()}); c.status = 'esperando';
+      var viaWa = window.Nuvem && Nuvem.logado() && Nuvem.waConectado() && c.canal === 'WhatsApp';
+      var m = {de:'eq', txt:t, ts:agoraMs()};
+      if (viaWa){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
+      c.msgs.push(m); c.status = 'esperando';
       S.msgsCanal[c.canal]++; salva(); aba = 'esperando';
       desenhaLista(); desenhaConversa();
+      if (viaWa){
+        var cid = c.id;
+        Nuvem.enviarWhatsApp(cid, t, m.k).catch(function(err){
+          var cc = contato(cid); if (!cc) return;
+          cc.msgs.forEach(function(x){ if (x.k === m.k){ x.pend = undefined; x.erro = err.message; } });
+          salva(); if (sel === cid) desenhaConversa();
+          aviso(esc(err.message));
+        });
+      }
     });
   }
   function desenhaDetalhe(){
@@ -1179,7 +1201,24 @@
   document.addEventListener('focusin', function(e){ if (e.target.matches('textarea, input:not([type=checkbox]):not([type=date]):not([type=time]), select')) document.body.classList.add('teclado'); });
   document.addEventListener('focusout', function(){ setTimeout(function(){ if (!document.activeElement || !document.activeElement.matches('textarea, input, select')) document.body.classList.remove('teclado'); }, 50); });
   document.addEventListener('click', function(){ var pf = $('#popFiltro'); if (pf && !pf.hidden){ pf.hidden = true; $('#btnFiltro').setAttribute('aria-expanded', 'false'); } });
-  function recarrega(){ try { var n = JSON.parse(localStorage.getItem(CHAVE)); if (n && n.contatos){ S = Core.garante(n); if (!S.ia) S.ia = semente().ia; desenha(); } } catch (e) {} }
+  function recarrega(){
+    try {
+      var n = JSON.parse(localStorage.getItem(CHAVE));
+      if (!n || !n.contatos) return;
+      var ta = $('#texto'), rasc = ta ? ta.value : '', foco = ta && document.activeElement === ta;
+      var md = $('#modal'), modalAberto = md && md.open;
+      S = Core.garante(n); if (!S.ia) S.ia = semente().ia;
+      if (modalAberto) return; // não redesenha por baixo de um formulário aberto
+      desenha();
+      var t2 = $('#texto'); if (t2 && rasc){ t2.value = rasc; t2.dispatchEvent(new Event('input')); }
+      if (t2 && foco) t2.focus();
+    } catch (e) {}
+  }
+  window.addEventListener('nuvem:atualizado', function(e){
+    recarrega();
+    var d = e.detail || {};
+    if (d.novas && d.nome) aviso('Nova mensagem de <b>' + esc(d.nome) + '</b> no WhatsApp.');
+  });
   window.addEventListener('storage', function(e){ if (e.key === CHAVE) recarrega(); });
   window.addEventListener('pageshow', function(e){ if (e.persisted) recarrega(); });
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) recarrega(); });
@@ -1188,7 +1227,7 @@
 
   desenha();
   ligaVivo();
-  setTimeout(chega, 6000);
+  if (vivo) setTimeout(chega, 6000);
 })();
 </script>
 </body>

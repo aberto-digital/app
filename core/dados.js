@@ -51,6 +51,7 @@
   function garante(S){
     S.contatos = S.contatos || []; S.eventos = S.eventos || []; S.produtos = S.produtos || [];
     S.msgsCanal = S.msgsCanal || {}; S.prox = S.prox || {c:1, e:1, p:1};
+    S.contatos.forEach(function(c){ if (!Array.isArray(c.msgs)) c.msgs = []; if (!c.nome) c.nome = c.tel || 'Sem nome'; if (!c.etapa) c.etapa = 'Novo contato'; if (!c.status) c.status = 'entrada'; if (!c.canal) c.canal = 'WhatsApp'; if (!c.tipo) c.tipo = 'Lead'; });
     if (S.msgsCanal.Presencial == null) S.msgsCanal.Presencial = 0;
     var migra = (S.catalogoV || 1) < CATALOGO_VERSAO;
     PRODUTOS_BASE.forEach(function(p){

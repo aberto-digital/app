@@ -19,10 +19,12 @@ routerAdd("POST", "/api/site/lead", (e) => {
   if (!b.consentimento) throw new BadRequestError("Marque a autorização de contato.")
   const empresaId = c.getString("empresa")
   const linhas = ["Formulário do site"]
-  if (negocio) linhas.push("Negócio: " + negocio + (b.tipo ? " (" + S.limpa(b.tipo, 60) + ")" : ""))
+  if (negocio && !b.interesse) linhas.push("Negócio: " + negocio + (b.tipo ? " (" + S.limpa(b.tipo, 60) + ")" : ""))
   else if (b.tipo) linhas.push("Tipo: " + S.limpa(b.tipo, 60))
   if (b.cidade) linhas.push("Cidade: " + S.limpa(b.cidade, 80))
   if (b.precisa) linhas.push("Precisa: " + S.limpa(b.precisa, 120))
+  if (b.interesse) linhas.push("Interesse: " + S.limpa(b.interesse, 120))
+  if (b.mensagem) linhas.push("Mensagem: " + S.limpa(b.mensagem, 600))
   linhas.push("Autorizou contato pelo WhatsApp.")
 
   let rec = S.acharPorTelefone($app, empresaId, tel), novo = false

@@ -58,6 +58,9 @@
   .sep{width:1px;height:32px;background:var(--linha2);flex:none}
   .trilho .rot{display:none}
   .voltar-cfg,.cfg-btn{display:none}
+  .na-sub .voltar-cfg{display:grid;place-items:center;width:36px;height:36px;margin-left:-6px;border-radius:10px;color:var(--ink);background:none;border:0;cursor:pointer}
+  .na-sub .voltar-cfg svg{width:22px;height:22px}
+  .cfg-lista{max-width:760px}
   .cfg-lista{padding:14px;display:flex;flex-direction:column;gap:10px}
   .cfg-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);padding:14px 16px}
   .cfg-item .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#EEF3FF;color:var(--ceu);flex:none}
@@ -419,7 +422,7 @@
     .em-cfg .topo .sub{display:none}
     .na-sub .voltar-cfg{display:grid;place-items:center;width:36px;height:36px;margin-left:-6px;border-radius:10px;color:var(--ink)}
     .voltar-cfg svg{width:22px;height:22px}
-    .trilho .cfg{display:none}
+    .trilho .cfg,.trilho .cfg-rail{display:none}
     .funil{scroll-snap-type:x mandatory;padding:12px 14px;align-items:stretch;overscroll-behavior-x:contain}
     .coluna{flex-basis:84vw;scroll-snap-align:center;height:100%;max-height:none}
     .coluna .cards{flex:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
@@ -841,10 +844,13 @@
 
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.naoLidas || 0); }, 0); }
   function desenhaNav(){
-    $('#nav').innerHTML = VISTAS.filter(function(v){ return !v.oculta; }).map(function(v){
+    var vAt = VISTAS.filter(function(x){ return x.id === atual; })[0] || {};
+    var naCfg = atual === 'config' || vAt.grupo === 'config';
+    $('#nav').innerHTML = VISTAS.filter(function(v){ return !v.oculta && !v.grupo; }).map(function(v){
       var nl = naoLidasTotal() + iaNaoLidas(), b = v.id === 'mensagens' && nl ? '<span class="bolha">' + nl + '</span>' : '';
       return '<button data-v="' + v.id + '" class="' + (v.fim ? 'fim ' : '') + (v.grupo ? 'cfg' : '') + '"' + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="rot">' + v.curto + '</span><span class="dica">' + v.nome + '</span></button>';
-    }).join('');
+    }).join('') +
+      '<button data-v="config" class="fim cfg-rail"' + (naCfg ? ' aria-current="page"' : '') + ' aria-label="Configurações">' + ic('config') + '<span class="rot">Ajustes</span><span class="dica">Configurações</span></button>';
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
   function vai(id){ if (id !== atual) convMovel = false; atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
@@ -872,7 +878,7 @@
   function vConfig(){
     $('#vista').innerHTML = '<div class="cfg-lista">' + VISTAS.filter(function(v){ return v.grupo === 'config'; }).map(function(v){
       return '<button class="cfg-item" data-v="' + v.id + '"><span class="ic">' + ic(v.ic) + '</span><span><span class="t" style="display:block">' + v.nome + '</span><span class="d">' + v.sub + '</span></span><span class="seta" aria-hidden="true">›</span></button>';
-    }).join('') + '<a class="cfg-item" href="auditoria/" style="text-decoration:none;color:inherit"><span class="ic">' + ic('dash') + '</span><span><span class="t" style="display:block">Auditoria de presença digital</span><span class="d">Score, gráficos e relatório em PDF por empresa</span></span><span class="seta" aria-hidden="true">›</span></a></div>';
+    }).join('') + (BELEZA ? '' : '<a class="cfg-item" href="auditoria/" style="text-decoration:none;color:inherit"><span class="ic">' + ic('dash') + '</span><span><span class="t" style="display:block">Auditoria de presença digital</span><span class="d">Score, gráficos e relatório em PDF por empresa</span></span><span class="seta" aria-hidden="true">›</span></a>') + '</div>';
     $('#vista').onclick = function(e){ var b = e.target.closest('[data-v]'); if (b) vai(b.getAttribute('data-v')); };
   }
 

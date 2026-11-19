@@ -74,9 +74,20 @@ function chama(app, cfg, tipo, sistema, texto, json, maxTokens) {
   const modelo = cfg.getString("modelo") || MODELO_PADRAO
   const chave = cfg.getString("api_key")
   if (!chave) throw new Error("A chave da API de IA ainda não foi cadastrada.")
-  let r
-  try { r = chamaGemini(chave, modelo, sistema, texto, json, maxTokens) }
-  catch (e) { registraUso(app, empresaId, tipo, modelo, 0, 0, false); throw e }
+  // Gemini às vezes devolve "alta demanda" (503/500): tenta de novo e depois troca de modelo
+  const temporario = (e) => /high demand|overloaded|unavailable|try again|HTTP 5\d\d|Erro do Gemini: Internal/i.test(String(e))
+  const tentativas = [modelo, modelo, modelo === "gemini-flash-latest" ? "gemini-flash-lite-latest" : "gemini-flash-latest"]
+  let r, ultimoErro
+  for (let i = 0; i < tentativas.length && !r; i++) {
+    try { r = chamaGemini(chave, tentativas[i], sistema, texto, json, maxTokens) }
+    catch (e) {
+      ultimoErro = e
+      registraUso(app, empresaId, tipo, tentativas[i], 0, 0, false)
+      if (!temporario(e)) throw e
+      try { sleep(1500 * (i + 1)) } catch (x) {}
+    }
+  }
+  if (!r) throw ultimoErro
   registraUso(app, empresaId, tipo, modelo, r.tin, r.tout, true)
   if (!json) return r.texto
   try { return JSON.parse(r.texto.replace(/^```(json)?\s*|\s*```$/g, "")) }

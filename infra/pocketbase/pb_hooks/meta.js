@@ -146,6 +146,20 @@ function enviaSocial(app, canal, pessoaId, texto) {
   return j.message_id
 }
 
+// anexo por link (tipo: "image" | "video" | "audio" | "file")
+function enviaAnexoSocial(app, canal, pessoaId, link, tipo) {
+  if (canal.getString("tipo") === "messenger") {
+    try { graphPost(app, canal.getString("page_id") + "/take_thread_control", canal.getString("access_token"), { recipient: { id: pessoaId }, metadata: "abertocore" }) } catch (e) {}
+  }
+  const j = graphPost(app, canal.getString("page_id") + "/messages", canal.getString("access_token"), {
+    recipient: { id: pessoaId }, messaging_type: "RESPONSE",
+    message: { attachment: { type: tipo, payload: { url: link, is_reusable: true } } },
+  })
+  if (!j.message_id) throw new Error("A Meta não confirmou o envio do anexo.")
+  try { app.store().set("meta_out:" + j.message_id, Date.now()) } catch (e) {}
+  return j.message_id
+}
+
 // eco de algo que o próprio AbertoCore enviou (IA, menu ou equipe pela central)?
 function ecoNosso(app, mid, txt, d) {
   try { if (app.store().has("meta_out:" + mid)) { app.store().remove("meta_out:" + mid); return true } } catch (e) {}
@@ -234,4 +248,4 @@ function ligaWhatsApp(app, empresaId, codigo, wabaId, phoneId) {
   return "WhatsApp " + (numero || phoneId)
 }
 
-module.exports = { assinaPagina, processaWebhook, enviaSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }
+module.exports = { assinaPagina, processaWebhook, enviaSocial, enviaAnexoSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }

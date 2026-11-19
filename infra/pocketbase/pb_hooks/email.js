@@ -172,8 +172,14 @@ function assinaturaHtml(a) {
   return '<br><br><table cellpadding="0" cellspacing="0" style="border-top:2px solid #FFB020;padding-top:10px;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;color:#444"><tr><td style="padding-top:10px">' + fmt + "</td></tr></table>"
 }
 
-function envia(app, canal, para, assunto, texto, responderA, assinatura) {
-  const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#222">' + htmlDe(texto) + assinaturaHtml(assinatura) + "</div>"
+function anexosHtml(anexos) {
+  if (!anexos || !anexos.length) return ""
+  return "<br><br>" + anexos.map((a) =>
+    '<a href="' + htmlDe(a.url) + '" style="display:inline-block;margin:0 8px 8px 0;padding:10px 14px;border:1px solid #d5dbe6;border-radius:8px;color:#1E3050;text-decoration:none;font-family:Arial,sans-serif;font-size:13px">&#128206; <b>' + htmlDe(a.nome) + "</b> &middot; abrir</a>").join("")
+}
+
+function envia(app, canal, para, assunto, texto, responderA, assinatura, anexos) {
+  const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#222">' + htmlDe(texto) + anexosHtml(anexos) + assinaturaHtml(assinatura) + "</div>"
   const corpo = { fromAddress: canal.getString("conta"), toAddress: para, subject: assunto || "Contato", content: html, mailFormat: "html" }
   let r
   if (responderA) {

@@ -340,4 +340,25 @@ function enviaTexto(app, canal, para, texto) {
   return j.messages[0].id
 }
 
-module.exports = { digitos, telBonito, mesmoNumero, lerDados, unirMsgs, metaApp, canalDaEmpresa, processaWebhook, enviaTexto, decideBot, BOT_PADRAO }
+// tipo: "document" | "image" | "video" | "audio"
+function enviaMidia(app, canal, para, tipo, link, nome, legenda) {
+  const base = $os.getenv("ABERTOCORE_GRAPH_BASE") || "https://graph.facebook.com"
+  const url = base + "/" + versao(app) + "/" + canal.getString("phone_number_id") + "/messages"
+  const midia = { link: link }
+  if (tipo === "document") midia.filename = nome
+  if (legenda && tipo !== "audio") midia.caption = legenda
+  const corpo = { messaging_product: "whatsapp", recipient_type: "individual", to: para, type: tipo }
+  corpo[tipo] = midia
+  const res = $http.send({
+    url: url, method: "POST",
+    headers: { "Authorization": "Bearer " + canal.getString("access_token"), "Content-Type": "application/json" },
+    body: JSON.stringify(corpo), timeout: 30,
+  })
+  const j = res.json || {}
+  if (res.statusCode >= 300 || !j.messages || !j.messages.length) {
+    throw new Error((j.error && (j.error.error_user_msg || j.error.message)) || ("HTTP " + res.statusCode))
+  }
+  return j.messages[0].id
+}
+
+module.exports = { digitos, telBonito, mesmoNumero, lerDados, unirMsgs, metaApp, canalDaEmpresa, processaWebhook, enviaTexto, enviaMidia, decideBot, BOT_PADRAO }

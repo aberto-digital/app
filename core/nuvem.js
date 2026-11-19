@@ -11,6 +11,8 @@
    ===================================================================== */
 (function () {
   'use strict';
+  // página aberta escondida só para gerar PDF: não sincroniza nada
+  if (/[?&]pdf=1/.test(location.search) && window.parent !== window) return;
   var BASE = localStorage.getItem('abertocore-api') || 'https://api.abertodigital.com';
   var CHAVE = 'abertocore-demo-v1';
   var CHAVE_CONTRATADA = 'abertocore-contratada-v1';
@@ -33,7 +35,8 @@
   function api(metodo, caminho, corpo) {
     var op = { method: metodo, headers: {} };
     if (auth && auth.token) op.headers.Authorization = auth.token;
-    if (corpo !== undefined) { op.headers['Content-Type'] = 'application/json'; op.body = JSON.stringify(corpo); }
+    if (typeof FormData !== 'undefined' && corpo instanceof FormData) op.body = corpo;
+    else if (corpo !== undefined) { op.headers['Content-Type'] = 'application/json'; op.body = JSON.stringify(corpo); }
     return fetch(BASE + caminho, op).then(function (r) {
       if (r.status === 401 || r.status === 403) { sairLocal(); throw new Error('Sessão expirada. Entre de novo.'); }
       if (r.status === 204) return null;
@@ -82,7 +85,8 @@
   function req(metodo, caminho, corpo, publico) {
     if (!publico) return api(metodo, caminho, corpo);
     var op = { method: metodo, headers: {} };
-    if (corpo !== undefined) { op.headers['Content-Type'] = 'application/json'; op.body = JSON.stringify(corpo); }
+    if (typeof FormData !== 'undefined' && corpo instanceof FormData) op.body = corpo;
+    else if (corpo !== undefined) { op.headers['Content-Type'] = 'application/json'; op.body = JSON.stringify(corpo); }
     return fetch(BASE + caminho, op).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j && j.message || ('Erro ' + r.status)); return j; });
     });
@@ -406,5 +410,14 @@
     canais: function () { return canaisSt; }, statusCanais: statusCanais, canalLigado: canalLigado,
     enviarSocial: function (localId, texto, k) { return enviarPorCanal('/api/abertocore/social/enviar', localId, { texto: texto, k: k }); },
     enviarEmail: function (localId, texto, k, assunto) { return enviarPorCanal('/api/abertocore/email/enviar', localId, { texto: texto, k: k, assunto: assunto }); },
+    enviarArquivo: function (localId, arquivo, texto, k) { return enviarPorCanal('/api/abertocore/arquivo/enviar', localId, { arquivo: arquivo, texto: texto, k: k }); },
+    arquivos: function (filtro) { return api('GET', '/api/collections/arquivos/records?perPage=200&sort=-created' + (filtro ? '&filter=' + encodeURIComponent(filtro) : '')).then(function (j) { return j.items || []; }); },
+    sobeArquivo: function (arq, nome, tipo, contato) {
+      var f = new FormData(); f.append('empresa', auth.empresa); f.append('nome', nome); f.append('tipo', tipo || 'biblioteca');
+      if (contato) f.append('contato', String(contato)); f.append('arquivo', arq, nome);
+      return api('POST', '/api/collections/arquivos/records', f);
+    },
+    apagaArquivo: function (id) { return api('DELETE', '/api/collections/arquivos/records/' + id); },
+    urlArquivo: function (r) { return BASE + '/api/files/arquivos/' + r.id + '/' + encodeURIComponent(r.arquivo); },
     api: api };
 })();

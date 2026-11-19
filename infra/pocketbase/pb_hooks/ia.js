@@ -29,7 +29,7 @@ function quem(de) { return { cli: "Cliente", eq: "Equipe", bot: "Chatbot", ia: "
 
 // ---------- chamada ao provedor ----------
 // Retorna { texto, tin, tout }. Lança Error com mensagem em português.
-function chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens) {
+function chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens, comPensamento) {
   const base = $os.getenv("ABERTOCORE_GEMINI_BASE") || "https://generativelanguage.googleapis.com"
   const res = $http.send({
     url: base + "/v1beta/models/" + encodeURIComponent(modelo || MODELO_PADRAO) + ":generateContent",
@@ -38,13 +38,15 @@ function chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: sistema }] },
       contents: [{ role: "user", parts: [{ text: texto }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens || 1024, responseMimeType: json ? "application/json" : "text/plain" },
+      generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens || 1024, responseMimeType: json ? "application/json" : "text/plain", thinkingConfig: comPensamento ? undefined : { thinkingBudget: 0 } },
     }),
     timeout: 60,
   })
   const j = res.json || {}
   if (res.statusCode >= 300) {
     const m = (j.error && j.error.message) || ("HTTP " + res.statusCode)
+    // modelo que não aceita desligar o "raciocínio": tenta de novo do jeito padrão
+    if (res.statusCode === 400 && /thinking/i.test(m) && !comPensamento) return chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens, true)
     if (res.statusCode === 400 && /api key/i.test(m)) throw new Error("A chave da API não foi aceita pelo Google. Confira se copiou a chave inteira.")
     if (res.statusCode === 403) throw new Error("O Google recusou a chave (sem permissão para a API do Gemini).")
     if (res.statusCode === 404) throw new Error("Modelo \"" + modelo + "\" não encontrado no Gemini.")
@@ -118,6 +120,11 @@ function ultimaMsg(d) {
   return ms.length ? ms[ms.length - 1] : null
 }
 
+function ultimaDoCliente(d) {
+  const ms = (d.msgs || []).filter((m) => m.de === "cli")
+  return ms.length ? ms[ms.length - 1] : null
+}
+
 function conversa(d, n) {
   return (d.msgs || []).filter((m) => m.de !== "sis").slice(-(n || 20))
     .map((m) => "[" + dataHoraBR(m.ts || 0) + "] " + quem(m.de) + ": " + String(m.txt || "").replace(/\s+/g, " ").slice(0, 400))
@@ -180,7 +187,7 @@ const SIS_ANALISE = (ctx, hoje) =>
   "\"atencao\": boolean (true se a última mensagem é do cliente e ele espera resposta da equipe, ou se ele reclamou), " +
   "\"motivo\": string (por que precisa de atenção, curto; vazio se atencao for false)}\n" +
   "Não invente valores, datas ou nomes. Use português do Brasil." +
-  (ctx.base ? "\n\nInformações do negócio:\n" + ctx.base.slice(0, 4000) : "")
+  (ctx.base ? "\n\nInformações do negócio:\n" + ctx.base.slice(0, 2500) : "")
 
 function analisaContato(app, cfg, rec) {
   const empresaId = cfg.getString("empresa")
@@ -192,12 +199,21 @@ function analisaContato(app, cfg, rec) {
   const hoje = diaBR()
   const texto = "Contato: " + (d.nome || "Sem nome") + (d.negocio ? " (" + d.negocio + ")" : "") +
     "\nEtapa atual no funil: " + (d.etapa || ctx.etapas[0]) + "\nValor atual no card: " + brl(d.valor) +
-    "\nPróximo retorno atual: " + (d.followup || "nenhum") + "\n\nConversa (mais antiga primeiro):\n" + conversa(d, 30)
-  const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 600)
+    "\nPróximo retorno atual: " + (d.followup || "nenhum") + "\n\nConversa (mais antiga primeiro):\n" + conversa(d, 16)
+  const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 400)
 
   // grava de novo em cima da versão mais recente do registro
   const atual = app.findRecordById("contatos", rec.id)
   const dd = lerDados(atual)
+  aplicaAnalise(ctx, atual, dd, r, (ultimaDoCliente(d) || u).ts || 0)
+  atual.set("dados", dd)
+  app.save(atual)
+  return dd.ia
+}
+
+// Aplica no card o que a IA leu da conversa (resumo, interesse, valor, retorno, etapa).
+function aplicaAnalise(ctx, atual, dd, r, ate) {
+  const hoje = diaBR()
   const mudou = []
   const alertado = dd.ia && dd.ia.alertado
   dd.ia = {
@@ -206,7 +222,7 @@ function analisaContato(app, cfg, rec) {
     atencao: !!r.atencao,
     motivo: r.atencao ? String(r.motivo || "").slice(0, 200) : "",
     ts: Date.now(),
-    ate: u.ts || 0,
+    ate: ate || 0,
     alertado: alertado,
   }
   const v = Number(r.valor)
@@ -221,8 +237,6 @@ function analisaContato(app, cfg, rec) {
     dd.etapa = r.etapa; atual.set("etapa", r.etapa); mudou.push("etapa " + r.etapa)
   }
   if (mudou.length) dd.msgs = (dd.msgs || []).concat([{ de: "sis", txt: "IA atualizou o card: " + mudou.join(", ") + ".", ts: Date.now() }])
-  atual.set("dados", dd)
-  app.save(atual)
   return dd.ia
 }
 
@@ -231,9 +245,10 @@ function pendentesDeAnalise(app, empresaId, limite) {
   const desde = new Date(Date.now() - 3 * 86400000).toISOString().replace("T", " ")
   const recs = app.findRecordsByFilter("contatos", "empresa = {:e} && updated >= {:t}", "-updated", 200, 0, { e: empresaId, t: desde })
   return recs.filter((r) => {
-    const d = lerDados(r), u = ultimaMsg(d)
-    if (!u || !(d.msgs || []).some((m) => m.de === "cli")) return false
-    return !d.ia || (u.ts || 0) > (d.ia.ate || 0)
+    const d = lerDados(r), c = ultimaDoCliente(d)
+    if (!c) return false
+    if (Date.now() - (c.ts || 0) < 3 * 60000) return false // espera a conversa assentar
+    return !d.ia || (c.ts || 0) > (d.ia.ate || 0)
   }).slice(0, limite || 10)
 }
 
@@ -399,6 +414,6 @@ function precisaCfg(empresaId) {
 
 module.exports = {
   podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
-  ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, rodaCrm,
+  ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, aplicaAnalise, ultimaDoCliente, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes, contextoEmpresa, conversa,
 }

@@ -39,17 +39,19 @@ function decide(app, empresaId, rec, canalNome) {
     "Objetivo: tirar dúvidas, entender o que a pessoa precisa e levar ao próximo passo do negócio (por exemplo, marcar uma conversa ou uma avaliação).",
     at.agendar ? "Pode sugerir marcar um horário; a equipe confirma o horário exato." : "",
     at.horario ? "Horário de atendimento da equipe: " + limpa(at.horario, 300) : "",
-    "Se perguntarem, diga que você é o assistente virtual e que a equipe acompanha a conversa.",
+    "Seja assertivo: responda primeiro exatamente o que foi perguntado, com os dados das informações abaixo (preço, prazo, como funciona). Depois faça no máximo UMA pergunta que avance a venda (ex.: qual o negócio, o que já tem hoje, quando quer começar).",
+    "Não repita saudação nem apresentação se a conversa já começou. Não use frases vazias como 'Como podemos ajudar?' depois que o cliente já disse o que quer.",
+    "Só diga que é o assistente virtual se for a primeira resposta da conversa ou se perguntarem; a equipe acompanha a conversa.",
     at.humano === false ? "" : "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa.",
-    'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"motivo":""}.',
-    "", "Informações do negócio:", limpa(at.base || ctx.base, 8000),
+    'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
+    "", "Informações do negócio:", limpa(at.base || ctx.base, 3000),
   ].filter(Boolean).join("\n")
   let r
-  try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 16) + "\n\nResponda à última mensagem do cliente.", true, 700) }
+  try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 10) + "\n\nResponda à última mensagem do cliente.", true, 450) }
   catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return null }
   const texto = limpa(r && r.resposta, canalNome === "E-mail" ? 4000 : 1000)
   if (!texto) return null
-  return { texto: texto, chamar: !!r.chamar_equipe, motivo: limpa(r.motivo, 160) }
+  return { texto: texto, chamar: !!r.chamar_equipe, motivo: limpa(r.motivo, 160), crm: (r.crm && typeof r.crm === "object") ? r.crm : null, ctx: ctx }
 }
 
 // Grava a resposta da IA na conversa (e o aviso para a equipe, se for o caso).
@@ -59,6 +61,14 @@ function registra(app, rec, r, extra) {
   const ts = Math.max(Date.now(), ultimo + 1)
   const msg = Object.assign({ de: "ia", txt: r.texto, ts: ts, k: "i" + ts.toString(36) }, extra || {})
   d.msgs = (d.msgs || []).concat([msg])
+  // a mesma chamada já trouxe a leitura do card: o CRM não precisa chamar a IA de novo
+  if (r.crm && r.ctx) {
+    try {
+      const IA = require(`${__hooks}/ia.js`)
+      const c = IA.ultimaDoCliente(d)
+      IA.aplicaAnalise(r.ctx, rec, d, Object.assign({ atencao: !!r.chamar, motivo: r.motivo || "" }, r.crm), c ? c.ts : 0)
+    } catch (e) { app.logger().warn("atende: card não atualizado", "erro", String(e)) }
+  }
   if (r.chamar) {
     d.status = "entrada"
     d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + 12 * 3600000 })

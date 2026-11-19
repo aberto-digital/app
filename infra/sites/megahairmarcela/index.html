@@ -129,9 +129,9 @@
   /* sobre */
   .sobre{background:var(--platina);border-block:1px solid var(--linha)}
   .sobre .caixa{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
-  .sobre img{width:200px;height:200px;border-radius:50%;object-fit:cover;border:6px solid var(--greige)}
+  .sobre img{width:300px;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:150px 150px 22px 22px;box-shadow:0 30px 60px -30px rgba(42,30,25,.5)}
   .sobre p{color:var(--castanho);max-width:62ch;margin-top:16px}
-  @media (max-width:760px){.sobre .caixa{grid-template-columns:1fr;gap:24px}.sobre img{width:140px;height:140px}}
+  @media (max-width:760px){.sobre .caixa{grid-template-columns:1fr;gap:28px}.sobre img{width:min(300px,80%)}}
 
   /* perguntas */
   .faq{max-width:820px}
@@ -331,7 +331,7 @@
 
   <section class="bloco sobre" aria-labelledby="tSobre">
     <div class="caixa">
-      <img src="fotos/marcela.jpg" width="320" height="320" loading="lazy" alt="Marcela Pereira">
+      <img src="fotos/marcela-retrato.jpg" width="720" height="900" loading="lazy" alt="Marcela Pereira, de blazer branco, com cabelo longo castanho escuro e mechas de vários tons ao redor">
       <div>
         <h2 id="tSobre">Prazer, Marcela.</h2>
         <p>Trabalho com alongamento de cabelo desde 2008. Atendo num ateliê particular em Arujá, com hora marcada, para dar atenção total a cada cliente: do primeiro fio até a última manutenção. Meu objetivo é que ninguém perceba que é mega hair, só que você está mais bonita.</p>

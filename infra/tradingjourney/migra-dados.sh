@@ -62,6 +62,46 @@ supabase db dump --db-url "$DBURL" -f "$W/schema.sql"
 supabase db dump --db-url "$DBURL" -f "$W/data.sql" --use-copy --data-only
 ls -la "$W"
 
+# 3b) O cloud pode estar numa versão mais nova do Auth/Storage que a VPS: nos esquemas internos,
+# só entram as colunas e tabelas que existem aqui (o resto é interno e temporário, como códigos de login)
+local_sql -At -c "select table_schema||'.'||table_name||'|'||string_agg(column_name, ',') from information_schema.columns
+  where table_schema in ('auth','storage','realtime','vault','supabase_functions','net','cron') group by 1" > "$W/colunas.txt"
+python3 - "$W/data.sql" "$W/colunas.txt" <<'PY'
+import re, sys
+dados, cols = sys.argv[1], sys.argv[2]
+local = {}
+for l in open(cols):
+    t, c = l.rstrip("\n").split("|", 1)
+    local[t] = set(c.split(","))
+internos = {t.split(".")[0] for t in local} | {"auth", "storage"}
+un = lambda s: s.strip().strip('"')
+saida, pulei = [], []
+linhas = open(dados, encoding="utf-8").read().split("\n")
+i = 0
+while i < len(linhas):
+    l = linhas[i]
+    m = re.match(r'^COPY ("?[\w]+"?)\.("?[\w]+"?) \((.*)\) FROM stdin;$', l)
+    if not m or un(m.group(1)) not in internos:
+        saida.append(l); i += 1; continue
+    tabela = f"{un(m.group(1))}.{un(m.group(2))}"
+    nomes = [un(c) for c in m.group(3).split(",")]
+    fim = linhas.index("\\.", i)
+    corpo = linhas[i + 1:fim]
+    if tabela not in local:
+        pulei.append(f"{tabela} (tabela)"); i = fim + 1; continue
+    manter = [k for k, n in enumerate(nomes) if n in local[tabela]]
+    if len(manter) < len(nomes):
+        pulei.append(f"{tabela}: " + ",".join(n for n in nomes if n not in local[tabela]))
+    saida.append(f'COPY "{m.group(1).strip(chr(34))}"."{m.group(2).strip(chr(34))}" (' + ", ".join(f'"{nomes[k]}"' for k in manter) + ") FROM stdin;")
+    for r in corpo:
+        campos = r.split("\t")
+        saida.append("\t".join(campos[k] for k in manter))
+    saida.append("\\.")
+    i = fim + 1
+open(dados, "w", encoding="utf-8").write("\n".join(saida))
+print("  ignorado (só existe no cloud):", "; ".join(pulei) if pulei else "nada")
+PY
+
 # 4) Restaura numa transação só (se algo falhar, nada fica pela metade)
 echo "===> Restaurando na VPS ..."
 if ! {

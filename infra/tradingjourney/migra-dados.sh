@@ -143,6 +143,7 @@ end $$;
 SQL
 
 
+local_sql < "$AQUI/troca-links.sql" 2>&1 | sed 's/^NOTICE: */  links: /'
 local_sql -c "select cron.schedule('push-scheduler', '*/5 * * * *', \$\$select public.run_push_scheduler()\$\$);" >/dev/null
 local_sql -c "notify pgrst, 'reload schema';"
 fi  # fim da restauração

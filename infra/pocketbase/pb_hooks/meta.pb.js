@@ -12,7 +12,12 @@ routerAdd("GET", "/api/meta/webhook", (e) => {
   const q = e.request.url.query()
   const m = W.metaApp($app)
   const esperado = m && m.getString("verify_token")
-  if (q.get("hub.mode") === "subscribe" && esperado && q.get("hub.verify_token") === esperado) return e.string(200, q.get("hub.challenge"))
+  // O verify token só prova à Meta que a URL é nossa; quem protege os eventos é a
+  // assinatura X-Hub-Signature-256 (app_secret). Por isso aceitamos também um valor
+  // público fixo, que pode ser digitado no painel da Meta sem manusear segredo.
+  const PUBLICO = "abertocore-webhook-meta"
+  const t = q.get("hub.verify_token")
+  if (q.get("hub.mode") === "subscribe" && ((esperado && t === esperado) || t === PUBLICO)) return e.string(200, q.get("hub.challenge"))
   return e.string(403, "forbidden")
 })
 

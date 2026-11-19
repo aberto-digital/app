@@ -94,7 +94,7 @@ function processaWebhook(app, corpo) {
   ;(corpo.entry || []).forEach((entry) => {
     const canal = canalSocial(app, tipo, String(entry.id))
     if (!canal) { app.logger().warn("meta: conta sem canal", "tipo", tipo, "id", entry.id); return }
-    ;(entry.messaging || []).forEach((ev) => {
+    ;(entry.messaging || []).concat(entry.standby || []).forEach((ev) => {
       const msg = ev.message
       if (!msg || !msg.mid) return
       const eco = !!msg.is_echo
@@ -133,6 +133,10 @@ function processaWebhook(app, corpo) {
 // ---------- envio ----------
 function enviaSocial(app, canal, pessoaId, texto) {
   try { app.store().set("meta_saindo:" + texto, Date.now()) } catch (e) {}
+  // Messenger: se a conversa estiver com a Caixa de Entrada da Meta, o AbertoCore assume antes de responder
+  if (canal.getString("tipo") === "messenger") {
+    try { graphPost(app, canal.getString("page_id") + "/take_thread_control", canal.getString("access_token"), { recipient: { id: pessoaId }, metadata: "abertocore" }) } catch (e) {}
+  }
   const j = graphPost(app, canal.getString("page_id") + "/messages", canal.getString("access_token"), {
     recipient: { id: pessoaId }, messaging_type: "RESPONSE", message: { text: texto },
   })
@@ -190,9 +194,13 @@ function salvaCanal(app, empresaId, filtro, params, valores) {
 }
 
 // Liga a Página (Messenger) e, se tiver, o Instagram profissional ligado a ela.
+function assinaPagina(app, pageId, tok) {
+  graphPost(app, pageId + "/subscribed_apps?subscribed_fields=messages,message_echoes,messaging_postbacks,standby", tok, {})
+}
+
 function ligaPagina(app, empresaId, pagina) {
   const tok = pagina.access_token
-  graphPost(app, pagina.id + "/subscribed_apps?subscribed_fields=messages,message_echoes,messaging_postbacks", tok, {})
+  assinaPagina(app, pagina.id, tok)
   const ligados = []
   salvaCanal(app, empresaId, "tipo = 'messenger' && page_id = {:p}", { p: pagina.id },
     { tipo: "messenger", page_id: pagina.id, nome: pagina.name || "", conta: pagina.name || "", access_token: tok })
@@ -226,4 +234,4 @@ function ligaWhatsApp(app, empresaId, codigo, wabaId, phoneId) {
   return "WhatsApp " + (numero || phoneId)
 }
 
-module.exports = { processaWebhook, enviaSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }
+module.exports = { assinaPagina, processaWebhook, enviaSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }

@@ -1796,10 +1796,19 @@
       bloco('instagram', 'I', 'var(--ig)', 'Instagram Direct', 'Mensagens do Direct, respostas e menções em stories. O perfil precisa ser profissional e estar ligado a uma Página do Facebook.', 'Conectar Instagram e Facebook', meta.config_social ? 'social' : '') +
       bloco('messenger', 'F', 'var(--fb)', 'Facebook Messenger', 'Mensagens da Página da empresa. Conecta junto com o Instagram.', 'Conectar Instagram e Facebook', meta.config_social ? 'social' : '') +
       bloco('email', '@', 'var(--em)', 'E-mail', 'Recebe os e-mails da caixa da empresa e responde daqui. Cada remetente vira um contato no funil.', 'Conectar e-mail', 'email') +
+      (de('email').length ? '<div class="canal-card"><div class="tt"><span class="ic" style="background:var(--em)">@</span>Assinatura do e-mail</div>' +
+        '<div class="ds">Vai no fim de todo e-mail respondido pelo AbertoCore. Uma informação por linha; a primeira sai em destaque. Links e e-mails viram clicáveis.</div>' +
+        '<textarea id="emAss" rows="5" style="width:100%;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--linha,#ccd)" placeholder="Julio Romanelli\nabertodigital · Presença digital para negócios\n(11) 99123-3627\nhttps://abertodigital.com">' + esc((S.email && S.email.assinatura) || '') + '</textarea>' +
+        (pode ? '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn peq pri" id="emAssSalva">Salvar assinatura</button></div>' : '') + '</div>' : '') +
       '<div class="canal-card"><div class="tt"><span class="ic" style="background:#2F6FED">S</span>Chat do site</div><div class="st ok">Ativo: ' + esc(CONFIG.site || 'site da empresa') + '</div><div class="ds">Conversas da janela do site e do formulário caem aqui. A IA atende 24h quando ligada.</div></div>' +
       (!meta.config_social || !meta.config_whatsapp ? '<div class="canal-card"><div class="tt">Conexão com a Meta</div><div class="ds">A abertodigital está concluindo a configuração do app na Meta. Assim que terminar, os botões de conectar aparecem aqui.</div></div>' : '') +
       '</div>';
     $('#vista').onclick = function(e){
+      if (e.target.closest('#emAssSalva')){
+        S.email = Object.assign({}, S.email || {}, {assinatura: $('#emAss').value.trim().slice(0, 1500)});
+        salva(); aviso('Assinatura salva. Ela vai nos próximos e-mails respondidos.');
+        return;
+      }
       var b = e.target.closest('[data-con]'), d = e.target.closest('[data-des]');
       if (d){
         if (!confirmaSimples('Desligar ' + d.getAttribute('data-nm') + '? As mensagens já recebidas continuam no AbertoCore.')) return;

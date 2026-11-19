@@ -57,7 +57,9 @@ routerAdd("POST", "/api/abertocore/email/enviar", (e) => {
   const d = W.lerDados(rec)
   const assunto = String(b.assunto || d.assunto || "").trim()
   let id
-  try { id = E.envia($app, canal, sid.slice(3), /^re:/i.test(assunto) || !assunto ? assunto : "Re: " + assunto, texto, d.emailMsg || "") }
+  let assinatura = ""
+  try { assinatura = String((W.lerDados($app.findFirstRecordByFilter("configuracoes", "empresa = {:e}", { e: empresaId })).email || {}).assinatura || "") } catch (err) {}
+  try { id = E.envia($app, canal, sid.slice(3), /^re:/i.test(assunto) || !assunto ? assunto : "Re: " + assunto, texto, d.emailMsg || "", assinatura) }
   catch (err) { throw new BadRequestError("Não consegui enviar o e-mail: " + String(err.message || err)) }
   d.msgs = W.unirMsgs(d.msgs, [{ de: "eq", txt: texto, ts: Date.now(), wa: "em:" + id, k: b.k || undefined, st: "sent" }])
   d.status = "esperando"

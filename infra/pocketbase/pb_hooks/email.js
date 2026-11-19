@@ -156,8 +156,24 @@ function leTodos(app) {
 }
 
 // Responde (ou escreve um e-mail novo) para o contato
-function envia(app, canal, para, assunto, texto, responderA) {
-  const html = String(texto).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")
+function htmlDe(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>") }
+
+// assinatura em texto (uma linha por item); vira um bloco de e-mail com separador
+function assinaturaHtml(a) {
+  a = String(a || "").trim()
+  if (!a) return ""
+  const linhas = a.split("\n").map((l) => l.trim())
+  const fmt = linhas.map((l, i) => {
+    let h = htmlDe(l)
+    h = h.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#2F6FED">$1</a>')
+    h = h.replace(/([\w.+-]+@[\w-]+\.[\w.]+)/g, '<a href="mailto:$1" style="color:#2F6FED">$1</a>')
+    return i === 0 ? '<b style="color:#1E3050">' + h + "</b>" : h
+  }).join("<br>")
+  return '<br><br><table cellpadding="0" cellspacing="0" style="border-top:2px solid #FFB020;padding-top:10px;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;color:#444"><tr><td style="padding-top:10px">' + fmt + "</td></tr></table>"
+}
+
+function envia(app, canal, para, assunto, texto, responderA, assinatura) {
+  const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#222">' + htmlDe(texto) + assinaturaHtml(assinatura) + "</div>"
   const corpo = { fromAddress: canal.getString("conta"), toAddress: para, subject: assunto || "Contato", content: html, mailFormat: "html" }
   let r
   if (responderA) {

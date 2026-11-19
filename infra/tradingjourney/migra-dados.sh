@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Copia banco, usuários, segredos do Vault e arquivos do Supabase cloud para o Supabase da VPS.
-# Uso: bash /srv/infra/tradingjourney/migra-dados.sh            (primeira cópia, banco local vazio)
-#      bash /srv/infra/tradingjourney/migra-dados.sh --recomecar (apaga o banco LOCAL e copia de novo)
+# Uso: bash /srv/infra/tradingjourney/migra-dados.sh              (tudo: lê o cloud, restaura, Vault e arquivos)
+#      bash /srv/infra/tradingjourney/migra-dados.sh --recomecar   (apaga o banco LOCAL antes)
+#      bash /srv/infra/tradingjourney/migra-dados.sh --usar-dump   (restaura o dump já baixado; não pede senha)
+#      bash /srv/infra/tradingjourney/migra-dados.sh --so-arquivos (só Vault e arquivos; pede os acessos)
 # O Supabase cloud só é LIDO. Nada é apagado nem alterado lá.
 set -euo pipefail
 
@@ -29,7 +31,10 @@ if ! command -v supabase >/dev/null; then
   curl -fsSL "https://github.com/supabase/cli/releases/latest/download/supabase_linux_${arch}.tar.gz" | tar -xz -C /usr/local/bin supabase
 fi
 
+MODO=${1:-}
+DBURL=""; SRK_CLOUD=""
 # 1) Acesso ao banco antigo (digitado aqui, não fica salvo)
+if [ "$MODO" != "--usar-dump" ]; then
 echo
 echo "No Supabase: Connect > Session pooler. Copie a URI (com o [YOUR-...-PASSWORD] mesmo)."
 read -rp "URI do Session pooler: " URI
@@ -39,12 +44,14 @@ DBURL=${URI/\[YOUR-DATABASE-PASSWORD\]/$PWQ}
 DBURL=${DBURL/\[YOUR-PASSWORD\]/$PWQ}
 printf "service_role key do Supabase cloud, para copiar os arquivos (não aparece): "; IFS= read -rs SRK_CLOUD; echo
 unset PW PWQ
+fi
 
+if [ "$MODO" != "--so-arquivos" ]; then
 # 2) Banco local precisa estar vazio
 espera_banco
 tem=$(local_sql -At -c "select count(*) from pg_tables where schemaname='public'")
 if [ "$tem" != "0" ]; then
-  if [ "${1:-}" != "--recomecar" ]; then
+  if [ "$MODO" != "--recomecar" ] && [ "$MODO" != "--usar-dump" ]; then
     echo "O banco LOCAL já tem tabelas. Para apagar só o local e copiar de novo: --recomecar"; exit 1
   fi
   echo "===> Apagando o banco LOCAL da VPS (o cloud não é tocado) ..."
@@ -54,18 +61,22 @@ if [ "$tem" != "0" ]; then
   sleep 15; espera_banco
 fi
 
-# 3) Dump do cloud
-echo "===> Lendo o banco do Supabase cloud ..."
-rm -f "$W"/*.sql
-supabase db dump --db-url "$DBURL" -f "$W/roles.sql" --role-only
-supabase db dump --db-url "$DBURL" -f "$W/schema.sql"
-supabase db dump --db-url "$DBURL" -f "$W/data.sql" --use-copy --data-only
+# 3) Dump do cloud (o original fica em data.orig.sql; o ajustado em data.sql)
+if [ "$MODO" != "--usar-dump" ]; then
+  echo "===> Lendo o banco do Supabase cloud ..."
+  rm -f "$W"/*.sql
+  supabase db dump --db-url "$DBURL" -f "$W/roles.sql" --role-only
+  supabase db dump --db-url "$DBURL" -f "$W/schema.sql"
+  supabase db dump --db-url "$DBURL" -f "$W/data.orig.sql" --use-copy --data-only
+fi
+[ -f "$W/data.orig.sql" ] || mv "$W/data.sql" "$W/data.orig.sql"
+cp "$W/data.orig.sql" "$W/data.sql"
 ls -la "$W"
 
 # 3b) O cloud pode estar numa versão mais nova do Auth/Storage que a VPS: nos esquemas internos,
 # só entram as colunas e tabelas que existem aqui (o resto é interno e temporário, como códigos de login)
 local_sql -At -c "select table_schema||'.'||table_name||'|'||string_agg(column_name, ',') from information_schema.columns
-  where table_schema in ('auth','storage','realtime','vault','supabase_functions','net','cron') group by 1" > "$W/colunas.txt"
+  where table_schema in ('auth','storage','realtime','vault','supabase_functions','net','cron') group by table_schema, table_name" > "$W/colunas.txt"
 python3 - "$W/data.sql" "$W/colunas.txt" <<'PY'
 import re, sys
 dados, cols = sys.argv[1], sys.argv[2]
@@ -117,7 +128,7 @@ fi
 echo "  restaurado ($(grep -c WARNING "$W/restaura.log" || true) avisos)"
 
 # 5) Ajustes de servidor: funções que chamavam o endereço do cloud, Vault e cron
-echo "===> Ajustando funções, Vault e cron ..."
+echo "===> Ajustando funções e cron ..."
 local_sql <<'SQL'
 do $$
 declare r record; d text;
@@ -131,6 +142,19 @@ begin
 end $$;
 SQL
 
+
+local_sql -c "select cron.schedule('push-scheduler', '*/5 * * * *', \$\$select public.run_push_scheduler()\$\$);" >/dev/null
+local_sql -c "notify pgrst, 'reload schema';"
+fi  # fim da restauração
+
+if [ -z "$DBURL" ]; then
+  docker compose restart auth rest storage realtime >/dev/null
+  echo "Restauração ok. Falta: bash $AQUI/migra-dados.sh --so-arquivos (Vault e arquivos)"
+  local_sql -At -c "select 'usuarios', count(*) from auth.users union all select 'trades', count(*) from public.trades union all select 'accounts', count(*) from public.accounts union all select 'arquivos', count(*) from storage.objects union all select 'cron', count(*) from cron.job;"
+  exit 0
+fi
+
+# 5b) Segredos do Vault (lidos do cloud; não aparecem na tela)
 SEGREDOS=$(docker exec supabase-db psql "$DBURL" -At -c \
   "select coalesce(json_agg(json_build_object('n',name,'s',decrypted_secret,'d',coalesce(description,''))),'[]') from vault.decrypted_secrets")
 export SEGREDOS
@@ -154,9 +178,6 @@ open(p, "w").write("\n".join(linhas) + "\n")
 print("  segredos do Vault copiados:", ", ".join(sorted(novos)))
 PY
 unset SEGREDOS
-
-local_sql -c "select cron.schedule('push-scheduler', '*/5 * * * *', \$\$select public.run_push_scheduler()\$\$);" >/dev/null
-local_sql -c "notify pgrst, 'reload schema';"
 
 # 6) Arquivos do Storage
 echo "===> Copiando arquivos do Storage ..."

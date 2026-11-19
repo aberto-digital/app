@@ -1109,15 +1109,20 @@
     };
     $('#fEnvia').addEventListener('submit', function(e){
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
-      var viaWa = window.Nuvem && Nuvem.logado() && Nuvem.waConectado() && c.canal === 'WhatsApp';
+      var N = window.Nuvem && Nuvem.logado() ? Nuvem : null, sid = c.social || '';
+      var via = !N ? '' : (c.canal === 'WhatsApp' && N.waConectado()) ? 'wa'
+        : (sid.indexOf('ig:') === 0 && N.canalLigado && N.canalLigado('instagram')) ? 'ig'
+        : (sid.indexOf('fb:') === 0 && N.canalLigado && N.canalLigado('messenger')) ? 'fb'
+        : (sid.indexOf('em:') === 0 && N.canalLigado && N.canalLigado('email')) ? 'em' : '';
       var m = {de:'eq', txt:t, ts:agoraMs()};
-      if (viaWa){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
+      if (via){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
       c.msgs.push(m); c.status = 'esperando';
       S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; salva(); aba = 'esperando';
       desenhaLista(); desenhaConversa();
-      if (viaWa){
+      if (via){
         var cid = c.id;
-        Nuvem.enviarWhatsApp(cid, t, m.k).catch(function(err){
+        var envio = via === 'wa' ? Nuvem.enviarWhatsApp(cid, t, m.k) : via === 'em' ? Nuvem.enviarEmail(cid, t, m.k, c.assunto) : Nuvem.enviarSocial(cid, t, m.k);
+        envio.catch(function(err){
           var cc = contato(cid); if (!cc) return;
           cc.msgs.forEach(function(x){ if (x.k === m.k){ x.pend = undefined; x.erro = err.message; } });
           salva(); if (sel === cid) desenhaConversa();
@@ -1763,7 +1768,94 @@
   }
 
   /* ========== CANAIS ========== */
+  /* Canais de verdade (com login): conecta pela Meta e pela Zoho, sem senha nenhuma passar pelo app */
+  var fbSdk = null;
+  function carregaFb(meta){
+    if (fbSdk) return fbSdk;
+    fbSdk = new Promise(function(ok, falha){
+      window.fbAsyncInit = function(){ FB.init({appId:meta.app_id, autoLogAppEvents:false, xfbml:false, version:meta.versao || 'v25.0'}); ok(window.FB); };
+      var sc = document.createElement('script'); sc.async = true; sc.defer = true; sc.crossOrigin = 'anonymous';
+      sc.src = 'https://connect.facebook.net/pt_BR/sdk.js'; sc.onerror = function(){ fbSdk = null; falha(new Error('Não consegui abrir o login da Meta. Verifique a conexão e tente de novo.')); };
+      document.head.appendChild(sc);
+    });
+    return fbSdk;
+  }
+  function vCanaisReal(){
+    var st = Nuvem.canais(), lig = st.canais || [], meta = st.meta || {}, pode = st.pode;
+    function de(t){ return lig.filter(function(c){ return c.tipo === t; }); }
+    function bloco(t, ic, cor, nome, desc, botao, acao){
+      var ls = de(t);
+      return '<div class="canal-card"><div class="tt"><span class="ic" style="background:' + cor + '">' + ic + '</span>' + nome + '</div>' +
+        '<div class="st ' + (ls.length ? 'ok' : 'br') + '">' + (ls.length ? 'Conectado: ' + ls.map(function(c){ return esc(c.nome || c.conta || c.numero || 'conta'); }).join(', ') : 'Não conectado') + '</div>' +
+        '<div class="ds">' + desc + '</div>' +
+        (pode ? '<div style="display:flex;gap:8px;flex-wrap:wrap">' + (acao ? '<button class="btn peq ' + (ls.length ? '' : 'pri') + '" data-con="' + acao + '">' + (ls.length ? 'Conectar outra conta' : botao) + '</button>' : '') +
+          ls.map(function(c){ return '<button class="btn peq" data-des="' + c.id + '" data-nm="' + esc(c.nome || c.conta || '') + '">Desligar ' + esc(c.nome || c.conta || '') + '</button>'; }).join('') + '</div>' : '') + '</div>';
+    }
+    $('#vista').innerHTML = '<div class="canais">' +
+      bloco('whatsapp', 'W', 'var(--wa)', 'WhatsApp Business', 'Mensagens chegam na central e a IA ou o menu respondem. O número continua funcionando no app WhatsApp Business do celular.', 'Conectar WhatsApp', meta.config_whatsapp ? 'whatsapp' : '') +
+      bloco('instagram', 'I', 'var(--ig)', 'Instagram Direct', 'Mensagens do Direct, respostas e menções em stories. O perfil precisa ser profissional e estar ligado a uma Página do Facebook.', 'Conectar Instagram e Facebook', meta.config_social ? 'social' : '') +
+      bloco('messenger', 'F', 'var(--fb)', 'Facebook Messenger', 'Mensagens da Página da empresa. Conecta junto com o Instagram.', 'Conectar Instagram e Facebook', meta.config_social ? 'social' : '') +
+      bloco('email', '@', 'var(--em)', 'E-mail', 'Recebe os e-mails da caixa da empresa e responde daqui. Cada remetente vira um contato no funil.', 'Conectar e-mail', 'email') +
+      '<div class="canal-card"><div class="tt"><span class="ic" style="background:#2F6FED">S</span>Chat do site</div><div class="st ok">Ativo: ' + esc(CONFIG.site || 'site da empresa') + '</div><div class="ds">Conversas da janela do site e do formulário caem aqui. A IA atende 24h quando ligada.</div></div>' +
+      (!meta.config_social || !meta.config_whatsapp ? '<div class="canal-card"><div class="tt">Conexão com a Meta</div><div class="ds">A abertodigital está concluindo a configuração do app na Meta. Assim que terminar, os botões de conectar aparecem aqui.</div></div>' : '') +
+      '</div>';
+    $('#vista').onclick = function(e){
+      var b = e.target.closest('[data-con]'), d = e.target.closest('[data-des]');
+      if (d){
+        if (!confirmaSimples('Desligar ' + d.getAttribute('data-nm') + '? As mensagens já recebidas continuam no AbertoCore.')) return;
+        Nuvem.api('POST', '/api/abertocore/canais/desligar', {id:d.getAttribute('data-des')}).then(function(){ return Nuvem.statusCanais(); }).then(function(){ aviso('Canal desligado.'); vCanaisReal(); }).catch(function(err){ aviso(esc(err.message)); });
+        return;
+      }
+      if (!b) return;
+      var tipo = b.getAttribute('data-con');
+      if (tipo === 'email') return conectaEmail();
+      b.disabled = true;
+      carregaFb(meta).then(function(FB){ return tipo === 'whatsapp' ? conectaWhatsApp(FB, meta) : conectaSocial(FB, meta); })
+        .then(function(j){ if (j && j.ligados){ aviso('Conectado: <b>' + j.ligados.map(esc).join(', ') + '</b>.'); } return Nuvem.statusCanais(); })
+        .then(function(){ vCanaisReal(); })
+        .catch(function(err){ b.disabled = false; if (err && err.message) aviso(esc(err.message)); });
+    };
+  }
+  function confirmaSimples(t){ return window.confirm(t); }
+  function loginFb(FB, opcoes){
+    return new Promise(function(ok, falha){
+      FB.login(function(r){ if (r && r.authResponse && r.authResponse.code) ok(r.authResponse.code); else falha(new Error('Conexão cancelada.')); }, opcoes);
+    });
+  }
+  function conectaSocial(FB, meta){
+    return loginFb(FB, {config_id:meta.config_social, response_type:'code', override_default_response_type:true}).then(function(code){
+      return Nuvem.api('POST', '/api/abertocore/canais/meta', {code:code});
+    }).then(function(j){
+      if (!j.escolher) return j;
+      var nomes = j.escolher.map(function(p, i){ return (i + 1) + ') ' + p.nome + (p.instagram ? ' + Instagram @' + p.instagram : ''); }).join('\n');
+      var n = parseInt(window.prompt('Qual Página ligar a esta empresa?\n' + nomes, '1'), 10);
+      var p = j.escolher[n - 1]; if (!p) throw new Error('Nenhuma Página escolhida.');
+      return Nuvem.api('POST', '/api/abertocore/canais/meta', {page_id:p.id});
+    });
+  }
+  function conectaWhatsApp(FB, meta){
+    var info = {};
+    function ouve(ev){
+      if (!/facebook\.com$/.test(new URL(ev.origin).hostname)) return;
+      try { var d = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data; if (d && d.type === 'WA_EMBEDDED_SIGNUP' && d.data){ if (d.data.phone_number_id) info.phone_number_id = d.data.phone_number_id; if (d.data.waba_id) info.waba_id = d.data.waba_id; } } catch (e) {}
+    }
+    window.addEventListener('message', ouve);
+    return loginFb(FB, {config_id:meta.config_whatsapp, response_type:'code', override_default_response_type:true,
+      extras:{setup:{}, featureType:'whatsapp_business_app_onboarding', sessionInfoVersion:'3'}}).then(function(code){
+      return new Promise(function(ok){ setTimeout(ok, 800); }).then(function(){
+        window.removeEventListener('message', ouve);
+        if (!info.waba_id || !info.phone_number_id) throw new Error('A Meta não devolveu o número. Conclua todas as etapas da janela e tente de novo.');
+        return Nuvem.api('POST', '/api/abertocore/canais/meta', {tipo:'whatsapp', code:code, waba_id:info.waba_id, phone_number_id:info.phone_number_id});
+      });
+    }, function(err){ window.removeEventListener('message', ouve); throw err; });
+  }
+  function conectaEmail(){
+    Nuvem.api('POST', '/api/abertocore/email/autorizar', {}).then(function(j){ if (j && j.url) location.href = j.url; })
+      .catch(function(err){ aviso(esc(err.message)); });
+  }
+
   function vCanais(){
+    if (window.Nuvem && Nuvem.logado()) return vCanaisReal();
     var L = [
       ['W','var(--wa)','WhatsApp Business','ok','Conectado: ' + CONFIG.whatsapp,'Mensagens, áudios e fotos chegam na central. Assistente de IA ativo.'],
       ['I','var(--ig)','Instagram','ok','Conectado: Direct','Mensagens do Direct e respostas aos stories.'],
@@ -1845,6 +1937,7 @@
     var d = e.detail || {};
     if (d.novas && d.nome) aviso('Nova mensagem de <b>' + esc(d.nome) + '</b> no WhatsApp.');
   });
+  window.addEventListener('nuvem:canais', function(){ if (atual === 'canais') desenha(); });
   window.addEventListener('nuvem:pronto', function(){
     if (!iaLogado() || iaSt) return;
     Nuvem.ia('GET').then(function(j){ iaSt = j; return carregaChatIA(); }).then(function(){ desenhaNav(); if (atual === 'mensagens' || atual === 'dashboard') recarrega(); }).catch(function(){});

@@ -107,6 +107,8 @@ onRecordUpdateRequest((e) => {
     }
   }
   if (velho.wa && !novo.wa) novo.wa = velho.wa
+  if (velho.social && !novo.social) novo.social = velho.social
+  if (velho.usuario && !novo.usuario) novo.usuario = velho.usuario
   const vb = velho.bot, nb = novo.bot
   if (vb && (!nb || (vb.ate || 0) > (nb.ate || 0) || (vb.ultimoMenu || 0) > (nb.ultimoMenu || 0))) novo.bot = Object.assign({}, nb || {}, vb)
   // o app tinha uma cópia antiga: mantém o que a IA preencheu no card
@@ -122,5 +124,6 @@ onRecordUpdateRequest((e) => {
   }
   e.record.set("dados", novo)
   if (!e.record.getString("wa_id") && orig.getString("wa_id")) e.record.set("wa_id", orig.getString("wa_id"))
+  if (!e.record.getString("social_id") && orig.getString("social_id")) e.record.set("social_id", orig.getString("social_id"))
   e.next()
 }, "contatos")

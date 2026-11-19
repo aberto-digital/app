@@ -157,7 +157,11 @@ function processaWebhook(app, corpo) {
         const rid = (it.button_reply && it.button_reply.id) || (it.list_reply && it.list_reply.id) || ""
         const mm = String(rid).match(/^op_(\d{1,2})$/)
         if (mm) escolha = parseInt(mm[1], 10)
-        try { rodaBot(app, canal, rec, txt, escolha) } catch (e) { app.logger().error("whatsapp: erro no robô", "erro", String(e)) }
+        let respondeu = false
+        try { respondeu = rodaBot(app, canal, rec, txt, escolha) } catch (e) { app.logger().error("whatsapp: erro no robô", "erro", String(e)) }
+        if (!respondeu) {
+          try { iaWhatsApp(app, canal, app.findRecordById("contatos", rec.id)) } catch (e) { app.logger().error("whatsapp: erro na IA", "erro", String(e)) }
+        }
       })
 
       // status das mensagens enviadas (entregue / lida / falhou)
@@ -178,6 +182,19 @@ function processaWebhook(app, corpo) {
     })
   })
   return n
+}
+
+
+// ---------- IA atendendo (quando o menu não respondeu) ----------
+function iaWhatsApp(app, canal, rec) {
+  const A = require(`${__hooks}/atende.js`)
+  const r = A.decide(app, canal.getString("empresa"), rec, "WhatsApp")
+  if (!r) return false
+  let waId = null, erro = null
+  try { waId = enviaTexto(app, canal, rec.getString("wa_id"), r.texto) } catch (e) { erro = String(e.message || e) }
+  A.registra(app, rec, r, waId ? { wa: waId, st: "sent" } : { erro: erro })
+  if (erro) app.logger().error("whatsapp: IA não conseguiu enviar", "erro", erro)
+  return true
 }
 
 

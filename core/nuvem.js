@@ -241,6 +241,8 @@
       var cliDepois = final.msgs.filter(function (m) { return m.de === 'cli'; }).length;
       if (cliDepois > cliAntes) { final.naoLidas = Math.max(final.naoLidas || 0, srv.naoLidas || 0); final.status = 'entrada'; }
       if (srv.wa) final.wa = srv.wa;
+      if (srv.social) final.social = srv.social;
+      if (srv.usuario) final.usuario = srv.usuario;
       // o que a IA preencheu no servidor vale sobre uma cópia local mais antiga
       if (srv.ia && (!final.ia || (final.ia.ts || 0) < (srv.ia.ts || 0))) {
         final.ia = srv.ia;
@@ -284,6 +286,27 @@
     if (!auth) return Promise.resolve(wa);
     return api('GET', '/api/abertocore/whatsapp').then(function (j) { wa = j || wa; return wa; }).catch(function () { return wa; })
       .then(function (w) { window.dispatchEvent(new CustomEvent('nuvem:pronto')); return w; });
+  }
+  /* ---------- canais (Instagram, Messenger, e-mail, WhatsApp) ---------- */
+  var canaisSt = { canais: [], meta: null, pode: false };
+  function statusCanais() {
+    if (!auth) return Promise.resolve(canaisSt);
+    return api('GET', '/api/abertocore/canais').then(function (j) { canaisSt = j || canaisSt; window.dispatchEvent(new CustomEvent('nuvem:canais')); return canaisSt; })
+      .catch(function () { return canaisSt; });
+  }
+  function canalLigado(tipo) { return (canaisSt.canais || []).some(function (c) { return c.tipo === tipo; }); }
+  // envio por um canal do servidor (social ou e-mail), com a mesma lógica do WhatsApp
+  function enviarPorCanal(rota, localId, corpo) {
+    clearTimeout(timer);
+    corpo.contato = localId;
+    function tenta() { return api('POST', rota, corpo); }
+    return enviarAgora(false).then(tenta).catch(function (e) {
+      if (!/não encontrado/i.test(e.message)) throw e;
+      return new Promise(function (ok) { setTimeout(ok, 1500); }).then(function () { return enviarAgora(false); }).then(tenta);
+    }).then(function (j) {
+      if (j && j.dados) aplicaContato({ local_id: localId, id: (mapa.contatos && mapa.contatos[localId] || {}).rid, dados: j.dados });
+      return j;
+    });
   }
   function enviarWhatsApp(localId, texto, k) {
     // garante que o contato já está no servidor antes de enviar
@@ -366,9 +389,9 @@
       }).then(function (r) {
         pronto = true;
         var local = ler(CHAVE);
-        if (r.vazio) { tempoReal(); statusWa(); return enviarAgora(true); }
+        if (r.vazio) { tempoReal(); statusWa(); statusCanais(); return enviarAgora(true); }
         var mudou = JSON.stringify(r.S.contatos) !== JSON.stringify((local || {}).contatos) || JSON.stringify(r.S.eventos) !== JSON.stringify((local || {}).eventos) || JSON.stringify(r.S.produtos) !== JSON.stringify((local || {}).produtos);
-        aplicarRemoto(r); marca('ok'); tempoReal(); statusWa();
+        aplicarRemoto(r); marca('ok'); tempoReal(); statusWa(); statusCanais();
         if (mudou && !sessionStorage.getItem('nv-recarregou')) { sessionStorage.setItem('nv-recarregou', '1'); location.reload(); }
         else { sessionStorage.removeItem('nv-recarregou'); if (esperando) { esperando = false; agenda(); } }
       }).catch(function (e) { marca('erro', e.message); });
@@ -379,5 +402,9 @@
   window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; },
     waConectado: function () { return !!wa.conectado; }, estado: function () { return estado; }, telaLogin: telaLogin,
     req: req, entrarComResposta: entrarComResposta,
-    ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp };
+    ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp,
+    canais: function () { return canaisSt; }, statusCanais: statusCanais, canalLigado: canalLigado,
+    enviarSocial: function (localId, texto, k) { return enviarPorCanal('/api/abertocore/social/enviar', localId, { texto: texto, k: k }); },
+    enviarEmail: function (localId, texto, k, assunto) { return enviarPorCanal('/api/abertocore/email/enviar', localId, { texto: texto, k: k, assunto: assunto }); },
+    api: api };
 })();

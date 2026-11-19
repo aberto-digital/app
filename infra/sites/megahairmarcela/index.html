@@ -166,6 +166,11 @@
   footer{padding:40px 0 110px;color:var(--castanho);font-size:.92rem}
   footer .caixa{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between}
   footer nav{display:flex;gap:20px;flex-wrap:wrap}
+  footer .caixa{align-items:center}
+  .feito{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--castanho);font-size:.88rem;padding:8px 14px 8px 16px;border-radius:999px;background:var(--platina);border:1px solid var(--linha);transition:border-color .15s}
+  .feito:hover{border-color:#2F6FED}
+  .feito img{height:22px;width:auto}
+  @media (max-width:760px){footer .caixa{flex-direction:column;align-items:flex-start}}
 
   /* chat */
   .ch-abre{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;align-items:center;gap:10px;border:0;cursor:pointer;background:var(--mel);color:#fff;font:600 1rem var(--corpo);padding:8px 20px 8px 8px;border-radius:999px;box-shadow:0 14px 30px -12px rgba(42,30,25,.6)}
@@ -385,8 +390,8 @@
       <a href="https://www.instagram.com/megahairmarcela/" target="_blank" rel="noopener">Instagram</a>
       <a href="https://www.facebook.com/aruja.megahair/" target="_blank" rel="noopener">Facebook</a>
       <a href="privacidade/">Privacidade</a>
-      <a href="https://abertodigital.com/?utm_source=megahairmarcela&amp;utm_medium=rodape" target="_blank" rel="noopener">Site feito pela abertodigital</a>
     </nav>
+    <a class="feito" href="https://abertodigital.com/?utm_source=megahairmarcela&amp;utm_medium=rodape" target="_blank" rel="noopener"><span>Feito com carinho por</span><img src="fotos/abertodigital.svg" width="137" height="24" alt="abertodigital"></a>
   </div>
 </footer>
 

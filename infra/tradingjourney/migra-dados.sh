@@ -31,11 +31,12 @@ fi
 
 # 1) Acesso ao banco antigo (digitado aqui, não fica salvo)
 echo
-echo "No Supabase: Connect > Session pooler. Copie a URI (com [YOUR-PASSWORD] mesmo)."
+echo "No Supabase: Connect > Session pooler. Copie a URI (com o [YOUR-...-PASSWORD] mesmo)."
 read -rp "URI do Session pooler: " URI
 printf "Senha do banco do Supabase (não aparece): "; IFS= read -rs PW; echo
 PWQ=$(printf %s "$PW" | python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.stdin.read(),safe=""))')
-DBURL=${URI/\[YOUR-PASSWORD\]/$PWQ}
+DBURL=${URI/\[YOUR-DATABASE-PASSWORD\]/$PWQ}
+DBURL=${DBURL/\[YOUR-PASSWORD\]/$PWQ}
 printf "service_role key do Supabase cloud, para copiar os arquivos (não aparece): "; IFS= read -rs SRK_CLOUD; echo
 unset PW PWQ
 

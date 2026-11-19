@@ -1,0 +1,26 @@
+# Deploy automático na VPS: a cada push na main, pede ao servidor para se atualizar.
+# A chave (secret VPS_SSH_KEY) só consegue rodar /usr/local/bin/deploy-vps infra no servidor.
+name: Deploy VPS (infra e sites)
+on:
+  push:
+    branches: [main]
+    paths: ['infra/**']
+  workflow_dispatch:
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Atualizar a VPS
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$VPS_SSH_KEY" ]; then echo "::error::Falta o secret VPS_SSH_KEY"; exit 1; fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          echo '187.53.122.214 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcqUKYmo5jSLbpGTduffAiun9+Fjy4DQ9m9PKDkUDDa' > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 root@187.53.122.214 infra

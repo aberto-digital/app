@@ -87,19 +87,47 @@ ia        { ativo, nome, tom, horario, base, humano, agendar }
 
 Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensagens`, `eventos`, `produtos` e `config_ia`.
 
-## Como criar a versão de um cliente novo
+## Cliente novo (checklist de onboarding)
 
-1. Crie um repositório novo a partir deste, por exemplo `aberto-digital/core-nomedocliente`.
-2. Edite o `CONFIG`:
-   - nome do sistema, empresa e responsável;
-   - WhatsApp e e-mail;
-   - etapas do funil do negócio dele (uma clínica, por exemplo, usaria Agendou, Compareceu, Fechou pacote);
-   - regras da IA com os preços e o jeito de falar dele.
-3. Troque os dados da `semente()` por exemplos do ramo do cliente: os produtos dele e 6 a 10 contatos fictícios.
-4. Ajuste as cores em `:root` e o ícone, se o sistema for levar a marca do cliente.
-5. Troque o domínio no `CNAME`, por exemplo `app.nomedocliente.com.br`, e crie o registro CNAME no DNS dele apontando para `aberto-digital.github.io`.
-6. Ative o GitHub Pages (branch `main`, pasta raiz) e marque Enforce HTTPS quando o certificado sair.
-7. Teste no celular e no computador. Depois, apresente ao cliente com a simulação ao vivo ligada.
+Modelo: Mega Hair Marcela (nov/2026). Um AbertoCore só, com várias empresas: cada cliente é uma empresa com perfil próprio, não um repositório novo.
+
+**1. Briefing e materiais**
+- Instagram, Facebook, Google, WhatsApp, fotos, logo, preços e diferenciais.
+- Diagnóstico em `08-Clientes/<Cliente>/Diagnostico (dd-mm).md` (pasta local da agência).
+
+**2. Domínio**
+- Preferência: `.com.br`, comprado **no nome do cliente** (CPF/CNPJ dele) ou registrado por nós e transferido se ele sair.
+- DNS: registro **A** do domínio e do `www` → `187.53.122.214` (VPS). Nada de CNAME para hospedagens antigas.
+
+**3. Site**
+- Pasta `infra/sites/<cliente>/` (HTML estático, fotos otimizadas em `fotos/`, `privacidade/`, `robots.txt`, `sitemap.xml`).
+- Bloco no `infra/Caddyfile` (copiar o da Marcela: domínio com `root * /srv/sites/<cliente>` e o `www` redirecionando).
+- Rodapé "Feito com carinho por abertodigital" com o logo e o link.
+- Formulário e chat do site postam em `https://api.abertodigital.com/api/site/...` com a `chave` do cliente.
+- **Publicar = commit na `main`.** O GitHub Actions dispara o deploy na VPS (ver "Deploy automático") e o Caddy emite o HTTPS sozinho.
+
+**4. AbertoCore do cliente**
+- Migração `infra/pocketbase/pb_migrations/<timestamp>_<cliente>.js` (copiar `1764000000_perfil_convites.js`): cria a empresa com `perfil` (segmento, etapas do funil, tipos de evento, métodos, catálogo, site, WhatsApp), `configuracoes` (texto base da IA e produtos com preços), `ia_config` e `canais_site` (chave do chat, `ia=true`, saudação).
+- Convite: no app, Configurações → Clientes → **Dar acesso** (só dono/admin da abertodigital). Gera o link `https://app.abertodigital.com/#convite=...`, válido por 7 dias e de uso único. Mandar **pelo WhatsApp** (não temos SMTP). O cliente cria a própria senha.
+
+**5. E-mail no domínio**
+- Zoho Mail grátis (`contato@dominio`), o cliente como administrador. DNS: TXT de verificação, MX `mx/mx2/mx3.zoho.com` (10/20/50), SPF `v=spf1 include:zohomail.com ~all`, DKIM `zmail._domainkey`. Plano grátis não tem encaminhamento nem IMAP.
+
+**6. Redes e Google**
+- Capas no estilo do site (WhatsApp com a foto no centro, Facebook com a foto à esquerda), bio e textos prontos em `08-Clientes/<Cliente>/redes/`.
+- Perfil da Empresa no Google: criado por nós como administradores; a **verificação é do cliente**.
+- Não mexer em contas pessoais logadas do cliente (Instagram, WhatsApp); no Facebook só pelo nosso papel de administrador da página.
+
+**7. WhatsApp, Instagram e Messenger no AbertoCore** (depois que o app da Meta estiver publicado)
+- O cliente adiciona a abertodigital como parceira no portfólio dele, ou faz o cadastro incorporado.
+- Criar o registro em `canais` (empresa, tipo, phone_number_id/página, token) pelo painel do PocketBase.
+
+**8. Vitrine**
+- Prints (desktop 1200×703 e celular 300×600) em `producoes/` do repositório `aberto-digital/site` e um slide novo no carrossel de Produções.
+
+**Cuidados**
+- Este repositório é **público**: nunca colocar senha, token ou dado de cliente aqui. Segredos ficam só na VPS e no PocketBase.
+- Sites estáticos são leves (cabem dezenas na VPS). Sistema pesado (app com banco próprio) vai para uma pasta e um compose separados, com a infra no repositório do próprio projeto (exemplo: `/srv/tj-site/*.caddy`).
 
 ## Roteiro para a versão real (fases 2 a 4)
 
@@ -112,16 +140,22 @@ Esse mesmo modelo vira as tabelas do banco na versão real: `contatos`, `mensage
 | 4 | IA de verdade | Modelo de linguagem com a base de conhecimento do cliente, regras de passar para humano e registro de cada resposta |
 | 4 | Relatórios reais e Google Agenda | Consultas no banco e API do Google Agenda |
 
-## Hospedagem
+## Hospedagem e deploy
 
-- **Repositório:** github.com/aberto-digital/app, publicado pelo GitHub Pages a partir do branch `main`.
-- **DNS na Hostinger:** registro `CNAME app → aberto-digital.github.io`, com TTL 300.
-- **Para atualizar:** basta enviar (commit) para o `main`. O GitHub Pages publica em cerca de 1 minuto.
+- **App (app.abertodigital.com) e site (abertodigital.com):** GitHub Pages. Publicar = commit na `main` (cerca de 1 minuto). DNS na Hostinger: `CNAME app → aberto-digital.github.io`.
+- **VPS (API, sites de clientes, infra):** deploy automático pelo GitHub Actions (`.github/workflows/deploy-vps.yml`). Todo push na `main` que muda `infra/**` conecta por SSH e roda `deploy-vps infra` (que executa `/srv/infra/atualiza.sh`).
+  - Secret `VPS_SSH_KEY` no repositório. A chave só roda o deploy: `restrict,command="/usr/local/bin/deploy-vps"` no `authorized_keys` do servidor. A chave do servidor está fixada no workflow.
+  - Pedidos aceitos pelo `deploy-vps`: `infra` e `tradingjourney` (o TradingJourney dispara do repositório dele).
+  - Log: `/var/log/deploy-vps.log`. Deploys simultâneos esperam na fila.
+  - Rodar na mão: GitHub → Actions → "Deploy VPS (infra e sites)" → Run workflow. Emergência: console web da Hostinger e `bash /srv/infra/atualiza.sh`.
+  - Recriar a chave: `bash /srv/infra/deploy-chave.sh` no servidor e atualizar o secret nos repositórios.
 
 ## Histórico
 
 | Data | Mudança |
 | --- | --- |
+| 19 nov 2026 | Deploy automático da VPS pelo GitHub Actions; checklist de cliente novo (modelo Mega Hair Marcela) |
+| 18 nov 2026 | AbertoCore com várias empresas: perfil por segmento, convites, ficha do cabelo e manutenções; primeiro cliente (Mega Hair Marcela) |
 | 17 nov 2026 | WhatsApp Cloud API: webhook com assinatura, envio de texto, status de entrega, tempo real no app; chatbot de menu com botões e lista; tela Atendimento automático (chatbot + IA) |
 | 17 nov 2026 | Servidor próprio (fase 2): login, dados no servidor, cadastro de contatos, backup diário com aviso por e-mail |
 | 16 nov 2026 | Primeira versão do protótipo: 7 telas, dados de exemplo, simulação ao vivo |

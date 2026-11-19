@@ -25,7 +25,9 @@ function decide(app, empresaId, rec, canalNome) {
   if (!cfg || !cfg.getString("api_key")) return null
   const d = lerDados(rec)
   const agora = Date.now()
-  if ((d.msgs || []).some((m) => m.de === "eq" && agora - (m.ts || 0) < 30 * 60000)) return null
+  // equipe escreveu há pouco? (ignora cópias de respostas da própria IA)
+  const daIa = new Set((d.msgs || []).filter((m) => m.de === "ia").map((m) => m.txt))
+  if ((d.msgs || []).some((m) => m.de === "eq" && !daIa.has(m.txt) && agora - (m.ts || 0) < 30 * 60000)) return null
   if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return null
   if (d.iaPausa && agora < d.iaPausa) return null
   const ctx = IA.contextoEmpresa(app, empresaId)

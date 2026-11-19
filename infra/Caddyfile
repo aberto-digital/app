@@ -19,22 +19,6 @@ www.megahairmarcela.com.br {
 	redir https://megahairmarcela.com.br{uri} permanent
 }
 
-# TradingJourney: Supabase self-hosted (API, login, arquivos, funções e o painel Studio)
-api.tradingjourney.com.br {
-	encode zstd gzip
-	reverse_proxy supabase-envoy:8000
-}
-
-# TradingJourney: site (build em /srv/tj-site/www pelo tradingjourney/publica.sh)
-# www é o endereço principal (igual era na Vercel); beta continua para testes
-www.tradingjourney.com.br, beta.tradingjourney.com.br {
-	encode zstd gzip
-	root * /srv/tj/www
-	header /assets/* Cache-Control "public, max-age=31536000, immutable"
-	header /index.html Cache-Control "no-cache"
-	try_files {path} /index.html
-	file_server
-}
-tradingjourney.com.br {
-	redir https://www.tradingjourney.com.br{uri} permanent
-}
+# Outros projetos na mesma VPS: cada um publica seus blocos em /srv/tj-site/*.caddy
+# pelo próprio repositório. Aqui só incluímos; nada deles fica neste repo.
+import /srv/tj/*.caddy

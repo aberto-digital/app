@@ -8,7 +8,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./sites:/srv/sites:ro
-      - /srv/tj-site:/srv/tj:ro
+      - /srv/tj-site:/srv/tj:ro  # projetos externos (site + *.caddy), ver Caddyfile
       - caddy_data:/data
       - caddy_config:/config
     networks: [borda]

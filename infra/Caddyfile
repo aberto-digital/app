@@ -26,12 +26,15 @@ api.tradingjourney.com.br {
 }
 
 # TradingJourney: site (build em /srv/tj-site/www pelo tradingjourney/publica.sh)
-# beta = teste antes da virada; www e o domínio sem www entram na virada do DNS
-beta.tradingjourney.com.br {
+# www é o endereço principal (igual era na Vercel); beta continua para testes
+www.tradingjourney.com.br, beta.tradingjourney.com.br {
 	encode zstd gzip
 	root * /srv/tj/www
 	header /assets/* Cache-Control "public, max-age=31536000, immutable"
 	header /index.html Cache-Control "no-cache"
 	try_files {path} /index.html
 	file_server
+}
+tradingjourney.com.br {
+	redir https://www.tradingjourney.com.br{uri} permanent
 }

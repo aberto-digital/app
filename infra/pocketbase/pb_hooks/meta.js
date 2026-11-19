@@ -104,6 +104,7 @@ function processaWebhook(app, corpo) {
       if (txt === null) return
       const rec = contatoSocial(app, canal, tipo, pessoa)
       const d = W.lerDados(rec)
+      if (eco && ecoNosso(app, msg.mid, txt, d)) return
       const ultimo = (d.msgs || []).reduce((x, y) => Math.max(x, y.ts || 0), 0)
       const ts = Math.max(parseInt(ev.timestamp, 10) || Date.now(), Math.min(ultimo + 1, Date.now()))
       // eco = mensagem que saiu da conta da empresa (pelo AbertoCore ou direto no app do Instagram/Facebook)
@@ -131,11 +132,27 @@ function processaWebhook(app, corpo) {
 
 // ---------- envio ----------
 function enviaSocial(app, canal, pessoaId, texto) {
+  try { app.store().set("meta_saindo:" + texto, Date.now()) } catch (e) {}
   const j = graphPost(app, canal.getString("page_id") + "/messages", canal.getString("access_token"), {
     recipient: { id: pessoaId }, messaging_type: "RESPONSE", message: { text: texto },
   })
   if (!j.message_id) throw new Error("A Meta não confirmou o envio.")
+  // marca o que saiu pelo AbertoCore: o eco que a Meta devolve no webhook é ignorado
+  try { app.store().set("meta_out:" + j.message_id, Date.now()) } catch (e) {}
   return j.message_id
+}
+
+// eco de algo que o próprio AbertoCore enviou (IA, menu ou equipe pela central)?
+function ecoNosso(app, mid, txt, d) {
+  try { if (app.store().has("meta_out:" + mid)) { app.store().remove("meta_out:" + mid); return true } } catch (e) {}
+  // o eco pode chegar antes de a resposta do envio voltar: compara com o texto saindo agora
+  try {
+    const k = "meta_saindo:" + txt
+    const t = app.store().get(k)
+    if (t && Date.now() - t < 120000) { app.store().remove(k); return true }
+  } catch (e) {}
+  const agora = Date.now()
+  return (d.msgs || []).some((m) => (m.de === "ia" || m.de === "bot" || m.de === "eq") && m.txt === txt && agora - (m.ts || 0) < 120000)
 }
 
 function iaSocial(app, canal, tipo, rec) {

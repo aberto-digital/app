@@ -485,7 +485,9 @@
     .conv-topo .av{transition:width .22s ease,height .22s ease,font-size .22s ease}
     .conv-topo .nm{transition:font-size .22s ease}
     .conv-topo .ng,.conv-topo .acoes,.conversa .res-ia{transition:opacity .2s ease,max-height .22s ease}
-    .conv-topo .ng{max-height:24px;overflow:hidden}
+    .conv-topo>div:not(.acoes){min-width:0;flex:1}
+    .conv-topo .ng{max-height:24px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    .conv-topo .ng .canal{display:inline-flex}
     .conversa .res-ia{max-height:420px;overflow:hidden}
     .rolou-conv .topo{transform:translateY(-100%)}
     .rolou-conv .principal{padding-top:env(safe-area-inset-top)}

@@ -1175,7 +1175,17 @@
     }, {passive:true});
     $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv'); $('#inbox').classList.remove('mostra-conv'); };
     $('#verDet').onclick = function(){ $('#inbox').classList.add('mostra-det'); };
-    var f = $('#finaliza'); if (f) f.onclick = function(){ c.status = 'finalizado'; salva(); aviso('Conversa com <b>' + esc(c.nome) + '</b> finalizada.'); aba = 'finalizado'; desenhaLista(); desenhaConversa(); };
+    var f = $('#finaliza'); if (f) f.onclick = function(){
+      c.status = 'finalizado'; salva();
+      aviso('Conversa com <b>' + esc(c.nome) + '</b> finalizada. Ela volta para a Entrada se o cliente escrever de novo.');
+      // volta para a Entrada: no celular fecha a conversa; no computador abre a próxima da Entrada
+      convMovel = false; appEl.classList.remove('rolou-conv');
+      $('#inbox').classList.remove('mostra-conv'); $('#inbox').classList.remove('mostra-det');
+      aba = 'entrada';
+      var p = filtrados()[0]; sel = p ? p.id : null;
+      desenhaLista(); desenhaConversa(); desenhaDetalhe();
+      if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
+    };
     var r = $('#reabre'); if (r) r.onclick = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); };
     var ta = $('#texto');
     ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });

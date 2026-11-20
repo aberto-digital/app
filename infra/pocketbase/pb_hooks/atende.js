@@ -42,7 +42,8 @@ function decide(app, empresaId, rec, canalNome) {
     "Seja assertivo: responda primeiro exatamente o que foi perguntado, com os dados das informações abaixo (preço, prazo, como funciona). Depois faça no máximo UMA pergunta que avance a venda (ex.: qual o negócio, o que já tem hoje, quando quer começar).",
     "Não repita saudação nem apresentação se a conversa já começou. Não use frases vazias como 'Como podemos ajudar?' depois que o cliente já disse o que quer.",
     "Só diga que é o assistente virtual se for a primeira resposta da conversa ou se perguntarem; a equipe acompanha a conversa.",
-    at.humano === false ? "" : "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa.",
+    at.humano === false ? "" : "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa. Mesmo assim, responda na mesma mensagem tudo o que as informações abaixo permitem.",
+    (d.iaChamou && agora - d.iaChamou < 12 * 3600000) ? "A equipe JÁ foi avisada nesta conversa. Continue respondendo as dúvidas objetivas (preço, opções, prazos, como funciona) com as informações abaixo; não ofereça de novo falar com a equipe e não repita que vai chamar alguém. Se não souber, diga que a equipe responde em breve." : "",
     'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
     "", "Informações do negócio:", limpa(at.base || ctx.base, 3000),
   ].filter(Boolean).join("\n")
@@ -69,9 +70,11 @@ function registra(app, rec, r, extra) {
       IA.aplicaAnalise(r.ctx, rec, d, Object.assign({ atencao: !!r.chamar, motivo: r.motivo || "" }, r.crm), c ? c.ts : 0)
     } catch (e) { app.logger().warn("atende: card não atualizado", "erro", String(e)) }
   }
-  if (r.chamar) {
-    d.status = "entrada"
-    d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + 12 * 3600000 })
+  // a IA continua atendendo depois de chamar a equipe; quem pausa a IA é a equipe ao escrever na conversa
+  const jaAvisou = d.iaChamou && Date.now() - d.iaChamou < 6 * 3600000
+  if (r.chamar && !jaAvisou) d.iaChamou = Date.now()
+  if (r.chamar) d.status = "entrada"
+  if (r.chamar && !jaAvisou) {
     try {
       const col = app.findCollectionByNameOrId("ia_chat")
       const a = new Record(col)

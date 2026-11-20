@@ -310,6 +310,13 @@
   .campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--ceu)}
   .seg{display:flex;background:var(--papel);border-radius:9px;padding:3px}
   .seg button{flex:1;padding:6px;border-radius:7px;font-weight:600;font-size:13.5px;color:var(--sec)}
+  .ag-cfg [hidden]{display:none!important}
+  .ag-marca{display:flex;align-items:center;gap:14px;margin:6px 0 14px}
+  .ag-logo{width:88px;height:64px;border:1px dashed var(--linha);border-radius:12px;display:grid;place-items:center;background:var(--sup2,#F4F6FA);overflow:hidden;flex:none}
+  .ag-logo img{max-width:80px;max-height:56px;object-fit:contain}.ag-logo span{font-size:12px;color:var(--sec)}
+  .ag-cores{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .ag-cor{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sec);cursor:pointer}
+  .ag-cor input{width:100%;height:42px;padding:3px;border:1px solid var(--linha);border-radius:10px;background:var(--branco,#fff);cursor:pointer}
   #agConf button[aria-pressed="true"]{background:var(--branco);color:var(--ceu);font-weight:700;box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .seg button[aria-pressed="true"].lead{background:#E6EEFF;color:#1D4FC4}
   .seg button[aria-pressed="true"].cliente{background:#E2F5EA;color:#167443}
@@ -1867,7 +1874,27 @@
   /* ========== AGENDAMENTO ONLINE ========== */
   var AG_PADRAO = {ativo:false, slug:'', confirmacao:'auto', passo:30, intervalo:0, antecedenciaH:2, limiteDias:30, duracaoPadrao:60,
     dias:{'1':[{ini:'09:00',fim:'18:00'}],'2':[{ini:'09:00',fim:'18:00'}],'3':[{ini:'09:00',fim:'18:00'}],'4':[{ini:'09:00',fim:'18:00'}],'5':[{ini:'09:00',fim:'18:00'}],'6':[{ini:'09:00',fim:'13:00'}]},
-    lembretesCliente:[1440,120], lembretesDono:[60], titulo:'', aviso:''};
+    lembretesCliente:[1440,120], lembretesDono:[60], titulo:'', aviso:'', dominio:'', marca:{}};
+  var AG_FONTES = [['moderna','Moderna','Inter'],['elegante','Elegante','Marcellus'],['classica','Clássica','Playfair Display'],['suave','Suave','Nunito']];
+  function limpaDominio(h){ return String(h || '').toLowerCase().trim().replace(/^https?:\/\//, '').replace(/[\/:?#].*$/, '').replace(/\.$/, ''); }
+  // logo: reduz para no máximo 320px (fica leve para salvar junto com as configurações)
+  function lerLogo(file){
+    return new Promise(function(ok, falha){
+      if (!file || !/^image\//.test(file.type)) return falha(new Error('Escolha uma imagem (PNG, JPG, WEBP ou SVG).'));
+      var fr = new FileReader();
+      fr.onload = function(){
+        if (file.type === 'image/svg+xml'){ return fr.result.length < 300000 ? ok(fr.result) : falha(new Error('SVG grande demais.')); }
+        var img = new Image(); img.onload = function(){
+          var k = Math.min(1, 320 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          var u = c.toDataURL('image/webp', .9); if (u.indexOf('data:image/webp') !== 0) u = c.toDataURL('image/png');
+          ok(u);
+        }; img.onerror = function(){ falha(new Error('Não consegui ler essa imagem.')); }; img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
   var AG_ANTEC = [[2880,'2 dias antes'],[1440,'1 dia antes'],[180,'3 horas antes'],[120,'2 horas antes'],[60,'1 hora antes'],[30,'30 minutos antes']];
   var DIAS_SEM = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
   function slugify(t){ return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
@@ -1876,7 +1903,7 @@
     if (!a.slug) a.slug = slugify(CONFIG.empresa || 'minha-empresa');
     return a;
   }
-  function linkAgenda(a){ return 'https://app.abertodigital.com/agendar/?e=' + encodeURIComponent(a.slug); }
+  function linkAgenda(a){ var d = limpaDominio(a.dominio); return d ? 'https://' + d + '/' : 'https://app.abertodigital.com/agendar/?e=' + encodeURIComponent(a.slug); }
   function vAgendamento(){
     var a = agCfg(), N = window.Nuvem, logado = N && N.logado && N.logado();
     var emailOk = N && N.canalLigado ? N.canalLigado('email') : false;
@@ -1886,9 +1913,21 @@
       '<section class="painel"><div class="linha-ch"><div><h2 style="margin:0">Agendamento online</h2><div class="nota-bot">Uma página para o cliente escolher o serviço, o dia e o horário livre. O horário entra na sua Agenda e o cliente vira contato.</div></div>' +
         '<button class="chave" role="switch" id="agAtivo" aria-checked="' + !!a.ativo + '" aria-label="Agendamento online ligado"></button></div>' +
         '<div class="campo" style="margin-top:14px"><label for="agSlug">Endereço da sua página</label><div class="ag-link"><span>app.abertodigital.com/agendar/?e=</span><input id="agSlug" value="' + esc(a.slug) + '" autocomplete="off"></div></div>' +
+        '<div class="campo"><label for="agDom">Endereço próprio <span class="nota-bot">(recomendado)</span></label><input id="agDom" value="' + esc(a.dominio || '') + '" placeholder="agendar.seusite.com.br" autocomplete="off" inputmode="url"></div>' +
+        '<p class="nota-bot">A página abre no endereço da sua marca. No painel do seu domínio, crie um registro <b>CNAME</b> com nome <b>agendar</b> apontando para <b>api.abertodigital.com</b>. O HTTPS é ativado sozinho no primeiro acesso.</p>' +
         '<div class="bts-l"><button class="btn" id="agCopia" type="button">Copiar link</button><a class="btn" id="agAbre" target="_blank" rel="noopener" href="' + esc(linkAgenda(a)) + '">Abrir página</a></div>' +
         (logado ? '' : '<p class="aviso-dup" style="margin-top:12px">Na demonstração a página não recebe agendamentos. Entre na sua conta para ativar.</p>') +
       '</section>' +
+      '<section class="painel"><h2>Aparência da página</h2><p class="nota-bot">Use a cara da sua marca: o cliente agenda sem sentir que saiu do seu site.</p>' +
+        '<div class="ag-marca"><div class="ag-logo" id="agLogoBox">' + (a.marca && a.marca.logo ? '<img src="' + esc(a.marca.logo) + '" alt="Logo">' : '<span>Sem logo</span>') + '</div>' +
+          '<div class="bts-l" style="margin:0"><label class="btn" for="agLogo">Enviar logo</label><input type="file" id="agLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>' +
+          '<button class="btn" type="button" id="agLogoTira"' + (a.marca && a.marca.logo ? '' : ' hidden') + '>Remover</button></div></div>' +
+        '<div class="ag-cores">' + [['topo','Topo da página','#1E3050'],['cor','Botões e destaques','#2F6FED'],['fundo','Fundo','#F4F6FA']].map(function(c){
+          var v = (a.marca && a.marca[c[0]]) || c[2];
+          return '<label class="ag-cor"><input type="color" data-cor="' + c[0] + '" value="' + esc(v) + '"><span>' + c[1] + '</span></label>';
+        }).join('') + '</div>' +
+        '<div class="campo"><label for="agFonte">Estilo das letras</label><select id="agFonte">' + AG_FONTES.map(function(f){ return '<option value="' + f[0] + '"' + (((a.marca && a.marca.fonte) || 'moderna') === f[0] ? ' selected' : '') + '>' + f[1] + ' (' + f[2] + ')</option>'; }).join('') + '</select></div>' +
+        '<button class="btn" type="button" id="agMarcaPadrao">Voltar às cores do AbertoCore</button></section>' +
       '<section class="painel"><h2>Confirmação</h2><div class="seg" id="agConf">' +
         '<button type="button" data-c="auto" aria-pressed="' + (a.confirmacao !== 'manual') + '">Automática</button><button type="button" data-c="manual" aria-pressed="' + (a.confirmacao === 'manual') + '">Eu aprovo cada pedido</button></div>' +
         '<p class="nota-bot" style="margin-top:8px">' + (a.confirmacao === 'manual' ? 'O pedido fica pendente na sua Agenda até você confirmar. O cliente recebe a resposta por e-mail.' : 'O horário livre escolhido pelo cliente já fica confirmado.') + '</p></section>' +
@@ -1914,12 +1953,23 @@
     $('#agConf').onclick = function(e){ var b = e.target.closest('[data-c]'); if (!b) return; $$('#agConf button').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); };
     $('#agAtivo').onclick = function(){ this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true'); };
     $$('[data-dia]').forEach(function(cb){ cb.onchange = function(){ var d = cb.getAttribute('data-dia'); $('[data-ini="' + d + '"]').disabled = $('[data-fim="' + d + '"]').disabled = !cb.checked; }; });
-    $('#agSlug').oninput = function(){ $('#agAbre').href = linkAgenda({slug:slugify(this.value)}); };
-    $('#agCopia').onclick = function(){ var l = linkAgenda({slug:slugify($('#agSlug').value)}); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
+    var logoNovo = a.marca && a.marca.logo || '';
+    function linkAtual(){ return linkAgenda({slug:slugify($('#agSlug').value), dominio:$('#agDom').value}); }
+    $('#agSlug').oninput = $('#agDom').oninput = function(){ $('#agAbre').href = linkAtual(); };
+    $('#agLogo').onchange = function(){ lerLogo(this.files[0]).then(function(u){ logoNovo = u; $('#agLogoBox').innerHTML = '<img src="' + u + '" alt="Logo">'; $('#agLogoTira').hidden = false; }, function(e){ aviso(esc(e.message)); }); };
+    $('#agLogoTira').onclick = function(){ logoNovo = ''; $('#agLogoBox').innerHTML = '<span>Sem logo</span>'; this.hidden = true; };
+    $('#agMarcaPadrao').onclick = function(){ $$('[data-cor]').forEach(function(x){ x.value = {topo:'#1E3050', cor:'#2F6FED', fundo:'#F4F6FA'}[x.getAttribute('data-cor')]; }); $('#agFonte').value = 'moderna'; };
+    $('#agCopia').onclick = function(){ var l = linkAtual(); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
     $('#agSalva').onclick = function(){
       var n = Object.assign({}, a);
       n.ativo = $('#agAtivo').getAttribute('aria-checked') === 'true';
       n.slug = slugify($('#agSlug').value) || a.slug;
+      n.dominio = limpaDominio($('#agDom').value);
+      if (n.dominio && !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(n.dominio)){ aviso('Endereço próprio inválido. Exemplo: agendar.seusite.com.br'); return; }
+      n.marca = {fonte:$('#agFonte').value, logo:logoNovo};
+      $$('[data-cor]').forEach(function(x){ n.marca[x.getAttribute('data-cor')] = x.value; });
+      var pad = {topo:'#1e3050', cor:'#2f6fed', fundo:'#f4f6fa'};
+      Object.keys(pad).forEach(function(k){ if (String(n.marca[k]).toLowerCase() === pad[k]) delete n.marca[k]; });
       n.confirmacao = $('#agConf [aria-pressed="true"]').getAttribute('data-c');
       n.dias = {}; $$('[data-dia]').forEach(function(cb){ var d = cb.getAttribute('data-dia'); if (cb.checked){ var i = $('[data-ini="' + d + '"]').value, f = $('[data-fim="' + d + '"]').value; if (i && f && i < f) n.dias[d] = [{ini:i, fim:f}]; } });
       n.passo = +$('#agPasso').value; n.intervalo = +$('#agInt').value; n.antecedenciaH = +$('#agAnt').value; n.limiteDias = +$('#agLim').value;

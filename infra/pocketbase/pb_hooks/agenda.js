@@ -1,7 +1,8 @@
 // AbertoCore: agendamento online (funções usadas por agenda.pb.js)
 //   Configuração em configuracoes.dados.agenda:
 //   { ativo, slug, confirmacao:'auto'|'manual', dias:{"0".."6":[{ini:"09:00",fim:"18:00"}]}, passo:30, intervalo:0,
-//     antecedenciaH:2, limiteDias:30, duracaoPadrao:60, lembretesCliente:[1440,120], lembretesDono:[60], titulo, aviso }
+//     antecedenciaH:2, limiteDias:30, duracaoPadrao:60, lembretesCliente:[1440,120], lembretesDono:[60], titulo, aviso,
+//     dominio:"agendar.seusite.com.br", marca:{ topo, cor, fundo, fonte, logo } }
 //   Serviços: produtos com dados.agendavel = true (duração em dados.dur, minutos).
 //   Eventos criados aqui usam local_id a partir de 1.000.000 para não colidir com os criados no app.
 const W = require(`${__hooks}/wa.js`)
@@ -9,8 +10,9 @@ const FUSO = -3 // America/Sao_Paulo (sem horário de verão)
 const PADRAO = {
   ativo: false, slug: "", confirmacao: "auto", passo: 30, intervalo: 0, antecedenciaH: 2, limiteDias: 30, duracaoPadrao: 60,
   dias: { "1": [{ ini: "09:00", fim: "18:00" }], "2": [{ ini: "09:00", fim: "18:00" }], "3": [{ ini: "09:00", fim: "18:00" }], "4": [{ ini: "09:00", fim: "18:00" }], "5": [{ ini: "09:00", fim: "18:00" }], "6": [{ ini: "09:00", fim: "13:00" }] },
-  lembretesCliente: [1440, 120], lembretesDono: [60], titulo: "", aviso: "",
+  lembretesCliente: [1440, 120], lembretesDono: [60], titulo: "", aviso: "", dominio: "", marca: {},
 }
+const FONTES = ["moderna", "elegante", "classica", "suave"]
 
 function cfg(app, empresaId) {
   let rec = null
@@ -27,6 +29,30 @@ function porSlug(app, slug) {
     if (a.ativo && String(a.slug || "").toLowerCase() === slug) return { empresaId: L[i].getString("empresa"), ag: Object.assign({}, PADRAO, a) }
   }
   return null
+}
+function limpaDominio(h) {
+  return String(h || "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/[\/:?#].*$/, "").replace(/\.$/, "")
+}
+// endereço próprio da agenda (ex.: agendar.megahairmarcela.com.br)
+function porDominio(app, host) {
+  host = limpaDominio(host)
+  if (!host || host.indexOf(".") < 0) return null
+  const L = app.findRecordsByFilter("configuracoes", "id != ''", "", 0, 0)
+  for (let i = 0; i < L.length; i++) {
+    const a = (W.lerDados(L[i]).agenda) || {}
+    if (a.ativo && a.slug && limpaDominio(a.dominio) === host) return { empresaId: L[i].getString("empresa"), ag: Object.assign({}, PADRAO, a) }
+  }
+  return null
+}
+// aparência pública da página: só cores válidas, fonte da lista e logo em imagem
+function marcaPublica(ag) {
+  const m = ag.marca || {}, cor = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || "")) ? v : "")
+  const logo = String(m.logo || "")
+  return {
+    topo: cor(m.topo), cor: cor(m.cor), fundo: cor(m.fundo),
+    fonte: FONTES.indexOf(m.fonte) >= 0 ? m.fonte : "moderna",
+    logo: /^data:image\/(png|jpeg|webp|svg\+xml);base64,/.test(logo) && logo.length < 400000 ? logo : /^https:\/\//.test(logo) ? logo.slice(0, 500) : "",
+  }
 }
 function nomeEmpresa(app, empresaId) {
   try {
@@ -96,7 +122,14 @@ function dataBonita(data) {
   const sem = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"][d.getUTCDay()]
   return sem + ", " + d.getUTCDate() + "/" + String(d.getUTCMonth() + 1).padStart(2, "0")
 }
-function linkCancelar(tok) { return "https://app.abertodigital.com/agendar/?cancelar=" + tok }
+function linkAgenda(ag) {
+  const d = limpaDominio(ag && ag.dominio)
+  return d ? "https://" + d + "/" : "https://app.abertodigital.com/agendar/?e=" + encodeURIComponent((ag && ag.slug) || "")
+}
+function linkCancelar(tok, ag) {
+  const d = limpaDominio(ag && ag.dominio)
+  return (d ? "https://" + d + "/" : "https://app.abertodigital.com/agendar/") + "?cancelar=" + tok
+}
 
 // e-mail para o cliente pelo e-mail conectado da empresa (Zoho). Sem e-mail conectado, não envia.
 function emailCliente(app, empresaId, para, assunto, texto) {
@@ -131,4 +164,4 @@ function jaEnviou(app, empresaId, chave) {
 }
 function antecedenciaTxt(m) { return m >= 1440 && m % 1440 === 0 ? (m / 1440 === 1 ? "amanhã" : "em " + m / 1440 + " dias") : m >= 60 && m % 60 === 0 ? "em " + m / 60 + (m === 60 ? " hora" : " horas") : "em " + m + " minutos" }
 
-module.exports = { PADRAO, cfg, porSlug, nomeEmpresa, servicos, horarios, diasLivres, proximoEventoId, token, dataBonita, linkCancelar, emailCliente, whatsCliente, jaEnviou, antecedenciaTxt, tsDe, hojeSP, addDias, min, hhmm }
+module.exports = { PADRAO, cfg, porSlug, porDominio, limpaDominio, marcaPublica, linkAgenda, nomeEmpresa, servicos, horarios, diasLivres, proximoEventoId, token, dataBonita, linkCancelar, emailCliente, whatsCliente, jaEnviou, antecedenciaTxt, tsDe, hojeSP, addDias, min, hhmm }

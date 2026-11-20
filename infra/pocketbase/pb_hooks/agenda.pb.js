@@ -8,13 +8,27 @@
 //   POST /api/agenda/cancelar                   { token }
 //   cron agenda-lembretes (a cada 5 min): lembrete para o cliente (e-mail; WhatsApp se a conversa estiver aberta) e para o dono (push)
 
+// endereço próprio: a página no domínio do cliente descobre qual agenda mostrar
+routerAdd("GET", "/api/agenda-dominio", (e) => {
+  const A = require(`${__hooks}/agenda.js`)
+  const r = A.porDominio($app, e.request.url.query().get("host"))
+  if (!r) throw new NotFoundError("Nenhuma agenda usa este endereço.")
+  return e.json(200, { slug: r.ag.slug })
+})
+// o Caddy pergunta antes de emitir o certificado HTTPS de um domínio novo
+routerAdd("GET", "/api/agenda-dominio/ok", (e) => {
+  const A = require(`${__hooks}/agenda.js`)
+  if (!A.porDominio($app, e.request.url.query().get("domain"))) throw new NotFoundError("não")
+  return e.string(200, "ok")
+})
+
 routerAdd("GET", "/api/agenda/{slug}", (e) => {
   const A = require(`${__hooks}/agenda.js`)
   const r = A.porSlug($app, e.request.pathValue("slug"))
   if (!r) throw new NotFoundError("Agenda não encontrada ou desativada.")
   const emp = A.nomeEmpresa($app, r.empresaId)
   return e.json(200, {
-    empresa: emp.nome, whatsapp: emp.whatsapp, site: emp.site, titulo: r.ag.titulo || "", aviso: r.ag.aviso || "",
+    empresa: emp.nome, whatsapp: emp.whatsapp, site: emp.site, titulo: r.ag.titulo || "", aviso: r.ag.aviso || "", marca: A.marcaPublica(r.ag),
     confirmacao: r.ag.confirmacao, limiteDias: r.ag.limiteDias, servicos: A.servicos($app, r.empresaId, r.ag),
   })
 })
@@ -84,7 +98,7 @@ routerAdd("POST", "/api/agenda/{slug}/reservar", (e) => {
     "Olá, " + nome.split(" ")[0] + "!\n\n" + (status === "pendente"
       ? "Recebemos seu pedido para " + sv.nome + " em " + quando + ". Assim que for confirmado, você recebe outro e-mail."
       : "Seu horário de " + sv.nome + " está confirmado para " + quando + ".") +
-    (r.ag.aviso ? "\n\n" + r.ag.aviso : "") + "\n\nPrecisa desmarcar? " + A.linkCancelar(resp.token))
+    (r.ag.aviso ? "\n\n" + r.ag.aviso : "") + "\n\nPrecisa desmarcar? " + A.linkCancelar(resp.token, r.ag))
   S.avisaEquipe($app, r.empresaId, (status === "pendente" ? "Pedido de horário para confirmar: " : "Novo agendamento online: ") + nome + ", " + sv.nome + ", " + quando + " (" + tel + ").", resp.contato)
   return e.json(200, { ok: true, status: status, token: resp.token, servico: sv.nome, data: data, hora: hora, quando: quando, empresa: emp.nome })
 })
@@ -98,7 +112,7 @@ routerAdd("GET", "/api/agenda/reserva", (e) => {
   const r = L.filter((x) => W.lerDados(x).token === tok)[0]
   if (!r) throw new NotFoundError("Reserva não encontrada.")
   const d = W.lerDados(r), emp = A.nomeEmpresa($app, r.getString("empresa"))
-  return e.json(200, { empresa: emp.nome, servico: d.titulo, data: d.data, hora: d.hora, quando: A.dataBonita(d.data) + " às " + d.hora, status: d.status, nome: (d.cliente || {}).nome || "" })
+  return e.json(200, { empresa: emp.nome, servico: d.titulo, data: d.data, hora: d.hora, quando: A.dataBonita(d.data) + " às " + d.hora, status: d.status, nome: (d.cliente || {}).nome || "", site: emp.site, marca: A.marcaPublica(A.cfg($app, r.getString("empresa"))) })
 })
 
 routerAdd("POST", "/api/agenda/cancelar", (e) => {
@@ -135,7 +149,7 @@ onRecordAfterUpdateSuccess((e) => {
     const emp = A.nomeEmpresa($app, e.record.getString("empresa")), quando = A.dataBonita(d.data) + " às " + d.hora
     const pn = String(d.cliente.nome || "").split(" ")[0]
     let assunto = "", txt = ""
-    if (d.status === "confirmado") { assunto = "Horário confirmado"; txt = "Olá, " + pn + "! Seu horário de " + d.titulo + " está confirmado para " + quando + ".\n\nPrecisa desmarcar? " + A.linkCancelar(d.token) }
+    if (d.status === "confirmado") { assunto = "Horário confirmado"; txt = "Olá, " + pn + "! Seu horário de " + d.titulo + " está confirmado para " + quando + ".\n\nPrecisa desmarcar? " + A.linkCancelar(d.token, A.cfg($app, e.record.getString("empresa"))) }
     else if (d.status === "recusado") { assunto = "Não conseguimos confirmar seu horário"; txt = "Olá, " + pn + ". Infelizmente não conseguimos confirmar " + d.titulo + " em " + quando + ". Escolha outro horário ou fale com a gente." }
     else if (d.status === "cancelado") { assunto = "Horário desmarcado"; txt = "Olá, " + pn + ". Seu horário de " + d.titulo + " em " + quando + " foi desmarcado. Se quiser, escolha outro horário ou fale com a gente." }
     if (assunto && d.cliente.email) A.emailCliente($app, e.record.getString("empresa"), d.cliente.email, assunto + " · " + emp.nome, txt)
@@ -172,7 +186,7 @@ cronAdd("agenda-lembretes", "*/5 * * * *", () => {
         if (A.jaEnviou($app, empresaId, base + "|c|" + m)) return
         const txt = "Olá, " + nome.split(" ")[0] + "! Passando para lembrar do seu horário " + A.antecedenciaTxt(m) + ": " + (d.titulo || "atendimento") + ", " + quando + (emp.nome ? ", com " + emp.nome : "") + "." + (ag.aviso ? "\n\n" + ag.aviso : "")
         const porWa = A.whatsCliente($app, empresaId, contato, txt)
-        if (!porWa && email) A.emailCliente($app, empresaId, email, "Lembrete do seu horário · " + emp.nome, txt + (d.token ? "\n\nPrecisa desmarcar? " + A.linkCancelar(d.token) : ""))
+        if (!porWa && email) A.emailCliente($app, empresaId, email, "Lembrete do seu horário · " + emp.nome, txt + (d.token ? "\n\nPrecisa desmarcar? " + A.linkCancelar(d.token, ag) : ""))
       })
       ;(ag.lembretesDono || []).forEach((m) => {
         if (!(falta <= m && falta > m - 60)) return
@@ -180,5 +194,33 @@ cronAdd("agenda-lembretes", "*/5 * * * *", () => {
         P.notifica($app, empresaId, "agenda", { titulo: "Daqui " + A.antecedenciaTxt(m).replace(/^em /, "") + ": " + nome, corpo: (d.titulo || "Compromisso") + ", " + quando, url: "/#agenda", tag: "ev" + d.id })
       })
     })
+  })
+})
+
+// todo dia às 8h (Brasília): avisa o dono dos retornos combinados de hoje e das manutenções que vencem na semana
+cronAdd("retornos-do-dia", "0 11 * * *", () => {
+  const A = require(`${__hooks}/agenda.js`)
+  const W = require(`${__hooks}/wa.js`)
+  const P = require(`${__hooks}/push.js`)
+  const hoje = A.hojeSP(), semana = A.addDias(hoje, 7)
+  let inscs = []
+  try { inscs = $app.findRecordsByFilter("push_inscricoes", "id != ''", "", 0, 0) } catch (e) { return }
+  const empresas = {}
+  inscs.forEach((r) => { empresas[r.getString("empresa")] = 1 })
+  Object.keys(empresas).forEach((empresaId) => {
+    try {
+      const contatos = $app.findRecordsByFilter("contatos", "empresa = {:e}", "", 0, 0, { e: empresaId }).map((r) => { const d = W.lerDados(r); d.id = r.getInt("local_id"); return d })
+      const futuros = $app.findRecordsByFilter("eventos", "empresa = {:e} && data >= {:d}", "", 0, 0, { e: empresaId, d: hoje }).map((r) => W.lerDados(r))
+      const fechado = (d) => d.status === "finalizado" || /perdid|desist/i.test(String(d.etapa || ""))
+      const temHorario = (d) => futuros.some((ev) => ev.contato === d.id && ev.status !== "cancelado" && ev.status !== "recusado")
+      const ret = contatos.filter((d) => d.followup && d.followup <= hoje && !fechado(d))
+      const man = contatos.filter((d) => d.ficha && d.ficha.proxima && d.ficha.proxima <= semana && !fechado(d) && !temHorario(d))
+      if (!ret.length && !man.length) return
+      const nomes = (L) => L.slice(0, 4).map((d) => String(d.nome || "").split(" ")[0]).join(", ") + (L.length > 4 ? " e mais " + (L.length - 4) : "")
+      const partes = []
+      if (ret.length) partes.push(ret.length + (ret.length === 1 ? " retorno" : " retornos") + " para hoje: " + nomes(ret))
+      if (man.length) partes.push(man.length + (man.length === 1 ? " manutenção vence" : " manutenções vencem") + " até " + semana.slice(8, 10) + "/" + semana.slice(5, 7) + " sem horário marcado: " + nomes(man))
+      P.notifica($app, empresaId, "agenda", { titulo: "Bom dia! Quem chamar hoje", corpo: partes.join(". ") + ".", url: "/#agenda", tag: "retornos-" + hoje })
+    } catch (e) { $app.logger().warn("retornos do dia falhou", "empresa", empresaId, "erro", String(e)) }
   })
 })

@@ -6,18 +6,23 @@
 <title>Agendar horário</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#1E3050">
-<link rel="icon" href="../icone-192.png">
+<link rel="icon" id="fav" href="https://app.abertodigital.com/icone-192.png">
+<link rel="stylesheet" id="fontes" href="">
 <style>
-  :root{--navy:#1E3050;--ink:#101A2C;--ceu:#2F6FED;--ambar:#FFB020;--papel:#F4F6FA;--linha:#E2E6EE;--sec:#5B6578;--ok:#18794E;--erro:#C2341D}
+  :root{--navy:#1E3050;--ink:#101A2C;--ceu:#2F6FED;--sobre-ceu:#fff;--claro:#F2F6FF;--ambar:#FFB020;--papel:#F4F6FA;--linha:#E2E6EE;--sec:#5B6578;--ok:#18794E;--erro:#C2341D;--sobre-topo:#fff;--topo-sec:#C9D3E6;--fonte:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--titulo:var(--fonte)}
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--papel);color:var(--ink);font-size:16px;line-height:1.45}
-  .cab{background:var(--navy);color:#fff;padding:28px 20px 56px}
+  body{margin:0;font-family:var(--fonte);background:var(--papel);color:var(--ink);font-size:16px;line-height:1.45}
+  .cab{background:var(--navy);color:var(--sobre-topo);padding:28px 20px 56px}
+  .cab .marca{display:flex;align-items:center;gap:14px}
+  .cab .logo{max-height:56px;max-width:160px;object-fit:contain;border-radius:8px}
+  .cab .logo[hidden]{display:none}
+  .cab .site{display:inline-block;margin-top:10px;color:var(--topo-sec);font-size:13px}
   .cab .in{max-width:560px;margin:0 auto}
-  .cab small{display:block;color:#C9D3E6;font-size:13px;letter-spacing:.02em}
-  .cab h1{margin:4px 0 0;font-size:26px;line-height:1.15}
+  .cab small{display:block;color:var(--topo-sec);font-size:13px;letter-spacing:.02em}
+  .cab h1{margin:4px 0 0;font-size:26px;line-height:1.15;font-family:var(--titulo);font-weight:600}
   .caixa{max-width:560px;margin:-36px auto 24px;padding:0 14px}
   .card{background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(16,26,44,.08);padding:20px}
-  h2{font-size:17px;margin:0 0 12px}
+  h2{font-size:17px;margin:0 0 12px;font-family:var(--titulo);font-weight:600}
   .passo{border-top:1px solid var(--linha);padding-top:18px;margin-top:18px}
   .passo:first-child{border:0;padding:0;margin:0}
   .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;margin-right:8px}
@@ -25,21 +30,21 @@
   .serv{display:flex;justify-content:space-between;gap:12px;text-align:left;width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:12px 14px;background:#fff;cursor:pointer;font:inherit;color:inherit}
   .serv b{display:block}.serv small{color:var(--sec)}
   .serv .pr{white-space:nowrap;color:var(--sec);font-size:14px}
-  .serv[aria-pressed="true"]{border-color:var(--ceu);background:#F2F6FF;box-shadow:inset 0 0 0 1px var(--ceu)}
+  .serv[aria-pressed="true"]{border-color:var(--ceu);background:var(--claro);box-shadow:inset 0 0 0 1px var(--ceu)}
   .dias{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
   .dia{flex:none;width:64px;border:1.5px solid var(--linha);border-radius:12px;padding:8px 4px;text-align:center;background:#fff;cursor:pointer;font:inherit;color:inherit}
   .dia small{display:block;color:var(--sec);font-size:12px;text-transform:capitalize}.dia b{font-size:20px}
-  .dia[aria-pressed="true"]{border-color:var(--ceu);background:var(--ceu);color:#fff}.dia[aria-pressed="true"] small{color:#E1EAFF}
+  .dia[aria-pressed="true"]{border-color:var(--ceu);background:var(--ceu);color:var(--sobre-ceu)}.dia[aria-pressed="true"] small{color:var(--sobre-ceu);opacity:.8}
   .horas{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
   .hora{border:1.5px solid var(--linha);border-radius:10px;padding:10px 0;background:#fff;font:inherit;font-weight:700;cursor:pointer;color:inherit}
-  .hora[aria-pressed="true"]{border-color:var(--ceu);background:var(--ceu);color:#fff}
+  .hora[aria-pressed="true"]{border-color:var(--ceu);background:var(--ceu);color:var(--sobre-ceu)}
   label{display:block;font-size:14px;font-weight:600;margin:12px 0 4px}
   input,textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--linha);border-radius:10px;background:#fff;color:inherit}
   input:focus,textarea:focus{outline:none;border-color:var(--ceu)}
   .ok-box{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:13.5px;color:var(--sec)}
   .ok-box input{width:auto;margin-top:3px}
   .resumo{background:var(--papel);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:14.5px}
-  .bt{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--ceu);color:#fff;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+  .bt{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--ceu);color:var(--sobre-ceu);font:inherit;font-weight:700;font-size:16px;cursor:pointer}
   .bt:disabled{opacity:.5;cursor:default}
   .bt.sec{background:#fff;color:var(--erro);border:1.5px solid #F1C6BE}
   .vazio,.nota{color:var(--sec);font-size:14px}
@@ -55,14 +60,41 @@
 </style>
 </head>
 <body>
-<header class="cab"><div class="in"><small id="sobre">Agendamento online</small><h1 id="emp">Carregando…</h1></div></header>
+<header class="cab"><div class="in"><div class="marca"><img class="logo" id="logo" alt="" hidden><div><small id="sobre">Agendamento online</small><h1 id="emp">Carregando…</h1></div></div><a class="site" id="site" hidden target="_blank" rel="noopener"></a></div></header>
 <main class="caixa"><div class="card" id="app" aria-live="polite"><p class="nota">Carregando os horários…</p></div>
 <p class="rodape">Agendamento por <a href="https://abertodigital.com" target="_blank" rel="noopener">AbertoCore · abertodigital</a></p></main>
 <script>
 (function(){
   'use strict';
-  var API = localStorage.getItem('abertocore-api') || 'https://api.abertodigital.com';
+  var NOSSO = /(^|\.)abertodigital\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+  var API = (function(){ try { return localStorage.getItem('abertocore-api'); } catch (e) { return null; } })() || (NOSSO ? 'https://api.abertodigital.com' : location.origin);
   var q = new URLSearchParams(location.search), slug = (q.get('e') || '').toLowerCase(), tokCancel = q.get('cancelar');
+  var FONTES = {
+    moderna: {css:'Inter:wght@400;600;700', corpo:'Inter', titulo:'Inter'},
+    elegante: {css:'Marcellus&family=Figtree:wght@400;600;700', corpo:'Figtree', titulo:'Marcellus'},
+    classica: {css:'Playfair+Display:wght@600&family=Source+Sans+3:wght@400;600;700', corpo:'"Source Sans 3"', titulo:'"Playfair Display"'},
+    suave: {css:'Nunito:wght@400;600;700;800', corpo:'Nunito', titulo:'Nunito'}
+  };
+  function lum(hex){ var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function(v){ v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+  function sobre(hex){ return lum(hex) > .4 ? '#1A1512' : '#FFFFFF'; }
+  function mistura(hex, alvo, t){ var a = parseInt(hex.slice(1), 16), b = parseInt(alvo.slice(1), 16), r = function(s){ return Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t); }; return '#' + ((1 << 24) + (r(16) << 16) + (r(8) << 8) + r(0)).toString(16).slice(1); }
+  // aplica a marca do cliente: cores, fonte e logo
+  function aplicaMarca(j){
+    var m = j.marca || {}, R = document.documentElement.style;
+    if (m.topo){ R.setProperty('--navy', m.topo); R.setProperty('--sobre-topo', sobre(m.topo)); R.setProperty('--topo-sec', mistura(m.topo, sobre(m.topo), .7)); document.querySelector('meta[name=theme-color]').content = m.topo; }
+    if (m.cor){ R.setProperty('--ceu', m.cor); R.setProperty('--sobre-ceu', sobre(m.cor)); R.setProperty('--claro', mistura(m.cor, '#FFFFFF', .9)); }
+    if (m.fundo){ R.setProperty('--papel', m.fundo); R.setProperty('--linha', mistura(m.fundo, '#7A6E66', .22)); }
+    var f = FONTES[m.fonte] || FONTES.moderna;
+    if (m.fonte && m.fonte !== 'moderna') document.getElementById('fontes').href = 'https://fonts.googleapis.com/css2?family=' + f.css + '&display=swap';
+    R.setProperty('--fonte', f.corpo + ',system-ui,-apple-system,"Segoe UI",sans-serif'); R.setProperty('--titulo', f.titulo + ',Georgia,serif');
+    if (m.logo){ var l = document.getElementById('logo'); l.src = m.logo; l.alt = j.empresa; l.hidden = false; document.getElementById('fav').href = m.logo; }
+    if (j.site){ var s = document.getElementById('site'), u = /^https?:/.test(j.site) ? j.site : 'https://' + j.site; s.href = u; s.textContent = '← Voltar para o site'; s.hidden = false; }
+  }
+  // no endereço próprio do cliente (ex.: agendar.megahairmarcela.com.br) descobre a agenda pelo domínio
+  function achaSlug(){
+    if (slug || NOSSO) return Promise.resolve(slug);
+    return api('GET', '/api/agenda-dominio?host=' + encodeURIComponent(location.hostname)).then(function(j){ slug = j.slug; return slug; });
+  }
   var app = document.getElementById('app'), info = null, est = {servico:null, data:null, hora:null};
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function api(m, u, b){
@@ -75,9 +107,11 @@
   function erro(msg){ app.innerHTML = '<p class="erro">' + esc(msg) + '</p>'; }
 
   if (tokCancel) return cancelar();
-  if (!slug) return erro('Link incompleto. Peça o link de agendamento para a empresa.');
-  api('GET', '/api/agenda/' + encodeURIComponent(slug)).then(function(j){
-    info = j; document.title = 'Agendar · ' + j.empresa;
+  achaSlug().then(function(){
+    if (!slug) throw new Error('Link incompleto. Peça o link de agendamento para a empresa.');
+    return api('GET', '/api/agenda/' + encodeURIComponent(slug));
+  }).then(function(j){
+    info = j; document.title = 'Agendar · ' + j.empresa; aplicaMarca(j);
     document.getElementById('emp').textContent = j.empresa;
     if (j.servicos.length === 1) est.servico = j.servicos[0];
     desenha();
@@ -148,7 +182,7 @@
   function cancelar(){
     document.getElementById('sobre').textContent = 'Desmarcar horário';
     api('GET', '/api/agenda/reserva?token=' + encodeURIComponent(tokCancel)).then(function(j){
-      document.getElementById('emp').textContent = j.empresa;
+      document.getElementById('emp').textContent = j.empresa; aplicaMarca(j);
       if (j.status === 'cancelado'){ app.innerHTML = '<div class="fim"><h2>Este horário já foi desmarcado</h2><p class="nota">' + esc(j.servico) + ', ' + esc(j.quando) + '</p></div>'; return; }
       app.innerHTML = '<h2>Desmarcar este horário?</h2><div class="resumo"><b>' + esc(j.servico) + '</b><br>' + esc(dataLonga(j.data)) + ', às ' + esc(j.hora) + '</div>' +
         '<button class="bt sec" id="cb">Sim, desmarcar</button><div id="cErr" class="erro" role="alert"></div>';

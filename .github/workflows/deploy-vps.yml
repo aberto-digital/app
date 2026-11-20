@@ -4,7 +4,7 @@ name: Deploy VPS (infra e sites)
 on:
   push:
     branches: [main]
-    paths: ['infra/**']
+    paths: ['infra/**', 'agendar/**']
   workflow_dispatch:
 concurrency:
   group: deploy-vps

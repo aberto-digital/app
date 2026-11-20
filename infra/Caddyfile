@@ -1,5 +1,10 @@
 {
 	email suporte.abertodigital@gmail.com
+	# HTTPS automático para os endereços próprios de agenda dos clientes (ex.: agendar.megahairmarcela.com.br).
+	# Só emite certificado para domínio que alguma agenda ativa usa (o PocketBase responde).
+	on_demand_tls {
+		ask http://ad-pocketbase:8090/api/agenda-dominio/ok
+	}
 }
 
 # API e painel do AbertoCore
@@ -17,6 +22,23 @@ megahairmarcela.com.br {
 }
 www.megahairmarcela.com.br {
 	redir https://megahairmarcela.com.br{uri} permanent
+}
+
+# Agenda online no endereço do cliente: o cliente cria no DNS dele um CNAME (ex.: agendar -> api.abertodigital.com)
+# e coloca o endereço em AbertoCore > Ajustes > Agendamento online. Endereços com bloco próprio acima têm prioridade.
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy ad-pocketbase:8090
+	}
+	handle {
+		root * /srv/sites/_agendar
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # Outros projetos na mesma VPS: cada um publica seus blocos em /srv/tj-site/*.caddy

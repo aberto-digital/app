@@ -7,6 +7,8 @@ set -euo pipefail
 rm -rf /srv/infra-src
 git clone -q --depth 1 https://github.com/aberto-digital/app /srv/infra-src
 cp -r /srv/infra-src/infra/* /srv/infra/
+# página pública de agendamento também servida nos endereços próprios dos clientes
+rm -rf /srv/infra/sites/_agendar && mkdir -p /srv/infra/sites/_agendar && cp -r /srv/infra-src/agendar/. /srv/infra/sites/_agendar/
 [ -x /usr/local/bin/deploy-vps ] && install -m 755 /srv/infra/deploy-vps.sh /usr/local/bin/deploy-vps
 rm -rf /srv/infra-src
 cd /srv/infra

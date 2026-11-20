@@ -177,7 +177,7 @@ function chatDaEmpresa(app, empresaId, limite) {
 
 // ---------- 1) CRM preenchido sozinho ----------
 const SIS_ANALISE = (ctx, hoje) =>
-  "Você organiza o CRM de " + ctx.nome + ". Leia a conversa de WhatsApp entre a empresa e um contato e extraia o que importa para a equipe. " +
+  "Você organiza o CRM de " + ctx.nome + ". Leia a conversa (WhatsApp, Instagram, Messenger, e-mail ou chat do site) entre a empresa e um contato e extraia o que importa para a equipe. " +
   "Hoje é " + hoje + " (horário de Brasília). Responda só com JSON neste formato:\n" +
   "{\"resumo\": string (até 2 frases curtas: o que o cliente quer e em que pé está), " +
   "\"interesse\": string (produto ou serviço, curto; vazio se não souber), " +

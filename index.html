@@ -359,13 +359,12 @@
   .ria-linha svg{flex:none;width:14px;height:14px;color:#B7791F}
   .ria-dot{flex:none;width:8px;height:8px;border-radius:50%;background:#D92D20}
   .ria-tx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--sec)}
-  .res-ia.aten .ria-tx{color:#B42318;font-weight:600}
+  .ria-tx{font-weight:600}
   .res-ia .int{flex:none;font-size:11.5px;background:var(--papel);border:1px solid var(--linha);border-radius:999px;padding:0 8px;color:var(--texto)}
   .ria-ch{flex:none;font-size:11px;color:var(--sec);transition:transform .2s ease}
   .res-ia.aberto .ria-ch{transform:rotate(180deg)}
   .ria-corpo{display:none;padding:0 16px 10px 38px}
   .res-ia.aberto .ria-corpo{display:block}
-  .res-ia.aberto .ria-tx{white-space:normal}
   .res-ia .at{color:#B42318;font-weight:600;margin-top:4px}
   .ria-atu{margin-top:6px;padding:0;border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--azul,#2F6FED);cursor:pointer}
   .linha-ch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--linha)}
@@ -548,7 +547,7 @@
   html[data-tema="escuro"] th{background:var(--sup2)}
   html[data-tema="escuro"] .item-ia{background:#1E1A10}
   html[data-tema="escuro"] .item-ia[aria-current="true"]{background:#2A2312}
-  html[data-tema="escuro"] .res-ia{background:var(--branco)}html[data-tema="escuro"] .res-ia.aten .ria-tx{color:#FF9C9C}
+  html[data-tema="escuro"] .res-ia{background:var(--branco)}
   html[data-tema="escuro"] .res-ia .at{color:#FF9C9C}
   html[data-tema="escuro"] .msg.resp-ia .quem,html[data-tema="escuro"] .res-ia>svg{color:#FFCF6B}
   html[data-tema="escuro"] .aviso div,html[data-tema="escuro"] .dica{background:#E7EBF2;color:#101A2C}
@@ -870,7 +869,7 @@
   function resumoIA(c){
     var r = c.ia, pode = window.Nuvem && Nuvem.logado() && iaSt && iaSt.conectada && c.msgs.some(function(m){ return m.de === 'cli'; });
     if (!r && !pode) return '';
-    var linha = r ? (r.atencao ? (r.motivo || 'Precisa de atenção') : (r.resumo || 'Sem resumo ainda.')) : 'A IA ainda não leu esta conversa.';
+    var linha = r ? 'Resumo da conversa' : 'A IA ainda não leu esta conversa';
     return '<div class="res-ia' + (r && r.atencao ? ' aten' : '') + (iaAberto ? ' aberto' : '') + '" id="resIA">' +
       '<button type="button" class="ria-linha" id="riaTog" aria-expanded="' + iaAberto + '">' + ic('ia') +
         (r && r.atencao ? '<span class="ria-dot" aria-label="Precisa de atenção"></span>' : '') +

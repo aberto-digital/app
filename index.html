@@ -61,7 +61,21 @@
   .cfg-op[aria-current="page"]{background:#EEF3FF;color:var(--ceu)}.cfg-op[aria-current="page"] svg{color:var(--ceu)}
   .cfg-op .ext{margin-left:auto;color:var(--muted);font-size:13px}
   .cfg-lista .cfg-cat{padding:10px 4px 0}
-  @media (min-width:761px){ .ia-btn{display:none!important} .na-sub .voltar-cfg{display:none!important} .em-cfg .vista .ajustes,.em-cfg .vista .canais{max-width:820px} }
+  .ia-btn{display:none!important}
+  .marca-ia-topo{display:none;position:relative;padding:0;border-radius:11px;line-height:0}
+  .marca-ia-topo .brilho{position:absolute;right:-4px;bottom:-4px;width:15px;height:15px;border-radius:50%;background:#FFB020;box-shadow:0 0 0 2px var(--branco)}
+  .marca-ia-topo .brilho::before{content:"";position:absolute;inset:3px;background:#1E3050;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+  .marca-ia-topo .bolha{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#D92D20;color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center}
+  .marca-ia-topo .bolha[hidden],.marca-ia-topo.desligado .brilho{display:none}
+  .marca-ia-topo[aria-pressed="true"] svg{box-shadow:0 0 0 2px #FFB020}
+  html[data-tema="escuro"] .marca-ia-topo .brilho{box-shadow:0 0 0 2px #161E2B}
+  .td-del{width:40px;text-align:right}
+  .btn-del{width:32px;height:32px;border-radius:9px;display:inline-grid;place-items:center;color:var(--muted)}
+  .btn-del svg{width:16px;height:16px}.btn-del:hover{background:#FDECEC;color:#D92D20}
+  .btn.perigo{color:#D92D20;border-color:#F3C4C0}.btn.perigo svg{width:16px;height:16px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  @media (max-width:760px){ .marca-ia-topo{display:block} .tb-prod tr{position:relative} .td-del{position:absolute;top:8px;right:8px;width:auto} }
+  @media (min-width:761px){ .na-sub .voltar-cfg{display:none!important} .em-cfg .vista .ajustes,.em-cfg .vista .canais{max-width:820px} }
   .trilho button{position:relative;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#AEB6C6;transition:background .15s,color .15s}
   .trilho button:hover{background:rgba(255,255,255,.08);color:#fff}
   .trilho button[aria-current="page"]{background:var(--ceu);color:#fff}
@@ -612,7 +626,7 @@
   <main class="principal">
     <div class="topo">
       <button class="voltar-cfg" id="voltarCfg" aria-label="Voltar para Configurações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="marca-topo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nome-sis">Aberto<b>Core</b></span></div>
+      <div class="marca-topo"><button class="marca-ia-topo" id="iaTopo" type="button" aria-label="Assistente AbertoCore" aria-pressed="false"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="brilho" aria-hidden="true"></span><span class="bolha" id="iaTopoBolha" hidden></span></button><span class="nome-sis">Aberto<b>Core</b></span></div>
       <span class="sep" aria-hidden="true"></span>
       <div class="tit"><h1 id="titulo">Mensagens</h1><div class="sub" id="subtitulo"></div></div>
       <div class="dir">
@@ -975,13 +989,12 @@
       bo.hidden = !n; bo.textContent = n > 9 ? '9+' : String(n || '');
       ib.setAttribute('aria-pressed', String(sel === 'ia' && atual === 'mensagens'));
     }
-    var ir = $('#iaRail');
-    if (ir){
-      var n2 = sel === 'ia' && atual === 'mensagens' ? 0 : iaNaoLidas(), br = $('#iaRailBolha');
+    ['#iaRail', '#iaTopo'].forEach(function(q){ var ir = $(q); if (!ir) return;
+      var n2 = sel === 'ia' && atual === 'mensagens' ? 0 : iaNaoLidas(), br = ir.querySelector('.bolha');
       ir.classList.toggle('desligado', !iaLogado());
       br.hidden = !n2; br.textContent = n2 > 9 ? '9+' : String(n2 || '');
       ir.setAttribute('aria-pressed', String(sel === 'ia' && atual === 'mensagens'));
-    }
+    });
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
   function vai(id){ if (id !== atual) convMovel = false; atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
@@ -1006,6 +1019,7 @@
 
   /* ========== CONFIGURAÇÕES (agrupa no celular) ========== */
   $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
+  $('#iaTopo').onclick = function(){ $('#iaRail').onclick(); };
   $('#iaRail').onclick = function(){ if (!iaLogado()){ aviso('O Assistente funciona com a conta conectada ao servidor. Entre pela tela de Ajustes.'); return; } $('#iaBtn').onclick(); };
   $('#iaBtn').onclick = function(){
     if (atual === 'mensagens' && sel === 'ia'){ var ibx = $('#inbox'); if (ibx && ibx.classList.contains('mostra-conv')){ ibx.classList.remove('mostra-conv'); convMovel = false; var p = filtrados()[0]; sel = p ? p.id : null; desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe(); return; } }
@@ -2056,18 +2070,26 @@
   /* ========== PRODUTOS ========== */
   function vProdutos(){
     $('#vista').innerHTML = '<div class="prod"><div class="tb-cab"><h2>' + S.produtos.length + ' produtos e serviços</h2><button class="btn pri" id="novoP">' + ic('mais') + 'Novo produto</button></div>' +
-      '<table class="tb-prod' + (BELEZA ? ' so-preco' : '') + '"><thead><tr><th>Nome</th><th>Tipo</th><th>' + (BELEZA ? 'Preço' : 'Implantação') + '</th><th>Mensalidade</th><th>Ativo</th></tr></thead><tbody>' +
+      '<table class="tb-prod' + (BELEZA ? ' so-preco' : '') + '"><thead><tr><th>Nome</th><th>Tipo</th><th>' + (BELEZA ? 'Preço' : 'Implantação') + '</th><th>Mensalidade</th><th>Ativo</th><th><span class="sr">Excluir</span></th></tr></thead><tbody>' +
       S.produtos.map(function(p){
         return '<tr' + (p.destaque ? ' class="destaque"' : '') + '><td><button data-ed="' + p.id + '" style="font-weight:700;text-align:left">' + esc(p.nome) + '</button><div class="ds">' + esc(p.ds) + '</div></td><td>' + p.tipo + '</td>' +
           '<td class="num" data-l="' + (BELEZA ? 'Preço' : 'Implantação') + '">' + (p.setup == null ? (BELEZA ? 'Sob avaliação' : 'Sob consulta') : p.setup === 0 ? 'Grátis' : brl(p.setup)) + '</td><td class="num" data-l="Mensalidade">' + (p.mensal === 0 ? '-' : brl(p.mensal)) + '</td>' +
-          '<td><button class="chave" role="switch" aria-checked="' + p.ativo + '" data-at="' + p.id + '" aria-label="Ativar ' + esc(p.nome) + '"></button></td></tr>';
+          '<td><button class="chave" role="switch" aria-checked="' + p.ativo + '" data-at="' + p.id + '" aria-label="Ativar ' + esc(p.nome) + '"></button></td>' +
+          '<td class="td-del"><button class="btn-del" data-del="' + p.id + '" aria-label="Excluir ' + esc(p.nome) + '" title="Excluir">' + ic('x') + '</button></td></tr>';
       }).join('') + '</tbody></table></div>';
     $('#novoP').onclick = function(){ modalProduto(); };
     $('#vista').onclick = function(e){
-      var a = e.target.closest('[data-at]'), ed = e.target.closest('[data-ed]');
+      var a = e.target.closest('[data-at]'), ed = e.target.closest('[data-ed]'), del = e.target.closest('[data-del]');
+      if (del){ excluiProduto(+del.getAttribute('data-del')); return; }
       if (a){ var p = S.produtos.filter(function(x){ return x.id === +a.getAttribute('data-at'); })[0]; p.ativo = !p.ativo; salva(); a.setAttribute('aria-checked', p.ativo); }
       if (ed) modalProduto(+ed.getAttribute('data-ed'));
     };
+  }
+  function excluiProduto(id){
+    var p = S.produtos.filter(function(x){ return x.id === id; })[0]; if (!p) return;
+    if (!confirm('Excluir "' + p.nome + '"?\n\nEle sai da lista de produtos e serviços e das próximas propostas. Para só esconder, use a chave "Ativo". Não dá para desfazer.')) return;
+    S.produtos = S.produtos.filter(function(x){ return x.id !== id; });
+    salva(); aviso('<b>' + esc(p.nome) + '</b> excluído.'); vProdutos();
   }
   function modalProduto(id){
     var p = id ? S.produtos.filter(function(x){ return x.id === id; })[0] : {nome:'', tipo:BELEZA ? 'Serviço' : 'Pacote', setup:null, mensal:null, ds:'', ativo:true};
@@ -2079,8 +2101,9 @@
       '<div class="duas"><div class="campo"><label for="pS">Implantação (R$)</label><input id="pS" type="number" min="0" placeholder="Sob consulta" value="' + (p.setup == null ? '' : p.setup) + '"></div>' +
       '<div class="campo"><label for="pM">Mensalidade (R$)</label><input id="pM" type="number" min="0" placeholder="Sob consulta" value="' + (p.mensal == null ? '' : p.mensal) + '"></div></div>') +
       '<div class="campo"><label for="pD">O que inclui</label><textarea id="pD" rows="3">' + esc(p.ds) + '</textarea></div>' +
-      '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Salvar</button></div></form>';
+      '<div class="bts">' + (id ? '<button class="btn perigo" value="excluir" formnovalidate style="margin-right:auto">' + ic('x') + 'Excluir</button>' : '') + '<button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Salvar</button></div></form>';
     M.onclose = function(){
+      if (M.returnValue === 'excluir'){ M.onclose = null; excluiProduto(id); return; }
       if (M.returnValue === 'ok'){
         function num(v){ return v === '' ? null : +v; }
         p.nome = $('#pN').value.trim(); p.tipo = $('#pT').value; p.setup = num($('#pS').value); p.mensal = num($('#pM').value); p.ds = $('#pD').value.trim();

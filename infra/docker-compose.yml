@@ -26,6 +26,15 @@ services:
     mem_limit: 1g
     cpus: 1.0
 
+  # abertodigital: notificações push do AbertoCore (só rede interna; chaves em /srv/abertodigital/push)
+  ad-push:
+    build: ./push
+    restart: unless-stopped
+    volumes:
+      - /srv/abertodigital/push:/data
+    networks: [borda]
+    mem_limit: 128m
+
 networks:
   borda: {}
 

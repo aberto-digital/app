@@ -58,6 +58,13 @@
   .sep{width:1px;height:32px;background:var(--linha2);flex:none}
   .trilho .rot{display:none}
   .voltar-cfg,.cfg-btn{display:none}
+  .ia-btn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:#B7791F;background:#FFF6E0;border:1px solid #F3D99A;cursor:pointer}
+  .ia-btn[hidden]{display:none}
+  .ia-btn svg{width:20px;height:20px}
+  .ia-btn[aria-pressed="true"]{background:#FFE7A8}
+  .ia-btn .bolha{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#D92D20;color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center}
+  .ia-btn .bolha[hidden]{display:none}
+  html[data-tema="escuro"] .ia-btn{background:#2A2312;border-color:#5A4A1E;color:#FFCF6B}
   .na-sub .voltar-cfg{display:grid;place-items:center;width:36px;height:36px;margin-left:-6px;border-radius:10px;color:var(--ink);background:none;border:0;cursor:pointer}
   .na-sub .voltar-cfg svg{width:22px;height:22px}
   .cfg-lista{max-width:760px}
@@ -457,7 +464,8 @@
     .em-cfg .topo .sub{display:none}
     .na-sub .voltar-cfg{display:grid;place-items:center;width:36px;height:36px;margin-left:-6px;border-radius:10px;color:var(--ink)}
     .voltar-cfg svg{width:22px;height:22px}
-    .trilho .cfg,.trilho .cfg-rail{display:none}
+    .trilho .cfg{display:none}
+    .cfg-btn{display:none!important}
     .funil{scroll-snap-type:x mandatory;padding:12px 14px;align-items:stretch;overscroll-behavior-x:contain}
     .coluna{flex-basis:84vw;scroll-snap-align:center;height:100%;max-height:none}
     .coluna .cards{flex:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
@@ -576,6 +584,7 @@
       <div class="dir">
         <span class="demo">Demonstração com dados de exemplo</span>
         <button class="aovivo" id="aovivo" aria-pressed="true" title="Simula mensagens chegando em tempo real"><i></i><span>Ao vivo</span></button>
+        <button class="ia-btn" id="iaBtn" aria-label="Assistente AbertoCore" title="Assistente AbertoCore" hidden><span class="ic-ia"></span><span class="bolha" id="iaBolha" hidden></span></button>
         <button class="cfg-btn" id="cfgBtn" aria-label="Configurações" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       </div>
     </div>
@@ -918,10 +927,18 @@
     var vAt = VISTAS.filter(function(x){ return x.id === atual; })[0] || {};
     var naCfg = atual === 'config' || vAt.grupo === 'config';
     $('#nav').innerHTML = VISTAS.filter(function(v){ return !v.oculta && !v.grupo; }).map(function(v){
-      var nl = naoLidasTotal() + iaNaoLidas(), b = v.id === 'mensagens' && nl ? '<span class="bolha">' + nl + '</span>' : '';
+      var nl = naoLidasTotal(), b = v.id === 'mensagens' && nl ? '<span class="bolha">' + nl + '</span>' : '';
       return '<button data-v="' + v.id + '" class="' + (v.fim ? 'fim ' : '') + (v.grupo ? 'cfg' : '') + '"' + (v.id === atual ? ' aria-current="page"' : '') + ' aria-label="' + v.nome + '">' + ic(v.ic) + b + '<span class="rot">' + v.curto + '</span><span class="dica">' + v.nome + '</span></button>';
     }).join('') +
       '<button data-v="config" class="fim cfg-rail"' + (naCfg ? ' aria-current="page"' : '') + ' aria-label="Configurações">' + ic('config') + '<span class="rot">Ajustes</span><span class="dica">Configurações</span></button>';
+    var ib = $('#iaBtn');
+    if (ib){
+      ib.hidden = !iaLogado();
+      var ici = ib.querySelector('.ic-ia'); if (ici && !ici.firstChild) ici.innerHTML = ic('ia');
+      var n = sel === 'ia' && atual === 'mensagens' ? 0 : iaNaoLidas(), bo = $('#iaBolha');
+      bo.hidden = !n; bo.textContent = n > 9 ? '9+' : String(n || '');
+      ib.setAttribute('aria-pressed', String(sel === 'ia' && atual === 'mensagens'));
+    }
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
   function vai(id){ if (id !== atual) convMovel = false; atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
@@ -945,6 +962,11 @@
 
   /* ========== CONFIGURAÇÕES (agrupa no celular) ========== */
   $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
+  $('#iaBtn').onclick = function(){
+    if (atual === 'mensagens' && sel === 'ia'){ var ibx = $('#inbox'); if (ibx && ibx.classList.contains('mostra-conv')){ ibx.classList.remove('mostra-conv'); convMovel = false; var p = filtrados()[0]; sel = p ? p.id : null; desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe(); return; } }
+    if (atual !== 'mensagens') vai('mensagens');
+    abreIA();
+  };
   $('#voltarCfg').onclick = function(){ vai('config'); };
   function vConfig(){
     $('#vista').innerHTML = '<div class="cfg-lista">' + VISTAS.filter(function(v){ return v.grupo === 'config'; }).map(function(v){
@@ -966,7 +988,8 @@
         '<div class="linha-ch"><div><div class="t">' + esc(u.email) + '</div><div class="d"><span class="pt-st ' + st + '"></span>' + stTxt + '. A bolinha ao lado do nome AbertoCore mostra isso: verde salvo, amarela salvando, vermelha sem conexão.</div></div></div>' +
         '<button class="btn" id="ajSair" style="margin-top:12px">Sair da conta</button>' :
         '<p class="nota-bot">Você está vendo a demonstração, com dados só neste navegador.</p><button class="btn pri" id="ajEntrar">Entrar</button>') +
-      '</section></div>';
+      '</section>' + (u ? '<section class="painel" id="ajPush"><h2>Notificações</h2><div id="pushBox"><p class="nota-bot">Verificando…</p></div></section>' : '') + '</div>';
+    if (u) painelPush();
     $('#segTema').onclick = function(e){
       var b = e.target.closest('[data-t]'); if (!b) return;
       aplicaTema(b.getAttribute('data-t'));
@@ -976,6 +999,66 @@
     var en = $('#ajEntrar'); if (en) en.onclick = function(){ N.telaLogin(); };
     if (u && N.req) painelClientes(N);
   }
+  /* ---------- notificações push ---------- */
+  function b64u8(b){ var p = '='.repeat((4 - b.length % 4) % 4), r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; }
+  function swReg(){ return navigator.serviceWorker.register('sw.js').then(function(){ return navigator.serviceWorker.ready; }); }
+  function pushPrefs(){ try { return JSON.parse(localStorage.getItem('abertocore-push-prefs')) || {mensagem:true, ia:true}; } catch (e) { return {mensagem:true, ia:true}; } }
+  function pushLiga(prefs){
+    return swReg().then(function(reg){
+      return Notification.requestPermission().then(function(p){
+        if (p !== 'granted') throw new Error(p === 'denied' ? 'As notificações estão bloqueadas para o AbertoCore. Libere nos ajustes do aparelho/navegador.' : 'Permissão não concedida.');
+        return Nuvem.api('GET', '/api/abertocore/push/chave');
+      }).then(function(j){
+        return reg.pushManager.getSubscription().then(function(s){ return s || reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u8(j.publicKey)}); });
+      }).then(function(s){
+        var o = s.toJSON();
+        localStorage.setItem('abertocore-push-prefs', JSON.stringify(prefs));
+        return Nuvem.api('POST', '/api/abertocore/push/inscreve', {endpoint:o.endpoint, keys:o.keys, aparelho:navigator.userAgent.slice(0, 200), prefs:prefs});
+      });
+    });
+  }
+  function pushDesliga(){
+    return navigator.serviceWorker.getRegistration().then(function(reg){ return reg && reg.pushManager.getSubscription(); }).then(function(s){
+      if (!s) return; var ep = s.endpoint; return s.unsubscribe().then(function(){ return Nuvem.api('POST', '/api/abertocore/push/sai', {endpoint:ep}); });
+    });
+  }
+  function painelPush(){
+    var box = $('#pushBox'); if (!box) return;
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent), app = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)){
+      box.innerHTML = ios && !app
+        ? '<p class="nota-bot">No iPhone, as notificações só funcionam com o AbertoCore instalado na tela de início: no Safari, toque em <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b>, abra pelo ícone e volte aqui.</p>'
+        : '<p class="nota-bot">Este navegador não aceita notificações. Use o Chrome, Edge, Safari atualizado ou o app instalado.</p>';
+      return;
+    }
+    navigator.serviceWorker.getRegistration().then(function(reg){ return reg ? reg.pushManager.getSubscription() : null; }).then(function(sub){
+      var ligado = !!sub && Notification.permission === 'granted', pr = pushPrefs();
+      box.innerHTML = '<p class="nota-bot">Avisos neste aparelho, mesmo com o app fechado.</p>' +
+        '<div class="linha-ch"><div><div class="t">Mensagens de clientes</div><div class="d">WhatsApp, Instagram, Messenger, e-mail e chat do site</div></div><button class="chave" role="switch" id="pMsg" aria-label="Mensagens de clientes" aria-checked="' + (ligado && pr.mensagem !== false) + '"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">Avisos do Assistente de IA</div><div class="d">Cliente sem resposta, pedido para falar com a equipe</div></div><button class="chave" role="switch" id="pIa" aria-label="Avisos do Assistente de IA" aria-checked="' + (ligado && pr.ia !== false) + '"></button></div>' +
+        (ligado ? '<button class="btn" id="pTeste" style="margin-top:10px">Enviar notificação de teste</button>' : '');
+      function muda(){
+        this.setAttribute('aria-checked', String(this.getAttribute('aria-checked') !== 'true'));
+        var p = {mensagem:$('#pMsg').getAttribute('aria-checked') === 'true', ia:$('#pIa').getAttribute('aria-checked') === 'true'};
+        var acao = (p.mensagem || p.ia) ? pushLiga(p) : pushDesliga().then(function(){ localStorage.setItem('abertocore-push-prefs', JSON.stringify(p)); });
+        acao.then(function(){ aviso((p.mensagem || p.ia) ? 'Notificações atualizadas neste aparelho.' : 'Notificações desligadas neste aparelho.'); painelPush(); })
+          .catch(function(err){ aviso(esc(err.message || String(err))); painelPush(); });
+      }
+      $('#pMsg').onclick = muda; $('#pIa').onclick = muda;
+      var t = $('#pTeste'); if (t) t.onclick = function(){ Nuvem.api('POST', '/api/abertocore/push/teste', {}).then(function(j){ aviso(j.enviadas ? 'Teste enviado. Deve chegar em segundos.' : 'Nenhum aparelho inscrito recebeu.'); }).catch(function(err){ aviso(esc(err.message)); }); };
+    });
+  }
+  // clique numa notificação com o app aberto: abre a conversa ou o assistente
+  if ('serviceWorker' in navigator){
+    navigator.serviceWorker.addEventListener('message', function(e){
+      var d = e.data || {}; if (!d.abertocoreNotif) return;
+      if (d.ia){ if (atual !== 'mensagens') vai('mensagens'); abreIA(); return; }
+      if (d.contato && contato(d.contato)){ if (atual !== 'mensagens') vai('mensagens'); abre(d.contato); }
+    });
+    // mantém o service worker registrado quando já há inscrição
+    if (window.Notification && Notification.permission === 'granted') swReg().catch(function(){});
+  }
+
   /* Só aparece para a equipe da abertodigital: cria o acesso de uma empresa cliente e gera o link de convite. */
   function painelClientes(N){
     N.req('GET', '/api/abertocore/admin/empresas').then(function(j){
@@ -1076,6 +1159,7 @@
     }, {passive:true, capture:true});
     window.addEventListener('resize', function(){ vaiParaAba(aba, false); });
     $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (!b) return; if (b.hasAttribute('data-ia')) abreIA(); else abre(+b.getAttribute('data-id')); });
+    if (Core.param('ia') === '1' && iaLogado()) sel = 'ia';
     if (sel === 'ia' && !iaLogado()) sel = null;
     if (sel !== 'ia' && (!sel || !contato(sel))) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
@@ -1112,7 +1196,7 @@
     $('#popFiltro').innerHTML = '<div class="tt">Origem</div><label><input type="checkbox" value="Todos"' + (!canaisSel.length ? ' checked' : '') + '>Todas</label>' +
       Object.keys(CANAIS).map(function(k){ return '<label><input type="checkbox" data-canal value="' + k + '"' + (canaisSel.indexOf(k) >= 0 ? ' checked' : '') + '>' + chipCanal(k) + '</label>'; }).join('');
     var q = busca.trim().toLowerCase();
-    var fixo = iaLogado() && (!q || 'assistente abertocore ia'.indexOf(q) >= 0) ? itemIA() : '';
+    var fixo = ''; // o Assistente AbertoCore agora abre pelo botão ✦ no topo
     ABAS.forEach(function(a){
       var pane = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (!pane) return;
       var L = filtrados(a[0]), y = pane.scrollTop;

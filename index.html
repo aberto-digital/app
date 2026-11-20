@@ -125,7 +125,7 @@
   .pop-filtro input{width:18px;height:18px;accent-color:var(--ceu)}
   .pop-filtro .canal{font-size:14.5px;color:var(--ink)}
   .pop-filtro .canal b{width:10px;height:10px}
-  .abas button{flex:1 1 auto;padding:7px 3px;border-radius:7px;font-size:13px;white-space:nowrap;letter-spacing:-.005em;font-weight:600;color:var(--sec)}
+  .abas button{flex:1 0 auto;padding:7px 6px;border-radius:7px;font-size:13px;white-space:nowrap;letter-spacing:-.005em;font-weight:600;color:var(--sec)}
   .abas button[aria-selected="true"]{background:var(--branco);color:var(--ink);box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .abas small{font-size:11px;background:var(--ceu);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
   .itens{overflow:auto;flex:1}
@@ -133,6 +133,14 @@
   .carrossel::-webkit-scrollbar{display:none}
   .carrossel .pane{flex:0 0 100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;min-height:0;overscroll-behavior-y:contain}
   .ajustes{display:grid;gap:18px;padding:18px 22px;max-width:680px}
+  .chip.pri-lead{background:#FFF1D6;color:#8A5B00;font-weight:800}.chip.pri-lead.pb{background:#E8EEF9;color:#2F4A7A}.chip.pri-lead.pc{background:#EEE;color:#666}
+  .imp-drop{display:flex;flex-direction:column;align-items:center;gap:6px;border:2px dashed var(--linha,#d6dbe4);border-radius:14px;padding:18px;text-align:center;cursor:pointer;color:var(--sec)}
+  .imp-drop svg{width:26px;height:26px}
+  .abas{overflow-x:auto;scrollbar-width:none}.abas::-webkit-scrollbar{display:none}
+  .imp-drop:hover,.imp-drop.sobre{border-color:var(--azul,#2F6FED);color:var(--ink)}
+  .imp-res{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.imp-res div{background:var(--papel);border-radius:10px;padding:10px;text-align:center}.imp-res b{display:block;font-size:22px}
+  .imp-lista{max-height:240px;overflow:auto;border:1px solid var(--linha,#e3e6ec);border-radius:10px;font-size:13px}.imp-lista div{padding:7px 10px;border-bottom:1px solid var(--linha,#eef0f4);display:flex;gap:8px;justify-content:space-between}.imp-lista div:last-child{border:0}.imp-lista em{color:var(--sec);font-style:normal;white-space:nowrap}
+  .lead-bloco .dado a{color:var(--azul,#2F6FED)}
   .seg-tema button{flex:1;padding:9px 10px;font-weight:600}
   .pt-st{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#9aa6b6}.pt-st.ok{background:#1f9d55}.pt-st.sincronizando{background:#FFB020}.pt-st.erro{background:#d64545}
   .item{display:flex;gap:12px;width:100%;text-align:left;padding:13px 14px;border-bottom:1px solid var(--linha);border-left:3px solid transparent}
@@ -910,7 +918,7 @@
     {id:'produtos', grupo:'config', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
     {id:'assistente', grupo:'config', curto:'Atendimento', nome:'Atendimento automático', ic:'ia', sub:'Chatbot de menu e Assistente de IA no WhatsApp'},
     {id:'canais', grupo:'config', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true},
-    {id:'ajustes', grupo:'config', curto:'Ajustes', nome:'Aparência e conta', ic:'config', sub:'Tema claro ou escuro, sua conta e o servidor'},
+    {id:'ajustes', grupo:'config', curto:'Ajustes', nome:'Conta, aparência e leads', ic:'config', sub:'Tema, sua conta, notificações e importação de leads'},
     {id:'config', curto:'Ajustes', nome:'Configurações', ic:'prod', sub:'Produtos, atendimento automático e canais', oculta:true}
   ];
   if (BELEZA) VISTAS.forEach(function(v){ if (v.id === 'agenda'){ v.nome = 'Agenda'; v.sub = 'Horários da semana, manutenções e retornos'; } if (v.id === 'produtos'){ v.nome = 'Serviços e preços'; v.curto = 'Serviços'; v.sub = 'O que você faz e por quanto'; } });
@@ -976,6 +984,149 @@
   }
 
   /* ========== APARÊNCIA E CONTA ========== */
+  /* ---------- Leads: importar lista (CSV ou Excel no formato padrão da planilha "Leads") ---------- */
+  var COLS_LEAD = ['Empresa','Contato (pessoa)','Ramo','WhatsApp','Telefone','E-mail','Instagram','Site','Endereço','Bairro','Cidade','UF','Nota Google','Avaliações Google','Seguidores Instagram','Fonte','Prioridade','Score (0-10)','Oportunidade','Serviços indicados','Status','Próximo passo','Observações','Data de captura'];
+  var MAPA_LEAD = { empresa:'empresa', negocio:'empresa', nome:'empresa', razaosocial:'empresa', nomedaempresa:'empresa',
+    contatopessoa:'contato', contato:'contato', responsavel:'contato', dono:'contato',
+    ramo:'ramo', segmento:'ramo', categoria:'ramo',
+    whatsapp:'whatsapp', whatsapplink:'whatsapp', celular:'whatsapp',
+    telefone:'telefone', fone:'telefone', email:'email',
+    instagram:'insta', insta:'insta', site:'site', siteatual:'site', link:'site',
+    endereco:'endereco', bairro:'bairro', cidade:'cidade', uf:'uf', estado:'uf',
+    notagoogle:'notaGoogle', avaliacoesgoogle:'avalGoogle', navaliacoes:'avalGoogle', avaliacoes:'avalGoogle',
+    seguidoresinstagram:'seguidores', seguidores:'seguidores', fonte:'fonte', origem:'fonte',
+    prioridade:'prioridade', score010:'score', score:'score', scoreoportunidade010:'score',
+    oportunidade:'oportunidade', motivodoscore:'oportunidade', servicosindicados:'servicos', servicos:'servicos',
+    status:'status', proximopasso:'proximo', observacoes:'obs', obs:'obs', datadecaptura:'capturado', data:'capturado' };
+  function chaveCol(t){ return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function lerCSV(txt){
+    txt = txt.replace(/^﻿/, '');
+    var prim = txt.split(/\r?\n/)[0] || '', sep = (prim.split(';').length > prim.split(',').length) ? ';' : ',';
+    var linhas = [], lin = [], cel = '', aspas = false;
+    for (var i = 0; i < txt.length; i++){
+      var ch = txt[i];
+      if (aspas){ if (ch === '"'){ if (txt[i + 1] === '"'){ cel += '"'; i++; } else aspas = false; } else cel += ch; continue; }
+      if (ch === '"') aspas = true;
+      else if (ch === sep){ lin.push(cel); cel = ''; }
+      else if (ch === '\n'){ lin.push(cel.replace(/\r$/, '')); linhas.push(lin); lin = []; cel = ''; }
+      else cel += ch;
+    }
+    if (cel || lin.length){ lin.push(cel); linhas.push(lin); }
+    return linhas.filter(function(l){ return l.some(function(x){ return String(x).trim(); }); });
+  }
+  function carregaXLSX(){
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise(function(ok, falha){
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = function(){ ok(window.XLSX); }; s.onerror = function(){ falha(new Error('Não deu para abrir arquivos do Excel agora. Salve como CSV e tente de novo.')); };
+      document.head.appendChild(s);
+    });
+  }
+  function lerPlanilha(arq){
+    var nome = arq.name.toLowerCase();
+    if (/\.(csv|txt)$/.test(nome)) return arq.text().then(lerCSV);
+    if (/\.(xlsx|xls|ods)$/.test(nome)) return Promise.all([carregaXLSX(), arq.arrayBuffer()]).then(function(r){
+      var wb = r[0].read(r[1], {type:'array'});
+      var aba = wb.SheetNames.filter(function(n){ return chaveCol(n) === 'leads'; })[0] || wb.SheetNames[0];
+      return r[0].utils.sheet_to_json(wb.Sheets[aba], {header:1, raw:false, defval:''});
+    });
+    return Promise.reject(new Error('Use um arquivo .xlsx ou .csv.'));
+  }
+  function linhasParaLeads(linhas){
+    var cab = (linhas[0] || []).map(function(h){ return MAPA_LEAD[chaveCol(h)] || null; });
+    if (cab.indexOf('empresa') < 0) throw new Error('Não achei a coluna "Empresa". Use o modelo da planilha de leads (primeira linha com os nomes das colunas).');
+    return linhas.slice(1).map(function(l){
+      var o = {}; cab.forEach(function(k, i){ if (k && l[i] != null && String(l[i]).trim() && !o[k]) o[k] = String(l[i]).trim(); });
+      return o;
+    }).filter(function(o){ return o.empresa; });
+  }
+  function soInsta(t){ var m = String(t || '').match(/@?([A-Za-z0-9_.]{2,30})/); return m ? '@' + m[1].replace(/\.$/, '').toLowerCase() : ''; }
+  function nomeChave(t){ return chaveCol(t).replace(/aruja$/, ''); }
+  function duplicadoDe(o){
+    var tel = soDigitos(o.whatsapp || o.telefone).slice(-8), ig = o.insta ? soInsta(o.insta) : '', nm = nomeChave(o.empresa);
+    return S.contatos.filter(function(c){
+      if (tel.length === 8 && soDigitos(c.tel).slice(-8) === tel) return true;
+      if (ig && c.lead && c.lead.insta && soInsta(c.lead.insta) === ig) return true;
+      return nm.length > 3 && (nomeChave(c.negocio) === nm || nomeChave(c.nome) === nm);
+    })[0] || null;
+  }
+  function origemDeFonte(f){
+    var t = chaveCol(f);
+    if (/google/.test(t)) return 'Google'; if (/instagram/.test(t)) return 'Instagram'; if (/facebook/.test(t)) return 'Facebook';
+    if (/indica/.test(t)) return 'Indicação'; if (/visita/.test(t)) return 'Visita'; if (/evento/.test(t)) return 'Evento'; if (/site/.test(t)) return 'Site';
+    return 'Outro';
+  }
+  function leadParaContato(o, id, arquivo){
+    var st = chaveCol(o.status), etapa = ETAPAS[0], tipo = 'Lead', status = 'prospeccao';
+    if (/cliente/.test(st)){ etapa = CONFIG.etapaGanho || etapa; tipo = 'Cliente'; status = 'finalizado'; }
+    else if (/perdido|naocontatar/.test(st)){ etapa = CONFIG.etapaPerda || etapa; status = 'finalizado'; }
+    else if (/proposta/.test(st) && ETAPAS.indexOf('Proposta enviada') >= 0) etapa = 'Proposta enviada';
+    else if (/respondeu|auditoria/.test(st) && ETAPAS.length > 1) etapa = ETAPAS[1];
+    var tel = o.whatsapp ? o.whatsapp : (o.telefone || '').split(/[,;\/]/)[0].trim();
+    var canal = o.whatsapp || (!o.insta && o.telefone) ? 'WhatsApp' : (o.insta ? 'Instagram' : (o.email ? 'E-mail' : 'WhatsApp'));
+    var nota = [o.oportunidade ? 'Oportunidade: ' + o.oportunidade : '', o.proximo ? 'Próximo passo: ' + o.proximo : '', o.obs || ''].filter(Boolean).join('\n');
+    var lead = {}; ['empresa','contato','ramo','whatsapp','telefone','email','insta','site','endereco','bairro','cidade','uf','notaGoogle','avalGoogle','seguidores','fonte','prioridade','score','servicos','status','capturado'].forEach(function(k){ if (o[k]) lead[k] = o[k]; });
+    if (lead.prioridade) lead.prioridade = lead.prioridade.toUpperCase().slice(0, 1);
+    if (lead.insta) lead.insta = soInsta(lead.insta);
+    lead.importado = HOJE; lead.arquivo = arquivo;
+    return {id:id, nome:o.contato || o.empresa, negocio:o.empresa, canal:canal, tipo:tipo, etapa:etapa, valor:0, followup:null, status:status,
+      tel:tel, origem:origemDeFonte(o.fonte), nota:nota, naoLidas:0, criado:HOJE, criadoTs:agoraMs(), lead:lead,
+      msgs:[{de:'sis', txt:'Lead importado da lista "' + arquivo + '" em ' + dataCurta(HOJE) + (o.fonte ? ' (fonte: ' + o.fonte + ')' : '') + '.', ts:agoraMs()}]};
+  }
+  function baixaModeloLeads(){
+    var ex = ['Yara Hair','Yara','Salão, especialista em cachos','(11) 99999-0000','','','@yarahairtop','Sem site','Serra do Jaire, 364','','Arujá','SP','','','14,8 mil','Instagram @arujadadepre','A','8','Agenda por grupo de WhatsApp, sem site','AbertoCore, Site, Google','Novo','Mandar mensagem na quarta','','2026-11-20'];
+    var q = function(v){ v = String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var csv = '﻿' + [COLS_LEAD, ex].map(function(l){ return l.map(q).join(','); }).join('\r\n') + '\r\n';
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = 'modelo-leads-abertocore.csv';
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function importaArquivoLeads(arq){
+    if (!arq) return;
+    aviso('Lendo <b>' + esc(arq.name) + '</b>…');
+    lerPlanilha(arq).then(linhasParaLeads).then(function(leads){ modalImportarLeads(leads, arq.name); })
+      .catch(function(e){ aviso(esc(e.message || 'Não consegui ler esse arquivo.')); });
+  }
+  function modalImportarLeads(leads, arquivo){
+    var M = $('#modal'), vistos = {};
+    var novos = [], dups = [];
+    leads.forEach(function(o){
+      var d = duplicadoDe(o), k = nomeChave(o.empresa) + '|' + soDigitos(o.whatsapp || o.telefone).slice(-8);
+      if (d) dups.push({o:o, d:d}); else if (vistos[k]) dups.push({o:o, d:null}); else { vistos[k] = 1; novos.push(o); }
+    });
+    var porPri = {A:0, B:0, C:0}; novos.forEach(function(o){ var p = (o.prioridade || '').toUpperCase().slice(0, 1); if (porPri[p] != null) porPri[p]++; });
+    M.innerHTML = '<form method="dialog" id="fImp"><h3>Importar leads</h3>' +
+      '<p class="nota-bot" style="margin:0">Arquivo <b>' + esc(arquivo) + '</b>: ' + leads.length + ' linhas com empresa.</p>' +
+      '<div class="imp-res"><div><b>' + novos.length + '</b>novos</div><div><b>' + dups.length + '</b>já cadastrados</div><div><b>' + porPri.A + '</b>prioridade A</div></div>' +
+      (novos.length ? '<div class="imp-lista">' + novos.slice(0, 60).map(function(o){ return '<div><span>' + esc(o.empresa) + (o.ramo ? ' <em>· ' + esc(o.ramo) + '</em>' : '') + '</span><em>' + esc((o.prioridade || '-').toUpperCase()) + '</em></div>'; }).join('') + (novos.length > 60 ? '<div><em>e mais ' + (novos.length - 60) + '</em></div>' : '') + '</div>' : '<p>Nenhum lead novo nesse arquivo.</p>') +
+      (dups.length ? '<p class="nota-bot">Os já cadastrados (mesmo WhatsApp, Instagram ou nome) ficam de fora, para não duplicar.</p>' : '') +
+      '<p class="nota-bot">Os novos entram na aba <b>Prospecção</b> da Entrada, como lead na primeira etapa do funil. Nenhuma mensagem é enviada.</p>' +
+      '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button>' + (novos.length ? '<button class="btn pri" value="ok">Importar ' + novos.length + '</button>' : '') + '</div></form>';
+    M.onclose = function(){
+      M.onclose = null; if (M.returnValue !== 'ok') return;
+      var id = Math.max(S.contatos.reduce(function(m, x){ return Math.max(m, x.id); }, 0) + 1, S.prox.c || 1);
+      novos.forEach(function(o){ S.contatos.push(leadParaContato(o, id++, arquivo)); });
+      S.prox.c = id; salva();
+      aba = 'prospeccao'; busca = ''; canaisSel = []; sel = null;
+      aviso('<b>' + novos.length + ' leads</b> importados para a aba Prospecção.');
+      vai('mensagens');
+    };
+    M.returnValue = ''; M.showModal();
+  }
+  function blocoLead(c){
+    var L = c.lead; if (!L) return '';
+    function linha(r, v, link){ return v ? '<div class="dado"><span>' + r + '</span><span>' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(v) + '</a>' : esc(v)) + '</span></div>' : ''; }
+    var ig = L.insta ? 'https://instagram.com/' + L.insta.replace('@', '') : '', site = L.site && /\.[a-z]{2,}/i.test(L.site) && !/\s/.test(L.site.trim()) ? (/^https?:/.test(L.site) ? L.site : 'https://' + L.site) : '';
+    var end = [L.endereco, L.bairro, L.cidade && L.uf ? L.cidade + '/' + L.uf : L.cidade].filter(Boolean).join(', ');
+    return '<div class="lead-bloco"><div class="grupo-t">Dados do lead</div>' +
+      linha('Prioridade', L.prioridade ? L.prioridade + (L.score ? ' · score ' + L.score : '') : '') + linha('Ramo', L.ramo) +
+      linha('Instagram', L.insta, ig) + linha('Site', L.site, site) + linha('E-mail', L.email, L.email ? 'mailto:' + L.email : '') +
+      linha('Outros telefones', L.telefone && L.telefone !== c.tel ? L.telefone : '') +
+      linha('Endereço', end, end ? 'https://www.google.com/maps/search/' + encodeURIComponent(c.negocio + ' ' + end) : '') +
+      linha('Google', L.notaGoogle ? L.notaGoogle + ' ★' + (L.avalGoogle ? ' (' + L.avalGoogle + ' avaliações)' : '') : '') +
+      linha('Seguidores', L.seguidores) + linha('Serviços indicados', L.servicos) + linha('Fonte', L.fonte) +
+      linha('Capturado em', L.capturado) + '</div>';
+  }
   function vAjustes(){
     var m = temaEscolhido(), N = window.Nuvem, u = N && N.usuario();
     var st = N ? N.estado() : 'local';
@@ -984,12 +1135,21 @@
       '<section class="painel"><h2>Tema</h2><p class="nota-bot">Vale só para este aparelho.</p><div class="seg seg-tema" id="segTema">' +
         [['claro','Claro'],['escuro','Escuro'],['sistema','Igual ao aparelho']].map(function(t){ return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (m === t[0]) + '">' + t[1] + '</button>'; }).join('') +
       '</div></section>' +
+      '<section class="painel" id="ajImport"><h2>Importar leads</h2><p class="nota-bot">Traga uma lista de prospecção em Excel (.xlsx) ou CSV, no formato padrão da planilha de leads. Os novos entram na aba <b>Prospecção</b>, sem repetir quem já está no AbertoCore e sem enviar nenhuma mensagem.</p>' +
+        '<label class="imp-drop" id="impDrop">' + ic('mais') + '<b>Escolher arquivo</b><span>ou arraste aqui (.xlsx ou .csv)</span><input type="file" id="impArq" hidden accept=".xlsx,.xls,.ods,.csv"></label>' +
+        '<button class="btn" id="impModelo" type="button" style="margin-top:10px">Baixar modelo de planilha</button></section>' +
       '<section class="painel"><h2>Conta</h2>' + (u ?
         '<div class="linha-ch"><div><div class="t">' + esc(u.email) + '</div><div class="d"><span class="pt-st ' + st + '"></span>' + stTxt + '. A bolinha ao lado do nome AbertoCore mostra isso: verde salvo, amarela salvando, vermelha sem conexão.</div></div></div>' +
         '<button class="btn" id="ajSair" style="margin-top:12px">Sair da conta</button>' :
         '<p class="nota-bot">Você está vendo a demonstração, com dados só neste navegador.</p><button class="btn pri" id="ajEntrar">Entrar</button>') +
       '</section>' + (u ? '<section class="painel" id="ajPush"><h2>Notificações</h2><div id="pushBox"><p class="nota-bot">Verificando…</p></div></section>' : '') + '</div>';
     if (u) painelPush();
+    $('#impArq').onchange = function(e){ importaArquivoLeads(e.target.files[0]); e.target.value = ''; };
+    $('#impModelo').onclick = baixaModeloLeads;
+    var dz = $('#impDrop');
+    ['dragenter','dragover'].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.add('sobre'); }); });
+    ['dragleave','drop'].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.remove('sobre'); }); });
+    dz.addEventListener('drop', function(e){ importaArquivoLeads(e.dataTransfer.files[0]); });
     $('#segTema').onclick = function(e){
       var b = e.target.closest('[data-t]'); if (!b) return;
       aplicaTema(b.getAttribute('data-t'));
@@ -1110,7 +1270,7 @@
   }
 
   /* ========== MENSAGENS ========== */
-  var ABAS = [['entrada','Entrada'],['esperando','Esperando'],['finalizado','Finalizados']];
+  var ABAS = [['entrada','Entrada'],['esperando','Esperando'],['finalizado','Finalizados'],['prospeccao','Prospecção']];
   function idxAba(a){ for (var i = 0; i < ABAS.length; i++) if (ABAS[i][0] === a) return i; return 0; }
   function vaiParaAba(a, suave){
     var car = $('#itens'); if (!car) return;
@@ -1173,15 +1333,23 @@
     var q = busca.trim().toLowerCase();
     return S.contatos.filter(function(c){
       return c.status === (a || aba) && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
-        (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel).toLowerCase().indexOf(q) >= 0);
-    }).sort(function(a, b){ return ultima(b).ts - ultima(a).ts; });
+        (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).toLowerCase().indexOf(q) >= 0);
+    }).sort(function(x, y){
+      if ((a || aba) === 'prospeccao'){
+        var px = 'ABC'.indexOf((x.lead && x.lead.prioridade) || 'C'), py = 'ABC'.indexOf((y.lead && y.lead.prioridade) || 'C');
+        if (px !== py) return px - py;
+        return ((+(y.lead && y.lead.score) || 0) - (+(x.lead && x.lead.score) || 0)) || String(x.negocio).localeCompare(String(y.negocio));
+      }
+      return ultima(y).ts - ultima(x).ts;
+    });
   }
   function desenhaAbas(){
-    var cont = {entrada:0, esperando:0, finalizado:0};
+    var cont = {entrada:0, esperando:0, finalizado:0, prospeccao:0};
     S.contatos.forEach(function(c){ cont[c.status]++; });
     $('#abas').innerHTML = ABAS.map(function(a){
       return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + '</button>';
     }).join('');
+    var abaSel = $('#abas [aria-selected="true"]'); if (abaSel && abaSel.scrollIntoView) abaSel.scrollIntoView({inline:'nearest', block:'nearest'});
   }
   function itemContato(c){
     var u = ultima(c), novo = c.naoLidas > 0;
@@ -1190,7 +1358,7 @@
     return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
       '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
       '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
-      '<span class="l3">' + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
+      '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
   }
   function desenhaLista(){
     if (!$('#itens')) return;
@@ -1205,7 +1373,7 @@
       var pane = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (!pane) return;
       var L = filtrados(a[0]), y = pane.scrollTop;
       pane.innerHTML = fixo + (L.length ? L.map(itemContato).join('') :
-        (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'finalizada'}[a[0]] + '.</div>' :
+        (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'finalizada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
           '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
       pane.scrollTop = y;
     });
@@ -1430,7 +1598,7 @@
       '<div class="grupo-t" style="display:flex;justify-content:space-between;align-items:center">Contato<button class="btn peq" id="dEditar" type="button">Editar</button></div>' +
       '<div class="dado"><span>Canal</span>' + chipCanal(c.canal) + '</div>' +
       '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
-      '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' +
+      '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });

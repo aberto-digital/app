@@ -117,7 +117,7 @@ function processaWebhook(app, corpo) {
         d.status = "esperando"
       } else {
         d.naoLidas = (d.naoLidas || 0) + 1
-        if (d.status === "finalizado" || d.status === "esperando") d.status = "entrada"
+        if (d.status === "finalizado" || d.status === "esperando" || d.status === "prospeccao") d.status = "entrada"
       }
       d.social = d.social || rec.getString("social_id")
       rec.set("dados", d)

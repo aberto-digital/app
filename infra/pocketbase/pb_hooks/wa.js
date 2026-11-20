@@ -147,7 +147,7 @@ function processaWebhook(app, corpo) {
         d.msgs = unirMsgs(d.msgs, [msg])
         if (d.msgs.length === antes) return // repetida (a Meta reenvia às vezes)
         d.naoLidas = (d.naoLidas || 0) + 1
-        if (d.status === "finalizado" || d.status === "esperando") d.status = "entrada"
+        if (d.status === "finalizado" || d.status === "esperando" || d.status === "prospeccao") d.status = "entrada"
         d.wa = m.from
         rec.set("dados", d)
         app.save(rec)

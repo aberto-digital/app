@@ -140,7 +140,7 @@ function linhaContato(d) {
     "valor " + brl(d.valor),
     "retorno " + (d.followup ? dataCurta(d.followup) : "-"),
     d.ficha && d.ficha.proxima ? "próxima manutenção " + dataCurta(d.ficha.proxima) + (d.ficha.metodo ? " (" + d.ficha.metodo + ")" : "") : "",
-    "conversa " + ({ entrada: "aguardando a equipe", esperando: "aguardando o cliente", finalizado: "finalizada" }[d.status] || d.status || "-"),
+    "conversa " + ({ entrada: "aguardando a equipe", esperando: "aguardando o cliente", finalizado: "finalizada", prospeccao: "lead em prospecção, ainda sem conversa" }[d.status] || d.status || "-"),
   ]
   if (u) partes.push("última msg " + dataHoraBR(u.ts || 0) + " de " + quem(u.de) + ": \"" + String(u.txt || "").replace(/\s+/g, " ").slice(0, 120) + "\"")
   if (d.ia && d.ia.resumo) partes.push("resumo: " + d.ia.resumo)

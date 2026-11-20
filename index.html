@@ -1004,11 +1004,13 @@
   function swReg(){ return navigator.serviceWorker.register('sw.js').then(function(){ return navigator.serviceWorker.ready; }); }
   function pushPrefs(){ try { return JSON.parse(localStorage.getItem('abertocore-push-prefs')) || {mensagem:true, ia:true}; } catch (e) { return {mensagem:true, ia:true}; } }
   function pushLiga(prefs){
-    return swReg().then(function(reg){
-      return Notification.requestPermission().then(function(p){
-        if (p !== 'granted') throw new Error(p === 'denied' ? 'As notificações estão bloqueadas para o AbertoCore. Libere nos ajustes do aparelho/navegador.' : 'Permissão não concedida.');
-        return Nuvem.api('GET', '/api/abertocore/push/chave');
-      }).then(function(j){
+    // o iPhone só mostra o pedido de permissão se ele for feito direto no toque (antes de qualquer espera)
+    var perm = Notification.permission === 'granted' ? Promise.resolve('granted') : Promise.resolve(Notification.requestPermission());
+    return perm.then(function(p){
+      if (p !== 'granted') throw new Error(p === 'denied' ? 'As notificações estão bloqueadas para o AbertoCore. Libere em Ajustes do iPhone → Notificações → AbertoCore (ou nas permissões do navegador).' : 'Permissão não concedida.');
+      return swReg();
+    }).then(function(reg){
+      return Nuvem.api('GET', '/api/abertocore/push/chave').then(function(j){
         return reg.pushManager.getSubscription().then(function(s){ return s || reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u8(j.publicKey)}); });
       }).then(function(s){
         var o = s.toJSON();
@@ -1033,7 +1035,9 @@
     }
     navigator.serviceWorker.getRegistration().then(function(reg){ return reg ? reg.pushManager.getSubscription() : null; }).then(function(sub){
       var ligado = !!sub && Notification.permission === 'granted', pr = pushPrefs();
-      box.innerHTML = '<p class="nota-bot">Avisos neste aparelho, mesmo com o app fechado.</p>' +
+      var bloq = Notification.permission === 'denied';
+      box.innerHTML = '<p class="nota-bot">Avisos neste aparelho, mesmo com o app fechado.' + (ligado ? ' <b>Ligadas aqui.</b>' : '') + '</p>' +
+        (bloq ? '<p class="nota-bot" style="color:#B42318">O aparelho bloqueou as notificações do AbertoCore. Libere em Ajustes do iPhone → Notificações → AbertoCore e volte aqui.</p>' : '') +
         '<div class="linha-ch"><div><div class="t">Mensagens de clientes</div><div class="d">WhatsApp, Instagram, Messenger, e-mail e chat do site</div></div><button class="chave" role="switch" id="pMsg" aria-label="Mensagens de clientes" aria-checked="' + (ligado && pr.mensagem !== false) + '"></button></div>' +
         '<div class="linha-ch"><div><div class="t">Avisos do Assistente de IA</div><div class="d">Cliente sem resposta, pedido para falar com a equipe</div></div><button class="chave" role="switch" id="pIa" aria-label="Avisos do Assistente de IA" aria-checked="' + (ligado && pr.ia !== false) + '"></button></div>' +
         (ligado ? '<button class="btn" id="pTeste" style="margin-top:10px">Enviar notificação de teste</button>' : '');
@@ -1056,7 +1060,7 @@
       if (d.contato && contato(d.contato)){ if (atual !== 'mensagens') vai('mensagens'); abre(d.contato); }
     });
     // mantém o service worker registrado quando já há inscrição
-    if (window.Notification && Notification.permission === 'granted') swReg().catch(function(){});
+    swReg().catch(function(){});
   }
 
   /* Só aparece para a equipe da abertodigital: cria o acesso de uma empresa cliente e gera o link de convite. */

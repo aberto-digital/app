@@ -40,6 +40,28 @@
   /* trilho lateral */
   .trilho{background:linear-gradient(180deg,var(--navy),var(--ink));display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px}
   .trilho .marca{width:42px;height:42px;margin-bottom:14px}
+  .trilho .marca-ia{width:46px;height:46px;padding:2px;border-radius:14px;margin-bottom:12px;position:relative}
+  .trilho .marca-ia svg{width:42px;height:42px;display:block;transition:transform .15s}
+  .trilho .marca-ia:hover{background:rgba(255,176,32,.14)}.trilho .marca-ia:hover svg{transform:scale(1.04)}
+  .trilho .marca-ia[aria-pressed="true"]{background:rgba(255,176,32,.22);box-shadow:inset 0 0 0 2px #FFB020}
+  .trilho .marca-ia .brilho{position:absolute;right:-3px;bottom:-3px;width:17px;height:17px;border-radius:50%;background:#FFB020;box-shadow:0 0 0 2px var(--navy)}
+  .trilho .marca-ia .brilho::before{content:"";position:absolute;inset:3px;background:#1E3050;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+  .trilho .marca-ia .bolha{top:-4px;right:-4px;background:#D92D20;color:#fff}
+  .trilho .marca-ia.desligado .brilho{display:none}
+  .trilho .marca-ia .bolha[hidden]{display:none}
+  .corpo{flex:1;display:flex;min-height:0}
+  .cfg-menu{width:248px;flex:none;border-right:1px solid var(--linha);background:var(--branco);overflow:auto;padding:18px 12px 24px}
+  .cfg-menu[hidden]{display:none}
+  .cfg-menu-t{font-weight:800;font-size:15px;padding:0 10px 10px;color:var(--ink)}
+  .cfg-grupo{margin-top:12px}
+  .cfg-cat{font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--muted);padding:0 10px 6px}
+  .cfg-op{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;text-align:left}
+  .cfg-op svg{width:18px;height:18px;color:var(--sec);flex:none}
+  .cfg-op:hover{background:var(--papel)}
+  .cfg-op[aria-current="page"]{background:#EEF3FF;color:var(--ceu)}.cfg-op[aria-current="page"] svg{color:var(--ceu)}
+  .cfg-op .ext{margin-left:auto;color:var(--muted);font-size:13px}
+  .cfg-lista .cfg-cat{padding:10px 4px 0}
+  @media (min-width:761px){ .ia-btn{display:none!important} .na-sub .voltar-cfg{display:none!important} .em-cfg .vista .ajustes,.em-cfg .vista .canais{max-width:820px} }
   .trilho button{position:relative;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#AEB6C6;transition:background .15s,color .15s}
   .trilho button:hover{background:rgba(255,255,255,.08);color:#fff}
   .trilho button[aria-current="page"]{background:var(--ceu);color:#fff}
@@ -533,7 +555,11 @@
     --sup2:#1C2636; --sup3:#223047;
   }
   html[data-tema="escuro"] body{background:var(--papel)}
-  html[data-tema="escuro"] .trilho{background:linear-gradient(180deg,#121B2A,#0A0F18);border-right:1px solid var(--linha)}
+  html[data-tema="escuro"] .cfg-menu{background:#0F1624;border-color:var(--linha)}
+    html[data-tema="escuro"] .cfg-op,html[data-tema="escuro"] .cfg-menu-t{color:var(--texto)}
+    html[data-tema="escuro"] .cfg-op:hover{background:rgba(255,255,255,.05)}
+    html[data-tema="escuro"] .cfg-op[aria-current="page"]{background:rgba(47,111,237,.18);color:#8DB4FF}
+    html[data-tema="escuro"] .trilho{background:linear-gradient(180deg,#121B2A,#0A0F18);border-right:1px solid var(--linha)}
   html[data-tema="escuro"] .nome-sis,html[data-tema="escuro"] .pop-filtro .canal,html[data-tema="escuro"] .abas button[aria-selected="true"],
   html[data-tema="escuro"] .item .ult.nova,html[data-tema="escuro"] .doc-l .btn,html[data-tema="escuro"] .cfg-btn,
   html[data-tema="escuro"] .em-cfg .topo h1,html[data-tema="escuro"] .na-sub .voltar-cfg,html[data-tema="escuro"] .btn.ia{color:var(--texto)}
@@ -580,7 +606,7 @@
 <body>
 <div class="app" id="app">
   <nav class="trilho" aria-label="Menu principal">
-    <svg class="marca" viewBox="0 0 96 96" role="img" aria-label="AbertoCore"><rect width="96" height="96" rx="24" fill="#1E3050" stroke="rgba(255,255,255,.12)"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg>
+    <button class="marca marca-ia" id="iaRail" aria-label="Assistente AbertoCore" aria-pressed="false"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050" stroke="rgba(255,255,255,.12)"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="brilho" aria-hidden="true"></span><span class="bolha" id="iaRailBolha" hidden></span><span class="dica">Assistente AbertoCore</span></button>
     <div id="nav" style="display:contents"></div>
   </nav>
   <main class="principal">
@@ -596,7 +622,7 @@
         <button class="cfg-btn" id="cfgBtn" aria-label="Configurações" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       </div>
     </div>
-    <div class="vista" id="vista"></div>
+    <div class="corpo"><aside class="cfg-menu" id="cfgMenu" hidden aria-label="Configurações"></aside><div class="vista" id="vista"></div></div>
   </main>
 </div>
 <dialog id="modal"></dialog>
@@ -915,10 +941,12 @@
     {id:'funil', curto:'Funil', nome:'Funil', ic:'funil', sub:'Cada contato é um card. Arraste entre as etapas.'},
     {id:'agenda', curto:'Agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
     {id:'dashboard', curto:'Painel', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
-    {id:'produtos', grupo:'config', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
-    {id:'assistente', grupo:'config', curto:'Atendimento', nome:'Atendimento automático', ic:'ia', sub:'Chatbot de menu e Assistente de IA no WhatsApp'},
-    {id:'canais', grupo:'config', curto:'Canais', nome:'Canais', ic:'canais', sub:'Contas conectadas à central', fim:true},
-    {id:'ajustes', grupo:'config', curto:'Ajustes', nome:'Conta, aparência e leads', ic:'config', sub:'Tema, sua conta, notificações e importação de leads'},
+    {id:'ajustes', grupo:'config', cat:'Conta', curto:'Conta', nome:'Conta e aparência', ic:'config', sub:'Sua conta, tema e notificações'},
+    {id:'produtos', grupo:'config', cat:'Negócio', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
+    {id:'assistente', grupo:'config', cat:'Atendimento', curto:'Atendimento', nome:'Atendimento automático', ic:'ia', sub:'Chatbot de menu e Assistente de IA no WhatsApp'},
+    {id:'canais', grupo:'config', cat:'Atendimento', curto:'Canais', nome:'Canais', ic:'canais', sub:'WhatsApp, Instagram, Messenger, e-mail e chat do site', fim:true},
+    {id:'leads', grupo:'config', cat:'Vendas', curto:'Leads', nome:'Importar leads', ic:'funil', sub:'Listas de prospecção em Excel ou CSV'},
+    {id:'clientes', grupo:'config', cat:'Agência', curto:'Clientes', nome:'Clientes no AbertoCore', ic:'dash', sub:'Acesso das empresas clientes ao app', agencia:true},
     {id:'config', curto:'Ajustes', nome:'Configurações', ic:'prod', sub:'Produtos, atendimento automático e canais', oculta:true}
   ];
   if (BELEZA) VISTAS.forEach(function(v){ if (v.id === 'agenda'){ v.nome = 'Agenda'; v.sub = 'Horários da semana, manutenções e retornos'; } if (v.id === 'produtos'){ v.nome = 'Serviços e preços'; v.curto = 'Serviços'; v.sub = 'O que você faz e por quanto'; } });
@@ -947,6 +975,13 @@
       bo.hidden = !n; bo.textContent = n > 9 ? '9+' : String(n || '');
       ib.setAttribute('aria-pressed', String(sel === 'ia' && atual === 'mensagens'));
     }
+    var ir = $('#iaRail');
+    if (ir){
+      var n2 = sel === 'ia' && atual === 'mensagens' ? 0 : iaNaoLidas(), br = $('#iaRailBolha');
+      ir.classList.toggle('desligado', !iaLogado());
+      br.hidden = !n2; br.textContent = n2 > 9 ? '9+' : String(n2 || '');
+      ir.setAttribute('aria-pressed', String(sel === 'ia' && atual === 'mensagens'));
+    }
   }
   $('#nav').addEventListener('click', function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); });
   function vai(id){ if (id !== atual) convMovel = false; atual = id; if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); desenha(); }
@@ -959,7 +994,8 @@
     var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
     app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
     $('#cfgBtn').setAttribute('aria-pressed', emCfg);
-    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes})[atual]();
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, clientes:vClientes})[atual]();
+    desenhaMenuCfg();
   }
 
   /* ---------- avisos ---------- */
@@ -970,17 +1006,57 @@
 
   /* ========== CONFIGURAÇÕES (agrupa no celular) ========== */
   $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
+  $('#iaRail').onclick = function(){ if (!iaLogado()){ aviso('O Assistente funciona com a conta conectada ao servidor. Entre pela tela de Ajustes.'); return; } $('#iaBtn').onclick(); };
   $('#iaBtn').onclick = function(){
     if (atual === 'mensagens' && sel === 'ia'){ var ibx = $('#inbox'); if (ibx && ibx.classList.contains('mostra-conv')){ ibx.classList.remove('mostra-conv'); convMovel = false; var p = filtrados()[0]; sel = p ? p.id : null; desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe(); return; } }
     if (atual !== 'mensagens') vai('mensagens');
     abreIA();
   };
   $('#voltarCfg').onclick = function(){ vai('config'); };
+  function ehAgencia(){
+    var N = window.Nuvem, u = N && N.usuario && N.usuario();
+    return !!(u && u.papel !== 'equipe' && /^abertodigital$/i.test(String(CONFIG.empresa || '').trim()));
+  }
+  function itensCfg(){
+    var L = VISTAS.filter(function(v){ return v.grupo === 'config' && (!v.agencia || ehAgencia()); });
+    if (!BELEZA) L.splice(L.map(function(v){ return v.id; }).indexOf('leads') + 1, 0, {id:'auditoria', link:'auditoria/', cat:'Vendas', curto:'Auditoria', nome:'Auditoria de presença digital', ic:'dash', sub:'Score, gráficos e relatório em PDF por empresa'});
+    var cats = []; L.forEach(function(v){ if (cats.indexOf(v.cat) < 0) cats.push(v.cat); });
+    return cats.map(function(c){ return {cat:c, itens:L.filter(function(v){ return v.cat === c; })}; });
+  }
+  function desktopLargo(){ return window.matchMedia('(min-width: 761px)').matches; }
+  function desenhaMenuCfg(){
+    var m = $('#cfgMenu'); if (!m) return;
+    var v = VISTAS.filter(function(x){ return x.id === atual; })[0] || {};
+    var mostra = desktopLargo() && (v.grupo === 'config' || atual === 'config');
+    m.hidden = !mostra; if (!mostra) return;
+    m.innerHTML = '<div class="cfg-menu-t">Configurações</div>' + itensCfg().map(function(g){
+      return '<div class="cfg-grupo"><div class="cfg-cat">' + esc(g.cat) + '</div>' + g.itens.map(function(i){
+        var dentro = ic(i.ic) + '<span>' + esc(i.nome) + '</span>';
+        return i.link ? '<a class="cfg-op" href="' + i.link + '">' + dentro + '<span class="ext" aria-hidden="true">↗</span></a>' :
+          '<button class="cfg-op" data-v="' + i.id + '"' + (i.id === atual ? ' aria-current="page"' : '') + '>' + dentro + '</button>';
+      }).join('') + '</div>';
+    }).join('');
+    m.onclick = function(e){ var b = e.target.closest('button[data-v]'); if (b) vai(b.getAttribute('data-v')); };
+  }
   function vConfig(){
-    $('#vista').innerHTML = '<div class="cfg-lista">' + VISTAS.filter(function(v){ return v.grupo === 'config'; }).map(function(v){
-      return '<button class="cfg-item" data-v="' + v.id + '"><span class="ic">' + ic(v.ic) + '</span><span><span class="t" style="display:block">' + v.nome + '</span><span class="d">' + v.sub + '</span></span><span class="seta" aria-hidden="true">›</span></button>';
-    }).join('') + (BELEZA ? '' : '<a class="cfg-item" href="auditoria/" style="text-decoration:none;color:inherit"><span class="ic">' + ic('dash') + '</span><span><span class="t" style="display:block">Auditoria de presença digital</span><span class="d">Score, gráficos e relatório em PDF por empresa</span></span><span class="seta" aria-hidden="true">›</span></a>') + '</div>';
+    if (desktopLargo()){ vai('ajustes'); return; }
+    $('#vista').innerHTML = '<div class="cfg-lista">' + itensCfg().map(function(g){
+      return '<div class="cfg-cat">' + esc(g.cat) + '</div>' + g.itens.map(function(v){
+        var corpo = '<span class="ic">' + ic(v.ic) + '</span><span><span class="t" style="display:block">' + v.nome + '</span><span class="d">' + v.sub + '</span></span><span class="seta" aria-hidden="true">›</span>';
+        return v.link ? '<a class="cfg-item" href="' + v.link + '" style="text-decoration:none;color:inherit">' + corpo + '</a>' : '<button class="cfg-item" data-v="' + v.id + '">' + corpo + '</button>';
+      }).join('');
+    }).join('') + '</div>';
     $('#vista').onclick = function(e){ var b = e.target.closest('[data-v]'); if (b) vai(b.getAttribute('data-v')); };
+  }
+  function vLeads(){
+    $('#vista').innerHTML = '<div class="ajustes">' + secImportLeads() + '</div>';
+    ligaImportLeads();
+  }
+  function vClientes(){
+    var N = window.Nuvem;
+    $('#vista').innerHTML = '<div class="ajustes"></div>';
+    if (N && N.req && ehAgencia()) painelClientes(N);
+    else $('.ajustes').innerHTML = '<section class="painel"><p class="nota-bot">Disponível só para a equipe da abertodigital.</p></section>';
   }
 
   /* ========== APARÊNCIA E CONTA ========== */
@@ -1127,6 +1203,19 @@
       linha('Seguidores', L.seguidores) + linha('Serviços indicados', L.servicos) + linha('Fonte', L.fonte) +
       linha('Capturado em', L.capturado) + '</div>';
   }
+  function secImportLeads(){
+    return '<section class="painel" id="ajImport"><h2>Importar leads</h2><p class="nota-bot">Traga uma lista de prospecção em Excel (.xlsx) ou CSV, no formato padrão da planilha de leads. Os novos entram na aba <b>Prospecção</b>, sem repetir quem já está no AbertoCore e sem enviar nenhuma mensagem.</p>' +
+        '<label class="imp-drop" id="impDrop">' + ic('mais') + '<b>Escolher arquivo</b><span>ou arraste aqui (.xlsx ou .csv)</span><input type="file" id="impArq" hidden accept=".xlsx,.xls,.ods,.csv"></label>' +
+        '<button class="btn" id="impModelo" type="button" style="margin-top:10px">Baixar modelo de planilha</button></section>';
+  }
+  function ligaImportLeads(){
+    $('#impArq').onchange = function(e){ importaArquivoLeads(e.target.files[0]); e.target.value = ''; };
+    $('#impModelo').onclick = baixaModeloLeads;
+    var dz = $('#impDrop');
+    ['dragenter','dragover'].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.add('sobre'); }); });
+    ['dragleave','drop'].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.remove('sobre'); }); });
+    dz.addEventListener('drop', function(e){ importaArquivoLeads(e.dataTransfer.files[0]); });
+  }
   function vAjustes(){
     var m = temaEscolhido(), N = window.Nuvem, u = N && N.usuario();
     var st = N ? N.estado() : 'local';
@@ -1135,21 +1224,13 @@
       '<section class="painel"><h2>Tema</h2><p class="nota-bot">Vale só para este aparelho.</p><div class="seg seg-tema" id="segTema">' +
         [['claro','Claro'],['escuro','Escuro'],['sistema','Igual ao aparelho']].map(function(t){ return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (m === t[0]) + '">' + t[1] + '</button>'; }).join('') +
       '</div></section>' +
-      '<section class="painel" id="ajImport"><h2>Importar leads</h2><p class="nota-bot">Traga uma lista de prospecção em Excel (.xlsx) ou CSV, no formato padrão da planilha de leads. Os novos entram na aba <b>Prospecção</b>, sem repetir quem já está no AbertoCore e sem enviar nenhuma mensagem.</p>' +
-        '<label class="imp-drop" id="impDrop">' + ic('mais') + '<b>Escolher arquivo</b><span>ou arraste aqui (.xlsx ou .csv)</span><input type="file" id="impArq" hidden accept=".xlsx,.xls,.ods,.csv"></label>' +
-        '<button class="btn" id="impModelo" type="button" style="margin-top:10px">Baixar modelo de planilha</button></section>' +
       '<section class="painel"><h2>Conta</h2>' + (u ?
         '<div class="linha-ch"><div><div class="t">' + esc(u.email) + '</div><div class="d"><span class="pt-st ' + st + '"></span>' + stTxt + '. A bolinha ao lado do nome AbertoCore mostra isso: verde salvo, amarela salvando, vermelha sem conexão.</div></div></div>' +
         '<button class="btn" id="ajSair" style="margin-top:12px">Sair da conta</button>' :
         '<p class="nota-bot">Você está vendo a demonstração, com dados só neste navegador.</p><button class="btn pri" id="ajEntrar">Entrar</button>') +
       '</section>' + (u ? '<section class="painel" id="ajPush"><h2>Notificações</h2><div id="pushBox"><p class="nota-bot">Verificando…</p></div></section>' : '') + '</div>';
     if (u) painelPush();
-    $('#impArq').onchange = function(e){ importaArquivoLeads(e.target.files[0]); e.target.value = ''; };
-    $('#impModelo').onclick = baixaModeloLeads;
-    var dz = $('#impDrop');
-    ['dragenter','dragover'].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.add('sobre'); }); });
-    ['dragleave','drop'].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.remove('sobre'); }); });
-    dz.addEventListener('drop', function(e){ importaArquivoLeads(e.dataTransfer.files[0]); });
+
     $('#segTema').onclick = function(e){
       var b = e.target.closest('[data-t]'); if (!b) return;
       aplicaTema(b.getAttribute('data-t'));
@@ -1157,7 +1238,7 @@
     };
     var sa = $('#ajSair'); if (sa) sa.onclick = function(){ if (confirm('Sair da conta ' + u.email + '? Os dados continuam salvos no servidor.')) N.sair(); };
     var en = $('#ajEntrar'); if (en) en.onclick = function(){ N.telaLogin(); };
-    if (u && N.req) painelClientes(N);
+
   }
   /* ---------- notificações push ---------- */
   function b64u8(b){ var p = '='.repeat((4 - b.length % 4) % 4), r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; }

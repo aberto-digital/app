@@ -108,7 +108,7 @@
       });
       var cfg = res[3][0];
       var c = (cfg && cfg.dados) || {};
-      S.ia = c.ia; S.bot = c.bot; S.email = c.email; S.msgsCanal = c.msgsCanal || {}; S.prox = c.prox; S.catalogoV = c.catalogoV; S.enterpriseMigrado = c.enterpriseMigrado;
+      S.ia = c.ia; S.bot = c.bot; S.email = c.email; S.agenda = c.agenda; S.msgsCanal = c.msgsCanal || {}; S.prox = c.prox; S.catalogoV = c.catalogoV; S.enterpriseMigrado = c.enterpriseMigrado;
       if (cfg) novoMapa.config = { rid: cfg.id, h: hash(c) };
       return { S: S, mapa: novoMapa, contratada: c.contratada, vazio: !res.some(function (l) { return l.length; }) };
     });
@@ -117,7 +117,7 @@
     aplicandoRemoto = true;
     var S = r.S;
     if (!S.prox) {
-      var m = function (L) { return L.reduce(function (x, i) { return Math.max(x, i.id || 0); }, 0) + 1; };
+      var m = function (L) { return L.reduce(function (x, i) { return (i.id || 0) >= 1000000 ? x : Math.max(x, i.id || 0); }, 0) + 1; };
       S.prox = { c: m(S.contatos), e: m(S.eventos), p: m(S.produtos) };
     }
     gravar(CHAVE, S);
@@ -147,7 +147,7 @@
 
   /* ---------- enviar para o servidor ---------- */
   function configDe(S) {
-    return { ia: S.ia, bot: S.bot, email: S.email, msgsCanal: S.msgsCanal, prox: S.prox, catalogoV: S.catalogoV, enterpriseMigrado: S.enterpriseMigrado, contratada: ler(CHAVE_CONTRATADA) || undefined };
+    return { ia: S.ia, bot: S.bot, email: S.email, agenda: S.agenda, msgsCanal: S.msgsCanal, prox: S.prox, catalogoV: S.catalogoV, enterpriseMigrado: S.enterpriseMigrado, contratada: ler(CHAVE_CONTRATADA) || undefined };
   }
   function campos(col, item) {
     if (col === 'contatos') return { nome: item.nome || '', telefone: item.tel || '', canal: item.canal || '', etapa: item.etapa || '' };
@@ -266,18 +266,35 @@
     var novas = (final.msgs || []).filter(function (m) { return m.de === 'cli'; }).length - cliAntes;
     window.dispatchEvent(new CustomEvent('nuvem:atualizado', { detail: { novas: novas > 0 ? novas : 0, nome: final.nome } }));
   }
+  // evento criado ou mudado no servidor (agendamento online, cancelamento pelo cliente)
+  function aplicaEvento(rec) {
+    var S = ler(CHAVE); if (!S || !S.eventos) return;
+    var srv = rec.dados || {}; srv.id = rec.local_id;
+    var i = -1; for (var j = 0; j < S.eventos.length; j++) if (S.eventos[j].id === rec.local_id) { i = j; break; }
+    if (i >= 0 && JSON.stringify(S.eventos[i]) === JSON.stringify(srv)) return;
+    if (i >= 0) S.eventos[i] = srv; else S.eventos.push(srv);
+    mapa.eventos = mapa.eventos || {};
+    mapa.eventos[rec.local_id] = { rid: rec.id, h: hash(srv) };
+    aplicandoRemoto = true; gravar(CHAVE, S); gravar(CHAVE_SYNC, mapa); aplicandoRemoto = false;
+    window.dispatchEvent(new CustomEvent('nuvem:atualizado', { detail: { novas: 0, evento: srv.id } }));
+  }
   var es = null;
   function tempoReal() {
     if (!auth || !window.EventSource || es) return;
     es = new EventSource(BASE + '/api/realtime');
     es.addEventListener('PB_CONNECT', function (ev) {
       var id; try { id = JSON.parse(ev.data).clientId; } catch (e) { return; }
-      fetch(BASE + '/api/realtime', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: auth.token }, body: JSON.stringify({ clientId: id, subscriptions: ['contatos', 'ia_chat'] }) }).catch(function () {});
+      fetch(BASE + '/api/realtime', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: auth.token }, body: JSON.stringify({ clientId: id, subscriptions: ['contatos', 'ia_chat', 'eventos'] }) }).catch(function () {});
     });
     es.addEventListener('contatos', function (ev) {
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d || !d.record || d.record.empresa !== auth.empresa) return;
       if (d.action === 'create' || d.action === 'update') aplicaContato(d.record);
+    });
+    es.addEventListener('eventos', function (ev) {
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (!d || !d.record || d.record.empresa !== auth.empresa) return;
+      if (d.action === 'create' || d.action === 'update') aplicaEvento(d.record);
     });
     es.addEventListener('ia_chat', function (ev) {
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agendar horário</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1E3050">
+<link rel="icon" href="../icone-192.png">
+<style>
+  :root{--navy:#1E3050;--ink:#101A2C;--ceu:#2F6FED;--ambar:#FFB020;--papel:#F4F6FA;--linha:#E2E6EE;--sec:#5B6578;--ok:#18794E;--erro:#C2341D}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--papel);color:var(--ink);font-size:16px;line-height:1.45}
+  .cab{background:var(--navy);color:#fff;padding:28px 20px 56px}
+  .cab .in{max-width:560px;margin:0 auto}
+  .cab small{display:block;color:#C9D3E6;font-size:13px;letter-spacing:.02em}
+  .cab h1{margin:4px 0 0;font-size:26px;line-height:1.15}
+  .caixa{max-width:560px;margin:-36px auto 24px;padding:0 14px}
+  .card{background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(16,26,44,.08);padding:20px}
+  h2{font-size:17px;margin:0 0 12px}
+  .passo{border-top:1px solid var(--linha);padding-top:18px;margin-top:18px}
+  .passo:first-child{border:0;padding:0;margin:0}
+  .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;margin-right:8px}
+  .servs{display:grid;gap:8px}
+  .serv{display:flex;justify-content:space-between;gap:12px;text-align:left;width:100%;border:1.5px solid var(--linha);border-radius:12px;padding:12px 14px;background:#fff;cursor:pointer;font:inherit;color:inherit}
+  .serv b{display:block}.serv small{color:var(--sec)}
+  .serv .pr{white-space:nowrap;color:var(--sec);font-size:14px}
+  .serv[aria-pressed="true"]{border-color:var(--ceu);background:#F2F6FF;box-shadow:inset 0 0 0 1px var(--ceu)}
+  .dias{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+  .dia{flex:none;width:64px;border:1.5px solid var(--linha);border-radius:12px;padding:8px 4px;text-align:center;background:#fff;cursor:pointer;font:inherit;color:inherit}
+  .dia small{display:block;color:var(--sec);font-size:12px;text-transform:capitalize}.dia b{font-size:20px}
+  .dia[aria-pressed="true"]{border-color:var(--ceu);background:var(--ceu);color:#fff}.dia[aria-pressed="true"] small{color:#E1EAFF}
+  .horas{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+  .hora{border:1.5px solid var(--linha);border-radius:10px;padding:10px 0;background:#fff;font:inherit;font-weight:700;cursor:pointer;color:inherit}
+  .hora[aria-pressed="true"]{border-color:var(--ceu);background:var(--ceu);color:#fff}
+  label{display:block;font-size:14px;font-weight:600;margin:12px 0 4px}
+  input,textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--linha);border-radius:10px;background:#fff;color:inherit}
+  input:focus,textarea:focus{outline:none;border-color:var(--ceu)}
+  .ok-box{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:13.5px;color:var(--sec)}
+  .ok-box input{width:auto;margin-top:3px}
+  .resumo{background:var(--papel);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:14.5px}
+  .bt{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--ceu);color:#fff;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+  .bt:disabled{opacity:.5;cursor:default}
+  .bt.sec{background:#fff;color:var(--erro);border:1.5px solid #F1C6BE}
+  .vazio,.nota{color:var(--sec);font-size:14px}
+  .erro{color:var(--erro);font-size:14px;margin-top:10px}
+  .fim{text-align:center;padding:12px 0}
+  .fim .sel{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;font-size:32px;background:#E6F6EC;color:var(--ok)}
+  .fim .sel.pend{background:#FFF4DB;color:#8A5B00}
+  .rodape{text-align:center;font-size:12.5px;color:var(--sec);margin:18px 0 30px}
+  .rodape a{color:var(--sec)}
+  .hp{position:absolute;left:-5000px}
+  :focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+  @media (prefers-reduced-motion:no-preference){.passo{animation:entra .25s ease}@keyframes entra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<header class="cab"><div class="in"><small id="sobre">Agendamento online</small><h1 id="emp">Carregando…</h1></div></header>
+<main class="caixa"><div class="card" id="app" aria-live="polite"><p class="nota">Carregando os horários…</p></div>
+<p class="rodape">Agendamento por <a href="https://abertodigital.com" target="_blank" rel="noopener">AbertoCore · abertodigital</a></p></main>
+<script>
+(function(){
+  'use strict';
+  var API = localStorage.getItem('abertocore-api') || 'https://api.abertodigital.com';
+  var q = new URLSearchParams(location.search), slug = (q.get('e') || '').toLowerCase(), tokCancel = q.get('cancelar');
+  var app = document.getElementById('app'), info = null, est = {servico:null, data:null, hora:null};
+  function esc(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function api(m, u, b){
+    return fetch(API + u, {method:m, headers:b ? {'Content-Type':'application/json'} : {}, body:b ? JSON.stringify(b) : undefined})
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.message || 'Não deu certo. Tente de novo.'); return j; }); });
+  }
+  function brl(v){ return v == null ? '' : v === 0 ? 'Grátis' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0}); }
+  function durTxt(m){ return m < 60 ? m + ' min' : (m % 60 ? Math.floor(m / 60) + 'h' + (m % 60) : (m / 60) + (m === 60 ? ' hora' : ' horas')); }
+  function dataLonga(iso){ var d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'}); }
+  function erro(msg){ app.innerHTML = '<p class="erro">' + esc(msg) + '</p>'; }
+
+  if (tokCancel) return cancelar();
+  if (!slug) return erro('Link incompleto. Peça o link de agendamento para a empresa.');
+  api('GET', '/api/agenda/' + encodeURIComponent(slug)).then(function(j){
+    info = j; document.title = 'Agendar · ' + j.empresa;
+    document.getElementById('emp').textContent = j.empresa;
+    if (j.servicos.length === 1) est.servico = j.servicos[0];
+    desenha();
+  }).catch(function(e){ document.getElementById('emp').textContent = 'Agenda indisponível'; erro(e.message); });
+
+  function desenha(){
+    var h = '<div class="passo"><h2><span class="n">1</span>Escolha o serviço</h2><div class="servs">' + info.servicos.map(function(s){
+      return '<button class="serv" data-s="' + s.id + '" aria-pressed="' + (est.servico && est.servico.id === s.id) + '"><span><b>' + esc(s.nome) + '</b><small>' + durTxt(s.dur) + (s.ds ? ' · ' + esc(s.ds.slice(0, 90)) : '') + '</small></span><span class="pr">' + brl(s.preco) + '</span></button>';
+    }).join('') + '</div></div>';
+    if (est.servico) h += '<div class="passo"><h2><span class="n">2</span>Escolha o dia</h2><div id="dias"><p class="nota">Procurando dias livres…</p></div></div>';
+    if (est.data) h += '<div class="passo"><h2><span class="n">3</span>Escolha o horário</h2><div id="horas"><p class="nota">Procurando horários…</p></div></div>';
+    if (est.hora) h += '<div class="passo"><h2><span class="n">4</span>Seus dados</h2><form id="f" novalidate>' +
+      '<label for="fn">Nome</label><input id="fn" autocomplete="name" required>' +
+      '<label for="fw">WhatsApp</label><input id="fw" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" required>' +
+      '<label for="fe">E-mail <span class="nota">(para receber a confirmação e os lembretes)</span></label><input id="fe" type="email" autocomplete="email" placeholder="voce@email.com">' +
+      '<label for="fo">Observação <span class="nota">(opcional)</span></label><textarea id="fo" rows="2"></textarea>' +
+      '<input class="hp" id="fh" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '<label class="ok-box"><input type="checkbox" id="fc"> Autorizo receber a confirmação e os lembretes deste horário por e-mail e WhatsApp.</label>' +
+      '<div class="resumo"><b>' + esc(est.servico.nome) + '</b><br>' + esc(dataLonga(est.data)) + ', às ' + est.hora + '</div>' +
+      '<button class="bt" type="submit" id="fb">' + (info.confirmacao === 'manual' ? 'Pedir este horário' : 'Confirmar agendamento') + '</button><div id="fErr" class="erro" role="alert"></div></form></div>';
+    app.innerHTML = h;
+    app.querySelectorAll('[data-s]').forEach(function(b){ b.onclick = function(){ est.servico = info.servicos.filter(function(s){ return s.id === +b.getAttribute('data-s'); })[0]; est.data = est.hora = null; desenha(); }; });
+    if (est.servico) carregaDias();
+    if (est.data) carregaHoras();
+    var f = document.getElementById('f'); if (f){ f.onsubmit = reservar; document.getElementById('fn').focus({preventScroll:true}); f.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+  function carregaDias(){
+    api('GET', '/api/agenda/' + encodeURIComponent(slug) + '/dias?servico=' + est.servico.id).then(function(j){
+      var el = document.getElementById('dias'); if (!el) return;
+      if (!j.dias.length){ el.innerHTML = '<p class="vazio">Sem horários livres nos próximos dias. Fale direto com a empresa' + (info.whatsapp ? ' pelo WhatsApp ' + esc(info.whatsapp) : '') + '.</p>'; return; }
+      el.innerHTML = '<div class="dias">' + j.dias.map(function(d){ var dt = new Date(d + 'T12:00:00');
+        return '<button class="dia" data-d="' + d + '" aria-pressed="' + (est.data === d) + '" aria-label="' + esc(dataLonga(d)) + '"><small>' + dt.toLocaleDateString('pt-BR', {weekday:'short'}).replace('.', '') + '</small><b>' + dt.getDate() + '</b><small>' + dt.toLocaleDateString('pt-BR', {month:'short'}).replace('.', '') + '</small></button>'; }).join('') + '</div>';
+      el.querySelectorAll('[data-d]').forEach(function(b){ b.onclick = function(){ est.data = b.getAttribute('data-d'); est.hora = null; desenha(); }; });
+      var s = el.querySelector('[aria-pressed="true"]'); if (s) s.scrollIntoView({inline:'center', block:'nearest'});
+    }).catch(function(e){ var el = document.getElementById('dias'); if (el) el.innerHTML = '<p class="erro">' + esc(e.message) + '</p>'; });
+  }
+  function carregaHoras(){
+    api('GET', '/api/agenda/' + encodeURIComponent(slug) + '/horarios?servico=' + est.servico.id + '&data=' + est.data).then(function(j){
+      var el = document.getElementById('horas'); if (!el) return;
+      if (!j.horarios.length){ el.innerHTML = '<p class="vazio">Esse dia lotou. Escolha outro.</p>'; return; }
+      el.innerHTML = '<div class="horas">' + j.horarios.map(function(h){ return '<button class="hora" data-h="' + h + '" aria-pressed="' + (est.hora === h) + '">' + h + '</button>'; }).join('') + '</div>';
+      el.querySelectorAll('[data-h]').forEach(function(b){ b.onclick = function(){ est.hora = b.getAttribute('data-h'); desenha(); }; });
+      if (!est.hora) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }).catch(function(e){ var el = document.getElementById('horas'); if (el) el.innerHTML = '<p class="erro">' + esc(e.message) + '</p>'; });
+  }
+  function reservar(ev){
+    ev.preventDefault();
+    var g = function(id){ return document.getElementById(id).value.trim(); }, err = document.getElementById('fErr'), bt = document.getElementById('fb');
+    err.textContent = '';
+    if (!g('fn')) return (err.textContent = 'Preencha seu nome.');
+    if (g('fw').replace(/\D/g, '').length < 10) return (err.textContent = 'Preencha seu WhatsApp com DDD.');
+    if (!document.getElementById('fc').checked) return (err.textContent = 'Marque a autorização para receber a confirmação.');
+    bt.disabled = true; bt.textContent = 'Agendando…';
+    api('POST', '/api/agenda/' + encodeURIComponent(slug) + '/reservar', {servico:est.servico.id, data:est.data, hora:est.hora, nome:g('fn'), whatsapp:g('fw'), email:g('fe'), obs:g('fo'), consentimento:true, site_url:g('fh')})
+      .then(function(j){
+        var pend = j.status === 'pendente';
+        app.innerHTML = '<div class="fim"><div class="sel' + (pend ? ' pend' : '') + '" aria-hidden="true">' + (pend ? '⏳' : '✓') + '</div><h2>' + (pend ? 'Pedido enviado' : 'Horário confirmado') + '</h2>' +
+          '<div class="resumo" style="text-align:left"><b>' + esc(j.servico) + '</b><br>' + esc(dataLonga(j.data)) + ', às ' + esc(j.hora) + '<br>' + esc(j.empresa) + '</div>' +
+          '<p class="nota">' + (pend ? 'A empresa vai confirmar seu horário. ' : '') + (g('fe') ? 'Você recebe ' + (pend ? 'a resposta' : 'a confirmação') + ' e os lembretes no seu e-mail.' : 'Guarde esta tela.') + '</p>' +
+          (info.aviso ? '<p class="nota">' + esc(info.aviso) + '</p>' : '') +
+          '<p class="nota"><a href="?cancelar=' + encodeURIComponent(j.token) + '">Precisa desmarcar?</a></p></div>';
+        window.scrollTo({top:0, behavior:'smooth'});
+      }).catch(function(e){
+        bt.disabled = false; bt.textContent = info.confirmacao === 'manual' ? 'Pedir este horário' : 'Confirmar agendamento'; err.textContent = e.message;
+        if (/ocupado/.test(e.message)){ est.hora = null; setTimeout(desenha, 1500); }
+      });
+  }
+  function cancelar(){
+    document.getElementById('sobre').textContent = 'Desmarcar horário';
+    api('GET', '/api/agenda/reserva?token=' + encodeURIComponent(tokCancel)).then(function(j){
+      document.getElementById('emp').textContent = j.empresa;
+      if (j.status === 'cancelado'){ app.innerHTML = '<div class="fim"><h2>Este horário já foi desmarcado</h2><p class="nota">' + esc(j.servico) + ', ' + esc(j.quando) + '</p></div>'; return; }
+      app.innerHTML = '<h2>Desmarcar este horário?</h2><div class="resumo"><b>' + esc(j.servico) + '</b><br>' + esc(dataLonga(j.data)) + ', às ' + esc(j.hora) + '</div>' +
+        '<button class="bt sec" id="cb">Sim, desmarcar</button><div id="cErr" class="erro" role="alert"></div>';
+      document.getElementById('cb').onclick = function(){
+        this.disabled = true;
+        api('POST', '/api/agenda/cancelar', {token:tokCancel}).then(function(){
+          app.innerHTML = '<div class="fim"><div class="sel pend" aria-hidden="true">✓</div><h2>Horário desmarcado</h2><p class="nota">A empresa já foi avisada. Obrigado por avisar com antecedência.</p></div>';
+        }).catch(function(e){ document.getElementById('cErr').textContent = e.message; document.getElementById('cb').disabled = false; });
+      };
+    }).catch(function(e){ document.getElementById('emp').textContent = 'Reserva não encontrada'; erro(e.message); });
+  }
+})();
+</script>
+</body>
+</html>

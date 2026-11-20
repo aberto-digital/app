@@ -70,6 +70,34 @@
   .marca-ia-topo[aria-pressed="true"] svg{box-shadow:0 0 0 2px #FFB020}
   html[data-tema="escuro"] .marca-ia-topo .brilho{box-shadow:0 0 0 2px #161E2B}
   .td-del{width:40px;text-align:right}
+  .div-lista{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:7px 16px;font-size:11.5px;font-weight:800;letter-spacing:.03em;color:var(--sec);background:var(--papel);border-bottom:1px solid var(--linha)}
+  .div-lista span{background:var(--branco);border-radius:999px;padding:1px 8px;font-size:11px}
+  .div-lista.esp{color:#7A5A12;background:#FFF7E6}
+  .grupo-esp .item{background:#FFFCF5}
+  .grupo-esp .item .ult{color:var(--muted)}
+  .vazio.peq{padding:14px 16px;font-size:13px}
+  .abas .aba-ic{flex:0 0 auto;padding:6px 10px;display:grid;place-items:center}.abas .aba-ic svg{width:17px;height:17px}
+  .abas small.cinza{background:var(--linha);color:var(--sec)}
+  html[data-tema="escuro"] .div-lista{background:#121A27}
+  html[data-tema="escuro"] .div-lista.esp{background:#2A2312;color:#FFCF6B}
+  html[data-tema="escuro"] .grupo-esp .item{background:#17140C}
+  .ag-link{display:flex;align-items:center;border:1px solid var(--linha);border-radius:10px;overflow:hidden;background:var(--branco)}
+  .ag-link span{padding:0 0 0 10px;color:var(--sec);font-size:13px;white-space:nowrap}
+  .ag-link input{border:0!important;flex:1;min-width:60px;padding:9px 10px 9px 2px;background:transparent;font-weight:700}
+  .bts-l{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .ag-dias{display:grid;gap:8px}
+  .ag-dia{display:grid;grid-template-columns:130px 1fr auto 1fr;gap:8px;align-items:center;font-size:14px}
+  .ag-dia label{display:flex;gap:8px;align-items:center;font-weight:600}
+  .ag-dia input[type=time]{padding:7px 8px;border:1px solid var(--linha);border-radius:9px;background:var(--branco);color:var(--ink)}
+  .ag-dia input:disabled{opacity:.45}
+  .ag-chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 8px}
+  .ag-chip input{position:absolute;opacity:0}
+  .ag-chip span{display:inline-block;padding:7px 12px;border:1px solid var(--linha);border-radius:999px;font-size:13px;cursor:pointer}
+  .ag-chip input:checked+span{background:var(--ceu);border-color:var(--ceu);color:#fff;font-weight:600}
+  .ag-chip input:focus-visible+span{outline:3px solid var(--ambar)}
+  .ag-servs{display:grid;gap:6px}.ag-serv{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px;padding:6px 0;border-bottom:1px solid var(--linha)}
+  .ag-serv label{display:flex;gap:8px;align-items:center}.ag-serv select{padding:5px 8px;border-radius:8px;border:1px solid var(--linha);background:var(--branco);color:var(--ink)}
+  @media (max-width:760px){ .ag-dia{grid-template-columns:1fr auto 1fr;font-size:13px} .ag-dia label{grid-column:1/-1} .ag-link span{display:none} }
   .btn-del{width:32px;height:32px;border-radius:9px;display:inline-grid;place-items:center;color:var(--muted)}
   .btn-del svg{width:16px;height:16px}.btn-del:hover{background:#FDECEC;color:#D92D20}
   .btn.perigo{color:#D92D20;border-color:#F3C4C0}.btn.perigo svg{width:16px;height:16px}
@@ -282,6 +310,7 @@
   .campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--ceu)}
   .seg{display:flex;background:var(--papel);border-radius:9px;padding:3px}
   .seg button{flex:1;padding:6px;border-radius:7px;font-weight:600;font-size:13.5px;color:var(--sec)}
+  #agConf button[aria-pressed="true"]{background:var(--branco);color:var(--ceu);font-weight:700;box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .seg button[aria-pressed="true"].lead{background:#E6EEFF;color:#1D4FC4}
   .seg button[aria-pressed="true"].cliente{background:#E2F5EA;color:#167443}
   .docs{display:flex;flex-direction:column;gap:6px;margin:6px 0 14px}
@@ -699,7 +728,8 @@
     ok:'<path d="M5 12.5 10 17l9-10"/>',
     x:'<path d="M6 6l12 12M18 6 6 18"/>',
     config:'<path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
-    filtro:'<path d="M4 6h16M7 12h10M10 18h4"/>'
+    filtro:'<path d="M4 6h16M7 12h10M10 18h4"/>',
+    arquivo:'<path d="M3 4h18v4H3z"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/>'
   };
   function ic(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -957,6 +987,7 @@
     {id:'dashboard', curto:'Painel', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
     {id:'ajustes', grupo:'config', cat:'Conta', curto:'Conta', nome:'Conta e aparência', ic:'config', sub:'Sua conta, tema e notificações'},
     {id:'produtos', grupo:'config', cat:'Negócio', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
+    {id:'agendamento', grupo:'config', cat:'Negócio', curto:'Agendamento', nome:'Agendamento online', ic:'agenda', sub:'Página para o cliente marcar horário, com lembretes'},
     {id:'assistente', grupo:'config', cat:'Atendimento', curto:'Atendimento', nome:'Atendimento automático', ic:'ia', sub:'Chatbot de menu e Assistente de IA no WhatsApp'},
     {id:'canais', grupo:'config', cat:'Atendimento', curto:'Canais', nome:'Canais', ic:'canais', sub:'WhatsApp, Instagram, Messenger, e-mail e chat do site', fim:true},
     {id:'leads', grupo:'config', cat:'Vendas', curto:'Leads', nome:'Importar leads', ic:'funil', sub:'Listas de prospecção em Excel ou CSV'},
@@ -1007,7 +1038,7 @@
     var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
     app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
     $('#cfgBtn').setAttribute('aria-pressed', emCfg);
-    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, clientes:vClientes})[atual]();
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, agendamento:vAgendamento, clientes:vClientes})[atual]();
     desenhaMenuCfg();
   }
 
@@ -1203,6 +1234,7 @@
     };
     M.returnValue = ''; M.showModal();
   }
+  function notaG(v){ var n = +String(v).replace(',', '.'); if (n > 1000 && n < 80000 && n % 1 === 0){ var d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return d.getUTCDate() + ',' + (d.getUTCMonth() + 1); } return String(v).replace('.', ','); }
   function blocoLead(c){
     var L = c.lead; if (!L) return '';
     function linha(r, v, link){ return v ? '<div class="dado"><span>' + r + '</span><span>' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(v) + '</a>' : esc(v)) + '</span></div>' : ''; }
@@ -1213,7 +1245,7 @@
       linha('Instagram', L.insta, ig) + linha('Site', L.site, site) + linha('E-mail', L.email, L.email ? 'mailto:' + L.email : '') +
       linha('Outros telefones', L.telefone && L.telefone !== c.tel ? L.telefone : '') +
       linha('Endereço', end, end ? 'https://www.google.com/maps/search/' + encodeURIComponent(c.negocio + ' ' + end) : '') +
-      linha('Google', L.notaGoogle ? L.notaGoogle + ' ★' + (L.avalGoogle ? ' (' + L.avalGoogle + ' avaliações)' : '') : '') +
+      linha('Google', L.notaGoogle ? notaG(L.notaGoogle) + ' ★' + (L.avalGoogle ? ' (' + L.avalGoogle + ' avaliações)' : '') : '') +
       linha('Seguidores', L.seguidores) + linha('Serviços indicados', L.servicos) + linha('Fonte', L.fonte) +
       linha('Capturado em', L.capturado) + '</div>';
   }
@@ -1365,7 +1397,7 @@
   }
 
   /* ========== MENSAGENS ========== */
-  var ABAS = [['entrada','Entrada'],['esperando','Esperando'],['finalizado','Finalizados'],['prospeccao','Prospecção']];
+  var ABAS = [['entrada','Entrada'],['prospeccao','Prospecção'],['finalizado','Arquivados']];
   function idxAba(a){ for (var i = 0; i < ABAS.length; i++) if (ABAS[i][0] === a) return i; return 0; }
   function vaiParaAba(a, suave){
     var car = $('#itens'); if (!car) return;
@@ -1427,7 +1459,8 @@
   function filtrados(a){
     var q = busca.trim().toLowerCase();
     return S.contatos.filter(function(c){
-      return c.status === (a || aba) && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
+      var st = a || aba;
+      return (c.status === st || (st === 'entrada' && c.status === 'esperando')) && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
         (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).toLowerCase().indexOf(q) >= 0);
     }).sort(function(x, y){
       if ((a || aba) === 'prospeccao'){
@@ -1435,14 +1468,17 @@
         if (px !== py) return px - py;
         return ((+(y.lead && y.lead.score) || 0) - (+(x.lead && x.lead.score) || 0)) || String(x.negocio).localeCompare(String(y.negocio));
       }
-      return ultima(y).ts - ultima(x).ts;
+      if ((a || aba) === 'entrada' && x.status !== y.status) return x.status === 'entrada' ? -1 : 1;
+      if ((a || aba) === 'finalizado') return ultima(y).ts - ultima(x).ts;
+      return ultima(x).ts - ultima(y).ts;
     });
   }
   function desenhaAbas(){
     var cont = {entrada:0, esperando:0, finalizado:0, prospeccao:0};
     S.contatos.forEach(function(c){ cont[c.status]++; });
     $('#abas').innerHTML = ABAS.map(function(a){
-      return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + '</button>';
+      if (a[0] === 'finalizado') return '<button role="tab" class="aba-ic" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '" aria-label="Arquivados" title="Arquivados">' + ic('arquivo') + '</button>';
+      return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + (a[0] === 'prospeccao' && cont.prospeccao ? '<small class="cinza">' + cont.prospeccao + '</small>' : '') + '</button>';
     }).join('');
     var abaSel = $('#abas [aria-selected="true"]'); if (abaSel && abaSel.scrollIntoView) abaSel.scrollIntoView({inline:'nearest', block:'nearest'});
   }
@@ -1467,8 +1503,14 @@
     ABAS.forEach(function(a){
       var pane = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (!pane) return;
       var L = filtrados(a[0]), y = pane.scrollTop;
-      pane.innerHTML = fixo + (L.length ? L.map(itemContato).join('') :
-        (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'finalizada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
+      var html = '';
+      if (a[0] === 'entrada' && L.length){
+        var resp = L.filter(function(c){ return c.status === 'entrada'; }), esp = L.filter(function(c){ return c.status === 'esperando'; });
+        html = (resp.length ? '<div class="div-lista">Para responder <span>' + resp.length + '</span></div>' + resp.map(itemContato).join('') : '<div class="div-lista">Para responder <span>0</span></div><div class="vazio peq">Ninguém esperando sua resposta.</div>') +
+          (esp.length ? '<div class="div-lista esp">Aguardando retorno do cliente <span>' + esp.length + '</span></div><div class="grupo-esp">' + esp.map(itemContato).join('') + '</div>' : '');
+      }
+      pane.innerHTML = fixo + (html ? html : L.length ? L.map(itemContato).join('') :
+        (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'arquivada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
           '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
       pane.scrollTop = y;
     });
@@ -1506,7 +1548,7 @@
         '<div><div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + ' · ' + chipCanal(c.canal) + '</div></div>' +
         '<div class="acoes">' +
           '<button class="btn peq det-btn" id="verDet">' + ic('info') + '<span class="txt">Detalhes</span></button>' +
-          (c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('ok') + '<span class="txt">Finalizar</span></button>' : '<button class="btn peq" id="reabre"><span>Reabrir</span></button>') +
+          (c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('arquivo') + '<span class="txt">Arquivar</span></button>' : '<button class="btn peq" id="reabre"><span>Desarquivar</span></button>') +
         '</div></div>' +
       resumoIA(c) +
       '<div class="fio" id="fio">' + html + '</div>' +
@@ -1528,7 +1570,7 @@
     $('#verDet').onclick = function(){ $('#inbox').classList.add('mostra-det'); };
     var f = $('#finaliza'); if (f) f.onclick = function(){
       c.status = 'finalizado'; salva();
-      aviso('Conversa com <b>' + esc(c.nome) + '</b> finalizada. Ela volta para a Entrada se o cliente escrever de novo.');
+      aviso('Conversa com <b>' + esc(c.nome) + '</b> arquivada. Ela volta para a Entrada se o cliente escrever de novo.');
       // volta para a Entrada: no celular fecha a conversa; no computador abre a próxima da Entrada
       convMovel = false; appEl.classList.remove('rolou-conv');
       $('#inbox').classList.remove('mostra-conv'); $('#inbox').classList.remove('mostra-det');
@@ -1559,7 +1601,7 @@
       var m = {de:'eq', txt:t, ts:agoraMs()};
       if (via){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
       c.msgs.push(m); c.status = 'esperando';
-      S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; salva(); aba = 'esperando';
+      S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; salva(); aba = 'entrada';
       desenhaLista(); desenhaConversa();
       if (via){
         var cid = c.id;
@@ -1588,7 +1630,7 @@
     var c = contato(cid); if (!c) return Promise.resolve();
     var m = {de:'eq', txt:(texto ? texto + '\n' : '') + '📎 ' + arq.nome, anexo:{nome:arq.nome, url:Nuvem.urlArquivo(arq)}, ts:agoraMs(), pend:true};
     m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7);
-    c.msgs.push(m); c.status = 'esperando'; salva(); aba = 'esperando';
+    c.msgs.push(m); c.status = 'esperando'; salva(); aba = 'entrada';
     if (sel === cid){ desenhaLista(); desenhaConversa(); }
     return Nuvem.enviarArquivo(cid, arq.id, texto, m.k).then(function(){ aviso('<b>' + esc(arq.nome) + '</b> enviado.'); }).catch(function(err){
       var cc = contato(cid); if (!cc) return;
@@ -1822,12 +1864,102 @@
   }
 
   /* ========== AGENDA ========== */
+  /* ========== AGENDAMENTO ONLINE ========== */
+  var AG_PADRAO = {ativo:false, slug:'', confirmacao:'auto', passo:30, intervalo:0, antecedenciaH:2, limiteDias:30, duracaoPadrao:60,
+    dias:{'1':[{ini:'09:00',fim:'18:00'}],'2':[{ini:'09:00',fim:'18:00'}],'3':[{ini:'09:00',fim:'18:00'}],'4':[{ini:'09:00',fim:'18:00'}],'5':[{ini:'09:00',fim:'18:00'}],'6':[{ini:'09:00',fim:'13:00'}]},
+    lembretesCliente:[1440,120], lembretesDono:[60], titulo:'', aviso:''};
+  var AG_ANTEC = [[2880,'2 dias antes'],[1440,'1 dia antes'],[180,'3 horas antes'],[120,'2 horas antes'],[60,'1 hora antes'],[30,'30 minutos antes']];
+  var DIAS_SEM = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  function slugify(t){ return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
+  function agCfg(){
+    var a = Object.assign({}, AG_PADRAO, S.agenda || {});
+    if (!a.slug) a.slug = slugify(CONFIG.empresa || 'minha-empresa');
+    return a;
+  }
+  function linkAgenda(a){ return 'https://app.abertodigital.com/agendar/?e=' + encodeURIComponent(a.slug); }
+  function vAgendamento(){
+    var a = agCfg(), N = window.Nuvem, logado = N && N.logado && N.logado();
+    var emailOk = N && N.canalLigado ? N.canalLigado('email') : false;
+    var servs = S.produtos.filter(function(p){ return p.ativo !== false; });
+    function chips(nome, lista){ return '<div class="ag-chips">' + AG_ANTEC.map(function(o){ return '<label class="ag-chip"><input type="checkbox" data-' + nome + '="' + o[0] + '"' + (lista.indexOf(o[0]) >= 0 ? ' checked' : '') + '><span>' + o[1] + '</span></label>'; }).join('') + '</div>'; }
+    $('#vista').innerHTML = '<div class="ajustes ag-cfg">' +
+      '<section class="painel"><div class="linha-ch"><div><h2 style="margin:0">Agendamento online</h2><div class="nota-bot">Uma página para o cliente escolher o serviço, o dia e o horário livre. O horário entra na sua Agenda e o cliente vira contato.</div></div>' +
+        '<button class="chave" role="switch" id="agAtivo" aria-checked="' + !!a.ativo + '" aria-label="Agendamento online ligado"></button></div>' +
+        '<div class="campo" style="margin-top:14px"><label for="agSlug">Endereço da sua página</label><div class="ag-link"><span>app.abertodigital.com/agendar/?e=</span><input id="agSlug" value="' + esc(a.slug) + '" autocomplete="off"></div></div>' +
+        '<div class="bts-l"><button class="btn" id="agCopia" type="button">Copiar link</button><a class="btn" id="agAbre" target="_blank" rel="noopener" href="' + esc(linkAgenda(a)) + '">Abrir página</a></div>' +
+        (logado ? '' : '<p class="aviso-dup" style="margin-top:12px">Na demonstração a página não recebe agendamentos. Entre na sua conta para ativar.</p>') +
+      '</section>' +
+      '<section class="painel"><h2>Confirmação</h2><div class="seg" id="agConf">' +
+        '<button type="button" data-c="auto" aria-pressed="' + (a.confirmacao !== 'manual') + '">Automática</button><button type="button" data-c="manual" aria-pressed="' + (a.confirmacao === 'manual') + '">Eu aprovo cada pedido</button></div>' +
+        '<p class="nota-bot" style="margin-top:8px">' + (a.confirmacao === 'manual' ? 'O pedido fica pendente na sua Agenda até você confirmar. O cliente recebe a resposta por e-mail.' : 'O horário livre escolhido pelo cliente já fica confirmado.') + '</p></section>' +
+      '<section class="painel"><h2>Horários de atendimento</h2><div class="ag-dias">' + [1,2,3,4,5,6,0].map(function(d){
+        var j = (a.dias[String(d)] || [])[0];
+        return '<div class="ag-dia"><label><input type="checkbox" data-dia="' + d + '"' + (j ? ' checked' : '') + '> ' + DIAS_SEM[d] + '</label>' +
+          '<input type="time" data-ini="' + d + '" value="' + (j ? j.ini : '09:00') + '"' + (j ? '' : ' disabled') + '><span>até</span><input type="time" data-fim="' + d + '" value="' + (j ? j.fim : '18:00') + '"' + (j ? '' : ' disabled') + '></div>';
+      }).join('') + '</div>' +
+        '<div class="duas" style="margin-top:12px"><div class="campo"><label for="agPasso">Horários a cada</label><select id="agPasso">' + [15,20,30,45,60].map(function(n){ return '<option value="' + n + '"' + (a.passo === n ? ' selected' : '') + '>' + n + ' minutos</option>'; }).join('') + '</select></div>' +
+        '<div class="campo"><label for="agInt">Intervalo entre clientes</label><select id="agInt">' + [0,5,10,15,30].map(function(n){ return '<option value="' + n + '"' + (a.intervalo === n ? ' selected' : '') + '>' + (n ? n + ' minutos' : 'Sem intervalo') + '</option>'; }).join('') + '</select></div></div>' +
+        '<div class="duas"><div class="campo"><label for="agAnt">Antecedência mínima</label><select id="agAnt">' + [0,1,2,4,12,24,48].map(function(n){ return '<option value="' + n + '"' + (a.antecedenciaH === n ? ' selected' : '') + '>' + (n ? n + (n === 1 ? ' hora' : ' horas') : 'Nenhuma') + '</option>'; }).join('') + '</select></div>' +
+        '<div class="campo"><label for="agLim">Agenda aberta para</label><select id="agLim">' + [7,14,30,60,90].map(function(n){ return '<option value="' + n + '"' + (a.limiteDias === n ? ' selected' : '') + '>Próximos ' + n + ' dias</option>'; }).join('') + '</select></div></div></section>' +
+      '<section class="painel"><h2>Serviços na página</h2><p class="nota-bot">Marque o que o cliente pode agendar e quanto tempo leva. Sem nenhum marcado, a página oferece "Atendimento" com ' + a.duracaoPadrao + ' minutos.</p>' +
+        (servs.length ? '<div class="ag-servs">' + servs.map(function(p){ return '<div class="ag-serv"><label><input type="checkbox" data-agp="' + p.id + '"' + (p.agendavel ? ' checked' : '') + '> ' + esc(p.nome) + '</label><select data-agd="' + p.id + '">' + [15,20,30,45,60,90,120,180,240].map(function(n){ return '<option value="' + n + '"' + ((p.dur || a.duracaoPadrao) === n ? ' selected' : '') + '>' + (n < 60 ? n + ' min' : (n / 60) + (n === 60 ? ' hora' : ' horas').replace('.5 horas', 'h30')) + '</option>'; }).join('') + '</select></div>'; }).join('') + '</div>' : '<p class="nota-bot">Cadastre seus serviços em Produtos e serviços.</p>') +
+      '</section>' +
+      '<section class="painel"><h2>Lembretes</h2>' +
+        '<div class="grupo-t">Para o cliente</div>' + chips('lc', a.lembretesCliente) +
+        '<p class="nota-bot">' + (emailOk ? 'Saem pelo e-mail conectado da empresa. Pelo WhatsApp, quando o número estiver conectado e o cliente tiver falado com você nas últimas 24 horas.' : '<b>Conecte o e-mail da empresa em Canais</b> para os lembretes ao cliente saírem por e-mail. O WhatsApp entra quando o número estiver conectado.') + '</p>' +
+        '<div class="grupo-t">Para você</div>' + chips('ld', a.lembretesDono) +
+        '<p class="nota-bot">Notificação neste aparelho. Ative em Conta e aparência → Notificações.</p>' +
+        '<div class="campo"><label for="agAviso">Recado na confirmação e nos lembretes</label><textarea id="agAviso" rows="2" placeholder="Ex.: Chegue 5 minutos antes. Endereço: Rua..., 123.">' + esc(a.aviso) + '</textarea></div></section>' +
+      '<div><button class="btn pri" id="agSalva">Salvar agendamento online</button></div></div>';
+    $('#agConf').onclick = function(e){ var b = e.target.closest('[data-c]'); if (!b) return; $$('#agConf button').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); };
+    $('#agAtivo').onclick = function(){ this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true'); };
+    $$('[data-dia]').forEach(function(cb){ cb.onchange = function(){ var d = cb.getAttribute('data-dia'); $('[data-ini="' + d + '"]').disabled = $('[data-fim="' + d + '"]').disabled = !cb.checked; }; });
+    $('#agSlug').oninput = function(){ $('#agAbre').href = linkAgenda({slug:slugify(this.value)}); };
+    $('#agCopia').onclick = function(){ var l = linkAgenda({slug:slugify($('#agSlug').value)}); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
+    $('#agSalva').onclick = function(){
+      var n = Object.assign({}, a);
+      n.ativo = $('#agAtivo').getAttribute('aria-checked') === 'true';
+      n.slug = slugify($('#agSlug').value) || a.slug;
+      n.confirmacao = $('#agConf [aria-pressed="true"]').getAttribute('data-c');
+      n.dias = {}; $$('[data-dia]').forEach(function(cb){ var d = cb.getAttribute('data-dia'); if (cb.checked){ var i = $('[data-ini="' + d + '"]').value, f = $('[data-fim="' + d + '"]').value; if (i && f && i < f) n.dias[d] = [{ini:i, fim:f}]; } });
+      n.passo = +$('#agPasso').value; n.intervalo = +$('#agInt').value; n.antecedenciaH = +$('#agAnt').value; n.limiteDias = +$('#agLim').value;
+      n.lembretesCliente = $$('[data-lc]').filter(function(x){ return x.checked; }).map(function(x){ return +x.getAttribute('data-lc'); });
+      n.lembretesDono = $$('[data-ld]').filter(function(x){ return x.checked; }).map(function(x){ return +x.getAttribute('data-ld'); });
+      n.aviso = $('#agAviso').value.trim().slice(0, 400);
+      S.produtos.forEach(function(p){ var cb = $('[data-agp="' + p.id + '"]'), sd = $('[data-agd="' + p.id + '"]'); if (cb){ p.agendavel = cb.checked; p.dur = +sd.value; } });
+      if (n.ativo && !Object.keys(n.dias).length){ aviso('Marque pelo menos um dia de atendimento.'); return; }
+      S.agenda = n; salva();
+      aviso(n.ativo ? 'Agendamento online <b>ligado</b>. Compartilhe o link com seus clientes.' : 'Agendamento online salvo (desligado).');
+      vAgendamento();
+    };
+  }
+  function evOnline(e){ return e && e.online; }
+  function acaoEvento(id, st){
+    var e = S.eventos.filter(function(x){ return x.id === id; })[0]; if (!e) return;
+    var txt = {confirmado:'Confirmar', recusado:'Recusar', cancelado:'Desmarcar'}[st];
+    if (st !== 'confirmado' && !confirm(txt + ' o horário de ' + ((e.cliente && e.cliente.nome) || '') + ' (' + e.titulo + ', ' + dataCurta(e.data) + ' às ' + e.hora + ')?' + (e.cliente && e.cliente.email ? '\n\nO cliente recebe um e-mail avisando.' : ''))) return;
+    e.status = st; if (st === 'cancelado') e.canceladoPor = 'empresa';
+    var c = contato(e.contato);
+    if (c) c.msgs.push({de:'sis', txt:'Horário ' + {confirmado:'confirmado', recusado:'recusado', cancelado:'desmarcado'}[st] + ': ' + e.titulo + ', ' + dataCurta(e.data) + ' às ' + e.hora + '.', ts:agoraMs()});
+    salva(); aviso('Horário ' + {confirmado:'confirmado', recusado:'recusado', cancelado:'desmarcado'}[st] + '.'); desenha();
+  }
+  function painelOnline(){
+    var a = agCfg();
+    var L = S.eventos.filter(function(e){ return evOnline(e) && e.data >= HOJE && e.status !== 'recusado'; }).sort(function(x, y){ return (x.data + x.hora) < (y.data + y.hora) ? -1 : 1; });
+    var pend = L.filter(function(e){ return e.status === 'pendente'; }), prox = L.filter(function(e){ return e.status === 'confirmado'; }).slice(0, 6);
+    function item(e, bts){ var cl = e.cliente || {}; return '<div class="fu"><div class="mid"><div class="nm">' + esc(cl.nome || '') + '</div><div class="ac">' + esc(e.titulo) + ', ' + dataCurta(e.data) + ' às ' + e.hora + (cl.tel ? ' · ' + esc(cl.tel) : '') + '</div><div class="bts">' + bts + '</div></div></div>'; }
+    return '<section class="painel"><h2>Agendamento online ' + (a.ativo ? '<span class="chip" style="background:#E6F6EC;color:#18794E">ligado</span>' : '<button class="btn peq" data-v-ir="agendamento">Ativar</button>') + '</h2>' +
+      (a.ativo ? '<div class="nota-bot" style="margin-bottom:8px"><a href="' + esc(linkAgenda(a)) + '" target="_blank" rel="noopener">' + esc(linkAgenda(a).replace('https://', '')) + '</a></div>' : '<div class="vazio">Deixe seus clientes marcarem horário sozinhos, com lembretes automáticos.</div>') +
+      (pend.length ? '<div class="grupo-t">Aguardando sua confirmação</div>' + pend.map(function(e){ return item(e, '<button class="btn pri peq" data-evst="confirmado" data-ev="' + e.id + '">' + ic('ok') + 'Confirmar</button><button class="btn peq" data-evst="recusado" data-ev="' + e.id + '">Recusar</button><button class="btn peq" data-abre="' + e.contato + '">Conversa</button>'); }).join('') : '') +
+      (prox.length ? '<div class="grupo-t">Próximos marcados online</div>' + prox.map(function(e){ return item(e, '<button class="btn peq" data-abre="' + e.contato + '">Conversa</button><button class="btn peq" data-evst="cancelado" data-ev="' + e.id + '">Desmarcar</button>'); }).join('') : '') +
+      '</section>';
+  }
   function vAgenda(){
     var dias = [];
     for (var i = 0; i < 7; i++) dias.push(addDias(i));
     var semana = dias.map(function(d){
       var dt = new Date(d + 'T12:00:00');
-      var evs = S.eventos.filter(function(e){ return e.data === d; }).sort(function(a, b){ return a.hora < b.hora ? -1 : 1; });
+      var evs = S.eventos.filter(function(e){ return e.data === d && e.status !== 'cancelado' && e.status !== 'recusado'; }).sort(function(a, b){ return a.hora < b.hora ? -1 : 1; });
       return '<div class="dia-col' + (d === HOJE ? ' hoje' : '') + '"><div class="d">' + (d === HOJE ? 'hoje' : dt.toLocaleDateString('pt-BR', {weekday:'short'}).replace('.', '')) + '</div><div class="n">' + dt.getDate() + '</div>' +
         evs.map(function(e){ var c = contato(e.contato); return '<button class="ev ' + ({'Visita':'visita','Ligação':'ligacao','Aplicação':'visita','Manutenção':'ligacao','Remoção':'remocao'}[e.tipo] || '') + '" data-c="' + e.contato + '"><b>' + e.hora + ' ' + e.tipo + '</b>' + esc(e.titulo) + (c ? '<br><span style="color:var(--sec)">' + esc(c.nome) + '</span>' : '') + '</button>'; }).join('') + '</div>';
     }).join('');
@@ -1853,7 +1985,7 @@
     }
     $('#vista').innerHTML = '<div class="agenda">' +
       '<section class="painel"><h2>Próximos 7 dias <button class="btn pri peq" id="novoEv">' + ic('mais') + (BELEZA ? 'Novo horário' : 'Novo compromisso') + '</button></h2><div class="semana">' + semana + '</div></section>' +
-      '<div class="ag-lado">' + manut +
+      '<div class="ag-lado">' + painelOnline() + manut +
       '<section class="painel"><h2>' + (BELEZA ? 'Retornos combinados' : 'Follow-up') + '</h2>' +
         (fus.length ? bloco('Atrasados', fus.filter(function(c){ return diffDias(c.followup) < 0; })) +
           bloco('Hoje', fus.filter(function(c){ return diffDias(c.followup) === 0; })) +
@@ -1865,6 +1997,9 @@
       if (am){ var cm = contato(+am.getAttribute('data-agm')), fm = cm.ficha; modalEvento(cm.id, {tipo:'Manutenção', titulo:'Manutenção' + (fm.metodo ? ' (' + fm.metodo.toLowerCase() + ')' : ''), data:fm.proxima < HOJE ? addDias(1) : fm.proxima}); return; }
       if (a){ vai('mensagens'); abre(+a.getAttribute('data-abre')); }
       if (f){ var c = contato(+f.getAttribute('data-feito')); c.followup = null; salva(); aviso('Retorno de <b>' + esc(c.nome) + '</b> concluído.'); vAgenda(); }
+      var st = e.target.closest('[data-evst]'), ir = e.target.closest('[data-v-ir]');
+      if (st){ acaoEvento(+st.getAttribute('data-ev'), st.getAttribute('data-evst')); return; }
+      if (ir){ vai(ir.getAttribute('data-v-ir')); return; }
       if (ev){ vai('mensagens'); abre(+ev.getAttribute('data-c')); }
     };
   }
@@ -1932,7 +2067,7 @@
       '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Agendar</button></div></form>';
     M.onclose = function(){
       if (M.returnValue === 'ok'){
-        var e = {id:S.prox.e++, contato:+$('#eC').value, titulo:$('#eT').value.trim() || 'Compromisso', data:$('#eD').value, hora:$('#eH').value, tipo:$('#eTp').value};
+        var e = {id:S.prox.e++, contato:+$('#eC').value, titulo:$('#eT').value.trim() || 'Compromisso', data:$('#eD').value, hora:$('#eH').value, tipo:$('#eTp').value, lembrar:$('#eAv').checked};
         S.eventos.push(e); var c = contato(e.contato);
         if (BELEZA) efeitoBeleza(c, e);
         if ($('#eAv').checked){ c.msgs.push({de:'ia', txt:'Oi, ' + c.nome.split(' ')[0] + '! Confirmado: ' + e.titulo.toLowerCase() + ' em ' + dataCurta(e.data) + ' às ' + e.hora + '. Vou te lembrar um dia antes.', ts:agoraMs()}); S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; }
@@ -2101,12 +2236,14 @@
       '<div class="duas"><div class="campo"><label for="pS">Implantação (R$)</label><input id="pS" type="number" min="0" placeholder="Sob consulta" value="' + (p.setup == null ? '' : p.setup) + '"></div>' +
       '<div class="campo"><label for="pM">Mensalidade (R$)</label><input id="pM" type="number" min="0" placeholder="Sob consulta" value="' + (p.mensal == null ? '' : p.mensal) + '"></div></div>') +
       '<div class="campo"><label for="pD">O que inclui</label><textarea id="pD" rows="3">' + esc(p.ds) + '</textarea></div>' +
+      '<div class="duas"><label style="display:flex;gap:8px;align-items:center;font-size:13.5px"><input type="checkbox" id="pAg"' + (p.agendavel ? ' checked' : '') + '> Cliente pode agendar online</label>' +
+      '<div class="campo" style="margin:0"><label for="pDur">Duração</label><select id="pDur">' + [15,20,30,45,60,90,120,180,240].map(function(n){ return '<option value="' + n + '"' + ((p.dur || 60) === n ? ' selected' : '') + '>' + n + ' min</option>'; }).join('') + '</select></div></div>' +
       '<div class="bts">' + (id ? '<button class="btn perigo" value="excluir" formnovalidate style="margin-right:auto">' + ic('x') + 'Excluir</button>' : '') + '<button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Salvar</button></div></form>';
     M.onclose = function(){
       if (M.returnValue === 'excluir'){ M.onclose = null; excluiProduto(id); return; }
       if (M.returnValue === 'ok'){
         function num(v){ return v === '' ? null : +v; }
-        p.nome = $('#pN').value.trim(); p.tipo = $('#pT').value; p.setup = num($('#pS').value); p.mensal = num($('#pM').value); p.ds = $('#pD').value.trim();
+        p.nome = $('#pN').value.trim(); p.tipo = $('#pT').value; p.setup = num($('#pS').value); p.mensal = num($('#pM').value); p.ds = $('#pD').value.trim(); p.agendavel = $('#pAg').checked; p.dur = +$('#pDur').value;
         if (!id){ p.id = S.prox.p++; S.produtos.push(p); }
         salva(); aviso('<b>' + esc(p.nome) + '</b> salvo.'); vProdutos();
       }

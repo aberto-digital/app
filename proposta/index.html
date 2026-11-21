@@ -6,7 +6,7 @@
 <title>Proposta comercial | AbertoCore</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
 <body data-aba="form">
 <header class="barra">
   <a class="voltar" id="voltarCrm" href="../#mensagens" aria-label="Voltar ao AbertoCore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
+  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
   <span class="sep"></span><span class="tt">Proposta comercial</span>
   <div class="dir">
     <select class="btn" id="contato" aria-label="Contato do CRM"></select>
@@ -140,7 +140,7 @@
     var itens = (P.pacote ? [P.pacote] : []).concat(P.modulos).map(function(n){ return Core.produto(S, n); }).filter(Boolean);
     var resumoPac = P.pacote ? 'o pacote <b>' + esc(P.pacote) + '</b>' + (P.modulos.length ? ' com ' + P.modulos.length + (P.modulos.length > 1 ? ' módulos' : ' módulo') : '') : (P.modulos.length ? P.modulos.length + ' módulos' : falta('[escolha o pacote]'));
     var valorTxt = (P.setup == null ? falta('R$ a definir') : '<b>' + brl(P.setup) + '</b>' + (P.faltaPreco && !P.manual ? ' ' + falta('+ itens a definir') : '')) + ' de implantação' + (P.mensal ? ' + <b>' + brl(Core.mensalPlano(P.mensal, P.plano)) + '/mês</b>' + (Core.plano(P.plano).desconto ? ' no plano de ' + P.plano : '') : '');
-    var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
+    var h = '<div class="cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
       '<div class="meta">Proposta ' + esc(P.numero) + '<br>' + Core.dataBR(P.data) + '<br>Válida até ' + Core.dataBR(P.validade) + '</div></div>';
     h += '<h1>Proposta para ' + esc(emp) + '</h1><p style="color:var(--sec)">Para ' + esc(r.nome || c.nome) + (r.cargo ? ', ' + esc(r.cargo) : '') + '. De Julio Romanelli, abertodigital.</p>';
     h += '<div class="destaque">' + esc(primeiro || 'Olá') + ', obrigado pela conversa. Propomos ' + resumoPac + ' para que a ' + esc(emp) + ' seja encontrada no Google, passe confiança e responda todos os clientes rápido. O investimento é ' + valorTxt + ', e tudo fica pronto em até <b>' + P.prazo + ' dias úteis</b>.</div>';

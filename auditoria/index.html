@@ -6,7 +6,7 @@
 <title>Auditoria de presença digital | abertodigital</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V39.5L51 32.5V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
@@ -172,7 +172,7 @@
 
 <header class="barra">
   <a class="voltar" id="voltarCrm" href="../#mensagens" aria-label="Voltar ao AbertoCore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
+  <div class="marca"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span class="nm">Aberto<b>Core</b></span></div>
   <span class="sep"></span><span class="tt">Auditoria de presença digital</span>
   <div class="dir">
     <select class="btn" id="salvas" aria-label="Contato do CRM"></select>
@@ -412,7 +412,7 @@
       (rec.pacote ? '<div class="pk">Pacote ' + rec.pacote + '</div><div class="pr">' + preco(rec.pacote) + ': ' + esc(ds(rec.pacote)) + '</div>' : '<div class="pk">Módulos avulsos</div>') +
       (rec.modulos.length ? '<div class="pr" style="margin-top:6px">' + (rec.pacote ? 'Mais os módulos: ' : '') + rec.modulos.map(function(m){ return esc(m) + ' (' + preco(m) + ')'; }).join(', ') + '</div>' : '') +
       '<table style="margin-top:10px"><thead><tr><th>Solução</th><th>O que resolve</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
-    $('#rel').innerHTML = '<div class="rel-cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V39.5L51 32.5V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
+    $('#rel').innerHTML = '<div class="rel-cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
         '<div class="meta">Auditoria de presença digital<br>' + dataBR(A.data) + (A.resp ? '<br>Para: ' + esc(A.resp) : '') + '</div></div>' +
       '<h1>' + esc(emp) + '</h1><div class="sub">' + esc([A.ramo, A.cidade].filter(Boolean).join(', ')) + '</div>' +
       '<div class="topo-rel"><div class="gauge">' + gauge(c.geral) + '</div><div class="pilares">' + pil + '</div></div>' + '<p class="resumo-rel">' + esc(resumo) + '</p>' +

@@ -109,6 +109,8 @@ function processaWebhook(app, corpo) {
       const ts = Math.max(parseInt(ev.timestamp, 10) || Date.now(), Math.min(ultimo + 1, Date.now()))
       // eco = mensagem que saiu da conta da empresa (pelo AbertoCore ou direto no app do Instagram/Facebook)
       const nova = { de: eco ? "eq" : "cli", txt: txt, ts: ts, wa: msg.mid }
+      const an = (msg.attachments || [])[0]
+      if (an && an.type === "audio" && an.payload && an.payload.url) nova.audio = { url: String(an.payload.url) }
       const antes = (d.msgs || []).length
       d.msgs = W.unirMsgs(d.msgs, [nova])
       if (d.msgs.length === antes) return // repetida, ou eco de algo que o AbertoCore já gravou

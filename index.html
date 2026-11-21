@@ -275,6 +275,9 @@
   .arq-modal{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
   dialog:has(.arq-modal){width:min(540px,calc(100vw - 28px));overflow-x:hidden}
   .arq-modal *{box-sizing:border-box}
+  .transc{display:block;margin-top:6px;font-style:italic;opacity:.9;white-space:pre-wrap}
+  .transc-bt{display:block;margin-top:6px;font:600 12.5px inherit;font-family:inherit;padding:5px 10px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;opacity:.85;cursor:pointer}
+  .transc-bt:disabled{opacity:.5;cursor:default}
   .arq-aviso{font-size:13px;color:var(--sec);margin:12px 0 0}
   .arq-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
   .arq-cab h3{margin:0}
@@ -681,7 +684,7 @@
 <dialog id="modal"></dialog>
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
-<script src="core/i18n.js?v=4"></script>
+<script src="core/i18n.js?v=5"></script>
 <script src="core/dados.js?v=2"></script>
 <script src="core/nuvem.js?v=13"></script>
 <script>
@@ -1587,6 +1590,10 @@
       if (m.de === 'sis'){ html += '<div class="nota-sis">' + esc(m.txt) + '</div>'; return; }
       var cls = m.de === 'cli' ? 'cli' : (m.de === 'ia' || m.de === 'bot') ? 'ia' : 'eq';
       var corpo = esc(m.txt).replace(/^Assunto: (.*)\n+/, '<span class="assunto">$1</span>');
+      if (m.audio && m.de === 'cli'){
+        corpo += m.transcricao ? '<span class="transc">“' + esc(m.transcricao) + '”</span>'
+          : (window.Nuvem && Nuvem.logado() && m.wa ? '<button type="button" class="transc-bt" data-transc="' + esc(m.wa) + '">Transcrever áudio</button>' : '');
+      }
       if (m.anexo && m.anexo.url) corpo = corpo.replace(esc('📎 ' + m.anexo.nome), '<a class="anexo-msg" href="' + esc(m.anexo.url) + '" target="_blank" rel="noopener">📎 ' + esc(m.anexo.nome) + '</a>');
       var st = '';
       if (m.de !== 'cli'){
@@ -1657,6 +1664,16 @@
     ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
     ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#fEnvia').requestSubmit(); } });
     var cl = $('#anexar'); if (cl) cl.onclick = function(){ modalArquivos(c.id); };
+    fio.onclick = function(ev){
+      var tb = ev.target.closest('[data-transc]'); if (!tb) return;
+      var wa = tb.getAttribute('data-transc'), cid = c.id;
+      tb.disabled = true; tb.textContent = 'Transcrevendo…';
+      if (Nuvem.enviar) Nuvem.enviar();
+      Nuvem.req('POST', '/api/abertocore/transcrever', {contato:cid, msg:wa}).then(function(r){
+        var cc = contato(cid); if (cc) (cc.msgs || []).forEach(function(x){ if (x.wa === wa) x.transcricao = r.texto; });
+        salva(); if (sel === cid) desenhaConversa();
+      }).catch(function(err){ tb.disabled = false; tb.textContent = 'Transcrever áudio'; aviso(esc(err.message)); });
+    };
     var tog = $('#riaTog'); if (tog) tog.onclick = function(){ iaAberto = !iaAberto; $('#resIA').classList.toggle('aberto', iaAberto); tog.setAttribute('aria-expanded', iaAberto); };
     var atu = $('#iaAtu'); if (atu) atu.onclick = function(){
       var b = this, cid = c.id; b.disabled = true; b.textContent = 'Lendo a conversa…';

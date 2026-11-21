@@ -143,6 +143,7 @@ function processaWebhook(app, corpo) {
         const ultimo = (d.msgs || []).reduce((x, y) => Math.max(x, y.ts || 0), 0)
         const tsMeta = (parseInt(m.timestamp, 10) || Math.floor(Date.now() / 1000)) * 1000
         const msg = { de: "cli", txt: txt, ts: Math.max(tsMeta, Math.min(ultimo + 1, Date.now())), wa: m.id }
+        if (m.type === "audio" && m.audio && m.audio.id) msg.audio = { id: m.audio.id, mime: m.audio.mime_type || "audio/ogg" }
         const antes = (d.msgs || []).length
         d.msgs = unirMsgs(d.msgs, [msg])
         if (d.msgs.length === antes) return // repetida (a Meta reenvia às vezes)

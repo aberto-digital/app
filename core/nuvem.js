@@ -351,12 +351,12 @@
     '.topo .dir .nv-chip,.barra .dir .nv-chip{position:static;box-shadow:none;white-space:nowrap}.barra .dir .nv-ponto{margin:0 4px}' +
     '.nv-ponto{flex:none;width:10px;height:10px;padding:0;margin-left:7px;border:0;border-radius:50%;background:#9aa6b6;cursor:pointer;box-shadow:0 0 0 3px rgba(154,166,182,.18)}' +
     '.nv-ponto.ok{background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.18)}.nv-ponto.sincronizando{background:#FFB020;box-shadow:0 0 0 3px rgba(255,176,32,.2)}.nv-ponto.erro{background:#d64545;box-shadow:0 0 0 3px rgba(214,69,69,.2)}' +
-    '.nv-fundo{position:fixed;inset:0;background:rgba(15,27,45,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}' +
-    '.nv-caixa{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:360px;font:15px/1.4 Inter,system-ui,sans-serif;color:#0F1B2D}' +
-    '.nv-caixa h2{font-size:18px;margin:0 0 4px}.nv-caixa p{color:#5b6779;font-size:13px;margin:0 0 14px}' +
-    '.nv-caixa label{display:block;font-size:12px;font-weight:600;margin:10px 0 4px}.nv-caixa input{width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border:1px solid #d7dde6;border-radius:10px}' +
-    '.nv-caixa .nv-acoes{display:flex;gap:8px;margin-top:16px}.nv-caixa button{flex:1;font:600 14px Inter,system-ui,sans-serif;padding:11px;border-radius:10px;border:1px solid #d7dde6;background:#fff;cursor:pointer}' +
-    '.nv-caixa button.nv-pri{background:#1E3050;color:#fff;border-color:#1E3050}.nv-erro{color:#d64545;font-size:13px;margin-top:10px;min-height:1em}';
+    '.nv-fundo{position:fixed;inset:0;background:rgba(8,14,24,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}' +
+    '.nv-caixa{background:var(--branco,#fff);border:1px solid var(--linha,transparent);border-radius:14px;padding:22px;width:100%;max-width:360px;font:15px/1.4 Inter,system-ui,sans-serif;color:var(--texto,#0F1B2D)}' +
+    '.nv-caixa h2{font-size:18px;margin:0 0 4px}.nv-caixa p{color:var(--sec,#5b6779);font-size:13px;margin:0 0 14px}' +
+    '.nv-caixa label{display:block;font-size:12px;font-weight:600;margin:10px 0 4px}.nv-caixa input{width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border:1px solid var(--linha2,#d7dde6);border-radius:10px;background:var(--papel,#fff);color:var(--texto,#0F1B2D)}.nv-caixa input:focus{outline:2px solid #2F6FED;outline-offset:1px;border-color:#2F6FED}' +
+    '.nv-caixa .nv-acoes{display:flex;gap:8px;margin-top:16px}.nv-caixa button{flex:1;font:600 14px Inter,system-ui,sans-serif;padding:11px;border-radius:10px;border:1px solid var(--linha2,#d7dde6);background:var(--branco,#fff);color:var(--texto,#0F1B2D);cursor:pointer}' +
+    '.nv-caixa button.nv-pri{background:#2F6FED;color:#fff;border-color:#2F6FED}.nv-erro{color:#d64545;font-size:13px;margin-top:10px;min-height:1em}';
   var chip;
   function marca(e, msg) {
     var mudou = estado !== e;

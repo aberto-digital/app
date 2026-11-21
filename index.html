@@ -678,6 +678,7 @@
 <dialog id="modal"></dialog>
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
+<script src="core/i18n.js?v=1"></script>
 <script src="core/dados.js"></script>
 <script src="core/nuvem.js?v=9"></script>
 <script>
@@ -1277,6 +1278,9 @@
       '<section class="painel"><h2>Tema</h2><p class="nota-bot">Vale só para este aparelho.</p><div class="seg seg-tema" id="segTema">' +
         [['claro','Claro'],['escuro','Escuro'],['sistema','Igual ao aparelho']].map(function(t){ return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (m === t[0]) + '">' + t[1] + '</button>'; }).join('') +
       '</div></section>' +
+      '<section class="painel"><h2>Idioma / Language</h2><p class="nota-bot">Vale só para este aparelho.</p><div class="seg seg-tema" id="segIdioma" data-sem-traducao>' +
+        [['pt','Português'],['en','English']].map(function(t){ return '<button type="button" data-l="' + t[0] + '" aria-pressed="' + (I18n.idioma() === t[0]) + '">' + t[1] + '</button>'; }).join('') +
+      '</div></section>' +
       '<section class="painel"><h2>Conta</h2>' + (u ?
         '<div class="linha-ch"><div><div class="t">' + esc(u.email) + '</div><div class="d"><span class="pt-st ' + st + '"></span>' + stTxt + '. A bolinha ao lado do nome AbertoCore mostra isso: verde salvo, amarela salvando, vermelha sem conexão.</div></div></div>' +
         '<button class="btn" id="ajSair" style="margin-top:12px">Sair da conta</button>' :
@@ -1284,6 +1288,10 @@
       '</section>' + (u ? '<section class="painel" id="ajPush"><h2>Notificações</h2><div id="pushBox"><p class="nota-bot">Verificando…</p></div></section>' : '') + '</div>';
     if (u) painelPush();
 
+    $('#segIdioma').onclick = function(e){
+      var b = e.target.closest('[data-l]'); if (!b || b.getAttribute('data-l') === I18n.idioma()) return;
+      I18n.muda(b.getAttribute('data-l'));
+    };
     $('#segTema').onclick = function(e){
       var b = e.target.closest('[data-t]'); if (!b) return;
       aplicaTema(b.getAttribute('data-t'));

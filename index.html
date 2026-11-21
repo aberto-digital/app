@@ -681,9 +681,9 @@
 <dialog id="modal"></dialog>
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
-<script src="core/i18n.js?v=3"></script>
+<script src="core/i18n.js?v=4"></script>
 <script src="core/dados.js?v=2"></script>
-<script src="core/nuvem.js?v=12"></script>
+<script src="core/nuvem.js?v=13"></script>
 <script>
 (function(){
   'use strict';
@@ -1014,7 +1014,7 @@
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
   var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '';
 
-  function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.naoLidas || 0); }, 0); }
+  function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.ignorado ? 0 : (c.naoLidas || 0)); }, 0); }
   function desenhaNav(){
     var vAt = VISTAS.filter(function(x){ return x.id === atual; })[0] || {};
     var naCfg = atual === 'config' || vAt.grupo === 'config';
@@ -1514,7 +1514,8 @@
     var q = busca.trim().toLowerCase();
     return S.contatos.filter(function(c){
       var st = a || aba;
-      return (c.status === st || (st === 'entrada' && c.status === 'esperando')) && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
+      var vis = c.ignorado ? st === 'finalizado' : (c.status === st || (st === 'entrada' && c.status === 'esperando'));
+      return vis && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
         (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).toLowerCase().indexOf(q) >= 0);
     }).sort(function(x, y){
       if ((a || aba) === 'prospeccao'){
@@ -1529,7 +1530,7 @@
   }
   function desenhaAbas(){
     var cont = {entrada:0, esperando:0, finalizado:0, prospeccao:0};
-    S.contatos.forEach(function(c){ cont[c.status]++; });
+    S.contatos.forEach(function(c){ if (!c.ignorado) cont[c.status]++; });
     $('#abas').innerHTML = ABAS.map(function(a){
       if (a[0] === 'finalizado') return '<button role="tab" class="aba-ic" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '" aria-label="Arquivados" title="Arquivados">' + ic('arquivo') + '</button>';
       return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + (a[0] === 'prospeccao' && cont.prospeccao ? '<small class="cinza">' + cont.prospeccao + '</small>' : '') + '</button>';
@@ -1537,13 +1538,13 @@
     var abaSel = $('#abas [aria-selected="true"]'); if (abaSel && abaSel.scrollIntoView) abaSel.scrollIntoView({inline:'nearest', block:'nearest'});
   }
   function itemContato(c){
-    var u = ultima(c), novo = c.naoLidas > 0;
+    var u = ultima(c), novo = c.naoLidas > 0 && !c.ignorado;
     var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
     var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
     return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
       '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
       '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
-      '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
+      '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + (c.ignorado ? '<span class="chip">Ignorado</span>' : chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c)) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
   }
   function desenhaLista(){
     if (!$('#itens')) return;
@@ -1602,7 +1603,8 @@
         '<div><div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + ' · ' + chipCanal(c.canal) + '</div></div>' +
         '<div class="acoes">' +
           '<button class="btn peq det-btn" id="verDet">' + ic('info') + '<span class="txt">Detalhes</span></button>' +
-          (c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('arquivo') + '<span class="txt">Arquivar</span></button>' : '<button class="btn peq" id="reabre"><span>Desarquivar</span></button>') +
+          '<button class="btn peq" id="ignora" title="' + (c.ignorado ? 'Voltar a receber avisos deste contato' : 'Sem avisos e sem resposta automática para este contato') + '">' + (c.ignorado ? '<span>Parar de ignorar</span>' : ic('x') + '<span class="txt">Ignorar</span>') + '</button>' +
+          (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('arquivo') + '<span class="txt">Arquivar</span></button>' : '<button class="btn peq" id="reabre"><span>Desarquivar</span></button>') +
         '</div></div>' +
       resumoIA(c) +
       '<div class="fio" id="fio">' + html + '</div>' +
@@ -1631,6 +1633,23 @@
       aba = 'entrada';
       var p = filtrados()[0]; sel = p ? p.id : null;
       desenhaLista(); desenhaConversa(); desenhaDetalhe();
+      if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
+    };
+    var ig = $('#ignora'); if (ig) ig.onclick = function(){
+      if (c.ignorado){
+        delete c.ignorado; c.status = 'entrada'; salva(); aba = 'entrada';
+        aviso('Você volta a receber avisos de <b>' + esc(c.nome) + '</b>.');
+        desenhaLista(); desenhaConversa(); desenhaDetalhe(); desenhaNav();
+        if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
+        return;
+      }
+      if (!confirm('Ignorar ' + c.nome + '?\n\nO app não avisa mais sobre mensagens deste contato, o atendimento automático e o Assistente de IA não respondem nem analisam a conversa. As mensagens continuam chegando e ficam em Arquivados.')) return;
+      c.ignorado = true; c.naoLidas = 0; salva();
+      aviso('<b>' + esc(c.nome) + '</b> ignorado. A conversa fica em Arquivados.');
+      convMovel = false; appEl.classList.remove('rolou-conv');
+      $('#inbox').classList.remove('mostra-conv'); $('#inbox').classList.remove('mostra-det');
+      aba = 'entrada'; var p = filtrados()[0]; sel = p ? p.id : null;
+      desenhaLista(); desenhaConversa(); desenhaDetalhe(); desenhaNav();
       if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
     };
     var r = $('#reabre'); if (r) r.onclick = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); };

@@ -274,7 +274,7 @@
     // se o navegador tinha alterações que o servidor ainda não tem, envia
     if (hash(final) !== hash(srv)) agenda();
     var novas = (final.msgs || []).filter(function (m) { return m.de === 'cli'; }).length - cliAntes;
-    window.dispatchEvent(new CustomEvent('nuvem:atualizado', { detail: { novas: novas > 0 ? novas : 0, nome: final.nome } }));
+    window.dispatchEvent(new CustomEvent('nuvem:atualizado', { detail: { novas: novas > 0 && !final.ignorado ? novas : 0, nome: final.nome } }));
   }
   // evento criado ou mudado no servidor (agendamento online, cancelamento pelo cliente)
   function aplicaEvento(rec) {

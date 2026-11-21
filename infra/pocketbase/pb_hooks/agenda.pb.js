@@ -211,7 +211,7 @@ cronAdd("retornos-do-dia", "0 11 * * *", () => {
     try {
       const contatos = $app.findRecordsByFilter("contatos", "empresa = {:e}", "", 0, 0, { e: empresaId }).map((r) => { const d = W.lerDados(r); d.id = r.getInt("local_id"); return d })
       const futuros = $app.findRecordsByFilter("eventos", "empresa = {:e} && data >= {:d}", "", 0, 0, { e: empresaId, d: hoje }).map((r) => W.lerDados(r))
-      const fechado = (d) => d.status === "finalizado" || /perdid|desist/i.test(String(d.etapa || ""))
+      const fechado = (d) => d.ignorado || d.status === "finalizado" || /perdid|desist/i.test(String(d.etapa || ""))
       const temHorario = (d) => futuros.some((ev) => ev.contato === d.id && ev.status !== "cancelado" && ev.status !== "recusado")
       const ret = contatos.filter((d) => d.followup && d.followup <= hoje && !fechado(d))
       const man = contatos.filter((d) => d.ficha && d.ficha.proxima && d.ficha.proxima <= semana && !fechado(d) && !temHorario(d))

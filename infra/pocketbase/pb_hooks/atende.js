@@ -30,6 +30,7 @@ function decide(app, empresaId, rec, canalNome) {
   if ((d.msgs || []).some((m) => m.de === "eq" && !daIa.has(m.txt) && agora - (m.ts || 0) < 30 * 60000)) return null
   if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return null
   if (d.iaPausa && agora < d.iaPausa) return null
+  if (d.ignorado) return null // contato ignorado: a IA não responde
   const ctx = IA.contextoEmpresa(app, empresaId)
   const tom = { "Formal": "formal e educado", "Animado": "animado e caloroso" }[at.tom] || "próximo e direto"
   const curto = canalNome === "E-mail" ? "até 6 frases, em parágrafos curtos, com saudação e despedida" : "curto (até 3 frases)"

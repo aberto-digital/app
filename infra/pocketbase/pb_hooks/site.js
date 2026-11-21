@@ -79,6 +79,9 @@ function chegou(rec, txt, de) {
 }
 
 function avisaEquipe(app, empresaId, txt, localId) {
+  if (localId) {
+    try { const c = app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }); if (JSON.parse(c.getString("dados") || "{}").ignorado) return } catch (e) {}
+  }
   try {
     const col = app.findCollectionByNameOrId("ia_chat")
     const r = new Record(col)

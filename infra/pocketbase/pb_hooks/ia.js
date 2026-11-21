@@ -151,6 +151,7 @@ function linhaContato(d) {
 function contatosDaEmpresa(app, empresaId, limite) {
   return app.findRecordsByFilter("contatos", "empresa = {:e}", "-updated", limite || 300, 0, { e: empresaId })
     .map((r) => { const d = lerDados(r); d.id = r.getInt("local_id"); return d })
+    .filter((d) => !d.ignorado) // contatos ignorados ficam fora do assistente e do resumo do dia
 }
 
 function agendaDaEmpresa(app, empresaId, de, ate) {
@@ -246,7 +247,7 @@ function pendentesDeAnalise(app, empresaId, limite) {
   const recs = app.findRecordsByFilter("contatos", "empresa = {:e} && updated >= {:t}", "-updated", 200, 0, { e: empresaId, t: desde })
   return recs.filter((r) => {
     const d = lerDados(r), c = ultimaDoCliente(d)
-    if (!c) return false
+    if (!c || d.ignorado) return false
     if (Date.now() - (c.ts || 0) < 3 * 60000) return false // espera a conversa assentar
     return !d.ia || (c.ts || 0) > (d.ia.ate || 0)
   }).slice(0, limite || 10)
@@ -260,7 +261,7 @@ function alertaSemResposta(app, empresaId) {
   let n = 0
   recs.forEach((r) => {
     const d = lerDados(r), u = ultimaMsg(d)
-    if (!u || u.de !== "cli" || d.status === "finalizado") return
+    if (!u || u.de !== "cli" || d.status === "finalizado" || d.ignorado) return
     if (agora - (u.ts || 0) < 3 * 3600000 || agora - (u.ts || 0) > 3 * 86400000) return
     if (d.ia && d.ia.alertado === u.ts) return
     const horas = Math.round((agora - u.ts) / 3600000)

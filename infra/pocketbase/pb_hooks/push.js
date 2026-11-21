@@ -41,6 +41,7 @@ function ultimaDoCliente(d) {
 // chamada pelos hooks de contatos: avisa se chegou mensagem nova do cliente
 function avisaMensagemNova(app, rec, antes) {
   const d = lerDados(rec)
+  if (d.ignorado) return // contato ignorado: sem aviso
   const nova = ultimaDoCliente(d)
   if (!nova || !nova.ts || Date.now() - nova.ts > 10 * 60000) return
   const velha = antes ? ultimaDoCliente(lerDados(antes)) : null

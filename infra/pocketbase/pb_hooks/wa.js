@@ -255,6 +255,7 @@ function decideBot(app, empresaId, d, txt, escolha) {
 function rodaBot(app, canal, rec, txtCliente, escolha) {
   const empresaId = canal.getString("empresa")
   const d = lerDados(rec)
+  if (d.ignorado) return false // contato ignorado: o menu não responde
   const r = decideBot(app, empresaId, d, txtCliente, escolha)
   if (!r) return false
   let waId = null, erro = null, botoes = null, corpo = r.texto

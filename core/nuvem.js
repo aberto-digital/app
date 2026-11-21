@@ -74,9 +74,11 @@
   function baixarPerfil() {
     if (!auth) return Promise.resolve(false);
     return api('GET', '/api/collections/empresas/records/' + auth.empresa).then(function (r) {
+      var nomeAntes = localStorage.getItem('abertocore-empresa-nome') || '', nomeAgora = r && r.nome ? String(r.nome) : '';
+      if (nomeAgora) localStorage.setItem('abertocore-empresa-nome', nomeAgora);
       var p = r && r.perfil && typeof r.perfil === 'object' && Object.keys(r.perfil).length ? r.perfil : null;
       var antes = localStorage.getItem(CHAVE_PERFIL), depois = p ? JSON.stringify(p) : null;
-      if (antes === depois) return false;
+      if (antes === depois) return nomeAgora !== nomeAntes;
       if (depois) gravar(CHAVE_PERFIL, depois); else localStorage.removeItem(CHAVE_PERFIL);
       return true;
     }).catch(function () { return false; });
@@ -91,7 +93,7 @@
       return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j && j.message || ('Erro ' + r.status)); return j; });
     });
   }
-  function sairLocal() { auth = null; localStorage.removeItem(CHAVE_AUTH); localStorage.removeItem(CHAVE_SYNC); localStorage.removeItem(CHAVE_PERFIL); mapa = {}; marca('local'); }
+  function sairLocal() { auth = null; localStorage.removeItem(CHAVE_AUTH); localStorage.removeItem(CHAVE_SYNC); localStorage.removeItem(CHAVE_PERFIL); localStorage.removeItem('abertocore-empresa-nome'); mapa = {}; marca('local'); }
   function sair() { sairLocal(); location.reload(); }
 
   /* ---------- baixar do servidor ---------- */
@@ -420,7 +422,7 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciaUI); else iniciaUI();
 
-  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; },
+  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; }, empresaNome: function () { try { return localStorage.getItem('abertocore-empresa-nome') || ''; } catch (e) { return ''; } },
     waConectado: function () { return !!wa.conectado; }, estado: function () { return estado; }, telaLogin: telaLogin,
     req: req, entrarComResposta: entrarComResposta,
     ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp,

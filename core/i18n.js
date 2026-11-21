@@ -7,6 +7,12 @@
 
   var EN = {
     // navegação e menus
+    "Modelo da sua empresa em preparação": "Your company's template is being prepared",
+    "Avisos neste aparelho, mesmo com o app fechado.": "Alerts on this device, even with the app closed.",
+    "Mensagens de clientes": "Customer messages",
+    "Cliente sem resposta, pedido para falar com a equipe": "Customer without reply, request to talk to the team",
+    "Demo": "Demo", "Contrato": "Contract",
+    "Sincronizando…": "Syncing…",
     "Demonstração com dados de exemplo": "Demo with sample data",
     "Ao vivo": "Live",
     "Simula mensagens chegando em tempo real": "Simulates messages arriving in real time",
@@ -100,7 +106,7 @@
     'Ex.: Maria Silva': 'E.g.: Maria Silva', 'Ex.: Orçamento': 'E.g.: Quote', 'Ex.: Padaria Pão Dourado': 'E.g.: Golden Bread Bakery',
     // etapas do funil
     'Novo': 'New', 'Qualificado': 'Qualified', 'Proposta': 'Proposal', 'Proposta enviada': 'Proposal sent', 'Negociação': 'Negotiation',
-    'Em negociação': 'In negotiation', 'Fechado': 'Won', 'Perdido': 'Lost', 'Aberto': 'Open',
+    'Em negociação': 'In negotiation', 'Fechado': 'Won', 'Perdido': 'Lost',
     // botões e avisos comuns
     'Salvar': 'Save', 'Cancelar': 'Cancel', 'Fechar': 'Close', 'Editar': 'Edit', 'Excluir': 'Delete', 'Configurar': 'Set up', 'Ativar': 'Enable',
     'Desligar': 'Turn off', 'Conectar': 'Connect', 'Gerenciar': 'Manage', 'Em breve': 'Coming soon', 'Copiar link': 'Copy link',
@@ -233,6 +239,7 @@
   };
 
   var REGRAS = [
+    [/^Tudo salvo no servidor\. (.*)$/, function () { return 'Everything saved on the server. The dot next to the AbertoCore name shows this: green saved, yellow saving, red offline.'; }],
     [/^Ativar (.+)$/, function (m) { return 'Enable ' + tr(m[1]); }],
     [/^Excluir (.+)$/, function (m) { return 'Delete ' + tr(m[1]); }],
     [/^Conectado: (.+)$/, function (m) { return 'Connected: ' + m[1]; }],

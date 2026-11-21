@@ -11,7 +11,7 @@
     "Avisos neste aparelho, mesmo com o app fechado.": "Alerts on this device, even with the app closed.",
     "Mensagens de clientes": "Customer messages",
     "Cliente sem resposta, pedido para falar com a equipe": "Customer without reply, request to talk to the team",
-    "Demo": "Demo", "Contrato": "Contract",
+    "Demo": "Demo", "Mensagem junto com o arquivo (opcional)": "Message with the file (optional)", "Biblioteca": "Library", "Conecte o WhatsApp, o Instagram, o Messenger ou o e-mail em Canais para enviar arquivos a este contato. A biblioteca já pode ser montada.": "Connect WhatsApp, Instagram, Messenger or email in Channels to send files to this contact. You can already build the library.", "Gera o PDF e envia com link": "Creates the PDF and sends it with a link", "Contrato": "Contract",
     "Sincronizando…": "Syncing…",
     "Demonstração com dados de exemplo": "Demo with sample data",
     "Ao vivo": "Live",

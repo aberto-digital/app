@@ -54,7 +54,13 @@
     S.contatos.forEach(function(c){ if (!Array.isArray(c.msgs)) c.msgs = []; if (!c.nome) c.nome = c.tel || 'Sem nome'; if (!c.etapa) c.etapa = 'Novo contato'; if (!c.status) c.status = 'entrada'; if (!c.canal) c.canal = 'WhatsApp'; if (!c.tipo) c.tipo = 'Lead'; });
     if (S.msgsCanal.Presencial == null) S.msgsCanal.Presencial = 0;
     var perfil = null; try { perfil = JSON.parse(localStorage.getItem('abertocore-perfil-v1')); } catch (e) {}
-    if (perfil && perfil.catalogo === false) { S.prox.p = Math.max(S.prox.p || 1, maxId(S.produtos) + 1); return S; } // empresa com catálogo próprio (ex.: salão)
+    var nomeEmp = ''; try { nomeEmp = localStorage.getItem('abertocore-empresa-nome') || ''; } catch (e) {}
+    var outraEmpresa = !!nomeEmp && !/^abertodigital$/i.test(nomeEmp.trim()); // catálogo da agência só na abertodigital e na demonstração
+    if (outraEmpresa && !(perfil && perfil.catalogo === false)) {
+      // conta de cliente que recebeu o catálogo da agência por engano: tira só esses itens (mesmo nome e tipo)
+      S.produtos = S.produtos.filter(function(x){ return !PRODUTOS_BASE.some(function(p){ return p.nome === x.nome && p.tipo === x.tipo; }); });
+    }
+    if ((perfil && perfil.catalogo === false) || outraEmpresa) { S.prox.p = Math.max(S.prox.p || 1, maxId(S.produtos) + 1); return S; } // empresa com catálogo próprio (ex.: salão)
     var migra = (S.catalogoV || 1) < CATALOGO_VERSAO;
     PRODUTOS_BASE.forEach(function(p){
       var ex = S.produtos.filter(function(x){ return x.nome === p.nome; })[0];

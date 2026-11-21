@@ -114,3 +114,42 @@ routerAdd("POST", "/api/abertocore/convite", (e) => {
   e.app.save(c)
   return $apis.recordAuthResponse(e, u, "password", null)
 })
+
+// endereço e aparência da página de agendamento de uma empresa cliente (só a equipe da abertodigital)
+//   fica em empresas.perfil.agenda = { dominio, slug, marca:{ topo, cor, fundo, fonte, logo } }
+routerAdd("GET", "/api/abertocore/admin/agenda-marca", (e) => {
+  function agencia(app, auth) {
+    if (!auth || auth.getString("papel") === "equipe") return false
+    try { return app.findRecordById("empresas", auth.getString("empresa")).getString("nome") === "abertodigital" } catch (er) { return false }
+  }
+  if (!agencia(e.app, e.auth)) throw new ForbiddenError("Só a equipe da abertodigital.")
+  let emp; try { emp = e.app.findRecordById("empresas", e.request.url.query().get("empresa")) } catch (x) { throw new NotFoundError("Empresa não encontrada.") }
+  let p = {}; try { p = JSON.parse(emp.getString("perfil") || "{}") || {} } catch (x) {}
+  return e.json(200, { agenda: p.agenda || {}, site: p.site || "" })
+}, $apis.requireAuth("users"))
+
+routerAdd("POST", "/api/abertocore/admin/agenda-marca", (e) => {
+  function agencia(app, auth) {
+    if (!auth || auth.getString("papel") === "equipe") return false
+    try { return app.findRecordById("empresas", auth.getString("empresa")).getString("nome") === "abertodigital" } catch (er) { return false }
+  }
+  if (!agencia(e.app, e.auth)) throw new ForbiddenError("Só a equipe da abertodigital.")
+  const b = e.requestInfo().body || {}
+  let emp; try { emp = e.app.findRecordById("empresas", String(b.empresa || "")) } catch (x) { throw new NotFoundError("Empresa não encontrada.") }
+  const dom = String(b.dominio || "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/[\/:?#].*$/, "").replace(/\.$/, "")
+  if (dom && !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(dom)) throw new BadRequestError("Endereço inválido. Exemplo: agendar.seusite.com.br")
+  const slug = String(b.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40)
+  const m = b.marca || {}, cor = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || "")) ? String(v) : "")
+  const logo = String(m.logo || "")
+  const marca = {
+    topo: cor(m.topo), cor: cor(m.cor), fundo: cor(m.fundo),
+    fonte: ["moderna", "elegante", "classica", "suave"].indexOf(m.fonte) >= 0 ? m.fonte : "moderna",
+    logo: /^data:image\/(png|jpeg|webp|svg\+xml);base64,/.test(logo) && logo.length < 400000 ? logo : "",
+  }
+  Object.keys(marca).forEach((k) => { if (!marca[k]) delete marca[k] })
+  let p = {}; try { p = JSON.parse(emp.getString("perfil") || "{}") || {} } catch (x) {}
+  p.agenda = { dominio: dom, slug: slug, marca: marca }
+  emp.set("perfil", p)
+  e.app.save(emp)
+  return e.json(200, { ok: true, agenda: p.agenda })
+}, $apis.requireAuth("users"))

@@ -272,7 +272,10 @@
   .compor .clip:hover{background:var(--fundo,#f3f5f9)}
   .msg a.anexo-msg{display:inline-block;margin-top:4px;padding:6px 10px;border-radius:8px;background:rgba(47,111,237,.1);color:inherit;text-decoration:none;font-weight:600}
   .doc-bts{display:flex;gap:6px;flex:none}
-  .arq-modal{min-width:min(520px,86vw)}
+  .arq-modal{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+  dialog:has(.arq-modal){width:min(540px,calc(100vw - 28px));overflow-x:hidden}
+  .arq-modal *{box-sizing:border-box}
+  .arq-aviso{font-size:13px;color:var(--sec);margin:12px 0 0}
   .arq-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
   .arq-cab h3{margin:0}
   .arq-cab small{display:block;color:var(--sec);font-size:13px;margin-top:2px}
@@ -678,9 +681,9 @@
 <dialog id="modal"></dialog>
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
-<script src="core/i18n.js?v=2"></script>
-<script src="core/dados.js"></script>
-<script src="core/nuvem.js?v=11"></script>
+<script src="core/i18n.js?v=3"></script>
+<script src="core/dados.js?v=2"></script>
+<script src="core/nuvem.js?v=12"></script>
 <script>
 (function(){
   'use strict';
@@ -1377,8 +1380,37 @@
         '<div class="campo" id="admNovaC" hidden><label for="admN">Nome da empresa nova</label><input id="admN" autocomplete="off" maxlength="80" placeholder="Ex.: Auto Center Lima"></div>' +
         '<div class="campo"><label for="admP">Acesso</label><select id="admP"><option value="dono">Dono</option><option value="equipe">Equipe</option></select></div></div>' +
         '<div class="campo"><label for="admM">E-mail da pessoa</label><input id="admM" type="email" required autocomplete="off" placeholder="nome@exemplo.com"></div>' +
-        '<button class="btn pri" type="submit">Criar acesso e gerar link</button></form><div id="admR"></div>';
+        '<button class="btn pri" type="submit">Criar acesso e gerar link</button></form><div id="admR"></div>' +
+        '<h2 style="margin-top:26px">Página de agendamento do cliente</h2><p class="nota-bot">Endereço e aparência ficam por nossa conta: a empresa cliente só vê o link pronto. Monte junto com o site dela, mesmo que o plano ainda não use.</p>' +
+        '<div class="campo"><label for="amE">Empresa</label><select id="amE">' + L.filter(function(e){ return !/^abertodigital$/i.test(e.nome); }).map(function(e){ return '<option value="' + e.id + '">' + esc(e.nome) + '</option>'; }).join('') + '</select></div>' +
+        '<div id="amBox"><p class="nota-bot">Carregando…</p></div>';
       var alvo = $('.ajustes'); if (!alvo || $('#admCli')) return; alvo.appendChild(box);
+      function cargaMarca(){
+        var id = $('#amE').value, bx = $('#amBox'); if (!id){ bx.innerHTML = '<p class="nota-bot">Crie uma empresa cliente primeiro.</p>'; return; }
+        bx.innerHTML = '<p class="nota-bot">Carregando…</p>';
+        N.req('GET', '/api/abertocore/admin/agenda-marca?empresa=' + encodeURIComponent(id)).then(function(j){
+          var ag = j.agenda || {}, m = ag.marca || {}, logo = m.logo || '';
+          var sug = ''; var site = limpaDominio(j.site || ''); if (site) sug = 'agendar.' + site.replace(/^www\./, '');
+          bx.innerHTML = '<div class="duas"><div class="campo"><label for="amD">Endereço da página</label><input id="amD" value="' + esc(ag.dominio || '') + '" placeholder="' + esc(sug || 'agendar.dominiodela.com.br') + '" autocomplete="off" inputmode="url"></div>' +
+            '<div class="campo"><label for="amS">Link reserva (sem domínio)</label><input id="amS" value="' + esc(ag.slug || '') + '" placeholder="nome-da-empresa" autocomplete="off"></div></div>' +
+            '<p class="nota-bot">Português: <b>agendar.</b>dominio.com.br · Inglês: <b>book.</b>company.com. No DNS do cliente, um CNAME com esse nome apontando para <b>api.abertodigital.com</b>. O HTTPS liga sozinho no primeiro acesso.</p>' +
+            '<div class="ag-marca"><div class="ag-logo" id="amLogoBox">' + (logo ? '<img src="' + esc(logo) + '" alt="Logo">' : '<span>Sem logo</span>') + '</div>' +
+            '<div class="bts-l" style="margin:0"><label class="btn" for="amLogo">Enviar logo</label><input type="file" id="amLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden><button class="btn" type="button" id="amLogoTira"' + (logo ? '' : ' hidden') + '>Remover</button></div></div>' +
+            '<div class="ag-cores">' + [['topo','Topo da página','#1E3050'],['cor','Botões e destaques','#2F6FED'],['fundo','Fundo','#F4F6FA']].map(function(c){ return '<label class="ag-cor"><input type="color" data-amcor="' + c[0] + '" value="' + esc(m[c[0]] || c[2]) + '"><span>' + c[1] + '</span></label>'; }).join('') + '</div>' +
+            '<div class="campo"><label for="amF">Estilo das letras</label><select id="amF">' + AG_FONTES.map(function(f){ return '<option value="' + f[0] + '"' + ((m.fonte || 'moderna') === f[0] ? ' selected' : '') + '>' + f[1] + ' (' + f[2] + ')</option>'; }).join('') + '</select></div>' +
+            '<button class="btn pri" type="button" id="amSalva">Salvar página do cliente</button>';
+          $('#amLogo').onchange = function(){ lerLogo(this.files[0]).then(function(u){ logo = u; $('#amLogoBox').innerHTML = '<img src="' + u + '" alt="Logo">'; $('#amLogoTira').hidden = false; }, function(e){ aviso(esc(e.message)); }); };
+          $('#amLogoTira').onclick = function(){ logo = ''; $('#amLogoBox').innerHTML = '<span>Sem logo</span>'; this.hidden = true; };
+          $('#amSalva').onclick = function(){
+            var bt = this, marca = {fonte:$('#amF').value, logo:logo}, pad = {topo:'#1e3050', cor:'#2f6fed', fundo:'#f4f6fa'};
+            $$('[data-amcor]').forEach(function(x){ var k = x.getAttribute('data-amcor'); if (x.value.toLowerCase() !== pad[k]) marca[k] = x.value; });
+            bt.disabled = true;
+            N.req('POST', '/api/abertocore/admin/agenda-marca', {empresa:id, dominio:limpaDominio($('#amD').value), slug:slugify($('#amS').value), marca:marca})
+              .then(function(){ aviso('Página de agendamento salva.'); }).catch(function(err){ aviso(esc(err.message)); }).then(function(){ bt.disabled = false; });
+          };
+        }).catch(function(err){ bx.innerHTML = '<p class="nota-bot">' + esc(err.message) + '</p>'; });
+      }
+      $('#amE').onchange = cargaMarca; cargaMarca();
       $('#admE').onchange = function(){ $('#admNovaC').hidden = this.value !== '__nova'; if (this.value === '__nova') $('#admN').focus(); };
       $('#admF').onsubmit = function(ev){
         ev.preventDefault();
@@ -1575,7 +1607,7 @@
       resumoIA(c) +
       '<div class="fio" id="fio">' + html + '</div>' +
       '<div class="compor">' +
-        '<form class="linha" id="fEnvia">' + (viaDe(c) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
+        '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
     var ultF = fio.scrollTop, travaF = 0;
@@ -1701,7 +1733,7 @@
   }
   function modalArquivos(cid){
     var c = contato(cid), M = $('#modal'); if (!c) return;
-    var temA = !!c.auditoria, temP = !!c.proposta && !BELEZA;
+    var pode = !!viaDe(c), ag = ehAgencia(), temA = ag && pode && !!c.auditoria, temP = ag && pode && !!c.proposta && !BELEZA;
     M.innerHTML = '<form method="dialog" id="fArq" class="arq-modal">' +
       '<div class="arq-cab"><div><h3>Enviar arquivo</h3><small>para ' + esc(c.nome) + '</small></div><button class="arq-x" value="cancelar" formnovalidate aria-label="Fechar" autofocus>✕</button></div>' +
       ((temA || temP) && !BELEZA ? '<div class="arq-rap">' +
@@ -1709,13 +1741,13 @@
         (temP ? '<button type="button" class="arq-doc" data-doc="proposta"><span class="ic">📄</span><span><b>Proposta</b><small>Gera o PDF e envia com link</small></span></button>' : '') + '</div>' : '') +
       '<div class="arq-tit">Biblioteca</div><div id="arqLista" class="arq-lista"><div class="arq-vazio">Carregando…</div></div>' +
       '<label class="arq-sobe">⬆️ Adicionar arquivo à biblioteca<input type="file" id="arqNovo" hidden accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.mp4,.mp3,.ogg"></label>' +
-      '<input id="arqTxt" class="arq-txt" autocomplete="off" placeholder="Mensagem junto com o arquivo (opcional)">' +
+      (pode ? '<input id="arqTxt" class="arq-txt" autocomplete="off" placeholder="Mensagem junto com o arquivo (opcional)">' : '<p class="arq-aviso">Conecte o WhatsApp, o Instagram, o Messenger ou o e-mail em Canais para enviar arquivos a este contato. A biblioteca já pode ser montada.</p>') +
       '</form>';
     function lista(){
       Nuvem.arquivos("tipo = 'biblioteca'").then(function(L){
         $('#arqLista').innerHTML = L.length ? L.map(function(a){
           return '<div class="arq-it"><a href="' + esc(Nuvem.urlArquivo(a)) + '" target="_blank" rel="noopener" class="nm">📎 ' + esc(a.nome) + '</a>' +
-            '<button type="button" class="btn peq pri" data-env="' + a.id + '">Enviar</button><button type="button" class="btn peq" data-del="' + a.id + '" aria-label="Apagar ' + esc(a.nome) + '">✕</button></div>';
+            (pode ? '<button type="button" class="btn peq pri" data-env="' + a.id + '">Enviar</button>' : '') + '<button type="button" class="btn peq" data-del="' + a.id + '" aria-label="Apagar ' + esc(a.nome) + '">✕</button></div>';
         }).join('') : '<div class="arq-vazio">Nenhum arquivo ainda. Adicione catálogo, tabela de preços, portfólio…</div>';
         M._L = L;
       }).catch(function(err){ $('#arqLista').innerHTML = '<div class="arq-vazio">' + esc(err.message) + '</div>'; });
@@ -1736,7 +1768,7 @@
     M.onclose = function(){ M.onclick = null; M.onclose = null; };
     M.returnValue = ''; M.showModal();
     var x = M.querySelector('.arq-x'); if (x) x.focus();
-    $('#arqTxt').onkeydown = function(e){ if (e.key === 'Enter') e.preventDefault(); };
+    if ($('#arqTxt')) $('#arqTxt').onkeydown = function(e){ if (e.key === 'Enter') e.preventDefault(); };
   }
 
   function desenhaDetalhe(){
@@ -1921,25 +1953,32 @@
   function slugify(t){ return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
   function agCfg(){
     var a = Object.assign({}, AG_PADRAO, S.agenda || {});
+    // endereço e aparência definidos pela abertodigital ao montar a conta valem sobre o que está salvo aqui
+    var pf = null; try { pf = JSON.parse(localStorage.getItem('abertocore-perfil-v1')); } catch (e){}
+    var fx = pf && pf.agenda || {};
+    if (fx.dominio) a.dominio = fx.dominio;
+    if (fx.slug) a.slug = fx.slug;
+    if (fx.marca && typeof fx.marca === 'object') a.marca = fx.marca;
     if (!a.slug) a.slug = slugify(CONFIG.empresa || 'minha-empresa');
     return a;
   }
   function linkAgenda(a){ var d = limpaDominio(a.dominio); return d ? 'https://' + d + '/' : 'https://app.abertodigital.com/agendar/?e=' + encodeURIComponent(a.slug); }
   function vAgendamento(){
-    var a = agCfg(), N = window.Nuvem, logado = N && N.logado && N.logado();
+    var a = agCfg(), N = window.Nuvem, logado = N && N.logado && N.logado(), tec = !logado || ehAgencia(); // endereço e aparência: só a equipe da abertodigital
     var emailOk = N && N.canalLigado ? N.canalLigado('email') : false;
     var servs = S.produtos.filter(function(p){ return p.ativo !== false; });
     function chips(nome, lista){ return '<div class="ag-chips">' + AG_ANTEC.map(function(o){ return '<label class="ag-chip"><input type="checkbox" data-' + nome + '="' + o[0] + '"' + (lista.indexOf(o[0]) >= 0 ? ' checked' : '') + '><span>' + o[1] + '</span></label>'; }).join('') + '</div>'; }
     $('#vista').innerHTML = '<div class="ajustes ag-cfg">' +
       '<section class="painel"><div class="linha-ch"><div><h2 style="margin:0">Agendamento online</h2><div class="nota-bot">Uma página para o cliente escolher o serviço, o dia e o horário livre. O horário entra na sua Agenda e o cliente vira contato.</div></div>' +
         '<button class="chave" role="switch" id="agAtivo" aria-checked="' + !!a.ativo + '" aria-label="Agendamento online ligado"></button></div>' +
-        '<div class="campo" style="margin-top:14px"><label for="agSlug">Endereço da sua página</label><div class="ag-link"><span>app.abertodigital.com/agendar/?e=</span><input id="agSlug" value="' + esc(a.slug) + '" autocomplete="off"></div></div>' +
+        (tec ? '<div class="campo" style="margin-top:14px"><label for="agSlug">Endereço da sua página</label><div class="ag-link"><span>app.abertodigital.com/agendar/?e=</span><input id="agSlug" value="' + esc(a.slug) + '" autocomplete="off"></div></div>' +
         '<div class="campo"><label for="agDom">Endereço próprio <span class="nota-bot">(recomendado)</span></label><input id="agDom" value="' + esc(a.dominio || '') + '" placeholder="agendar.seusite.com.br" autocomplete="off" inputmode="url"></div>' +
-        '<p class="nota-bot">A página abre no endereço da sua marca. No painel do seu domínio, crie um registro <b>CNAME</b> com nome <b>agendar</b> apontando para <b>api.abertodigital.com</b>. O HTTPS é ativado sozinho no primeiro acesso.</p>' +
+        '<p class="nota-bot">A página abre no endereço da sua marca. No painel do seu domínio, crie um registro <b>CNAME</b> com nome <b>agendar</b> apontando para <b>api.abertodigital.com</b>. O HTTPS é ativado sozinho no primeiro acesso.</p>'
+        : '<div class="campo" style="margin-top:14px"><label>Endereço da sua página</label><div class="link-conv" data-sem-traducao>' + esc(linkAgenda(a).replace(/^https:\/\//, '').replace(/\/$/, '')) + '</div></div>') +
         '<div class="bts-l"><button class="btn" id="agCopia" type="button">Copiar link</button><a class="btn" id="agAbre" target="_blank" rel="noopener" href="' + esc(linkAgenda(a)) + '">Abrir página</a></div>' +
         (logado ? '' : '<p class="aviso-dup" style="margin-top:12px">Na demonstração a página não recebe agendamentos. Entre na sua conta para ativar.</p>') +
       '</section>' +
-      '<section class="painel"><h2>Aparência da página</h2><p class="nota-bot">Use a cara da sua marca: o cliente agenda sem sentir que saiu do seu site.</p>' +
+      (tec ? '<section class="painel"><h2>Aparência da página</h2><p class="nota-bot">Use a cara da sua marca: o cliente agenda sem sentir que saiu do seu site.</p>' +
         '<div class="ag-marca"><div class="ag-logo" id="agLogoBox">' + (a.marca && a.marca.logo ? '<img src="' + esc(a.marca.logo) + '" alt="Logo">' : '<span>Sem logo</span>') + '</div>' +
           '<div class="bts-l" style="margin:0"><label class="btn" for="agLogo">Enviar logo</label><input type="file" id="agLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>' +
           '<button class="btn" type="button" id="agLogoTira"' + (a.marca && a.marca.logo ? '' : ' hidden') + '>Remover</button></div></div>' +
@@ -1948,7 +1987,7 @@
           return '<label class="ag-cor"><input type="color" data-cor="' + c[0] + '" value="' + esc(v) + '"><span>' + c[1] + '</span></label>';
         }).join('') + '</div>' +
         '<div class="campo"><label for="agFonte">Estilo das letras</label><select id="agFonte">' + AG_FONTES.map(function(f){ return '<option value="' + f[0] + '"' + (((a.marca && a.marca.fonte) || 'moderna') === f[0] ? ' selected' : '') + '>' + f[1] + ' (' + f[2] + ')</option>'; }).join('') + '</select></div>' +
-        '<button class="btn" type="button" id="agMarcaPadrao">Voltar às cores do AbertoCore</button></section>' +
+        '<button class="btn" type="button" id="agMarcaPadrao">Voltar às cores do AbertoCore</button></section>' : '') +
       '<section class="painel"><h2>Confirmação</h2><div class="seg" id="agConf">' +
         '<button type="button" data-c="auto" aria-pressed="' + (a.confirmacao !== 'manual') + '">Automática</button><button type="button" data-c="manual" aria-pressed="' + (a.confirmacao === 'manual') + '">Eu aprovo cada pedido</button></div>' +
         '<p class="nota-bot" style="margin-top:8px">' + (a.confirmacao === 'manual' ? 'O pedido fica pendente na sua Agenda até você confirmar. O cliente recebe a resposta por e-mail.' : 'O horário livre escolhido pelo cliente já fica confirmado.') + '</p></section>' +
@@ -1975,15 +2014,18 @@
     $('#agAtivo').onclick = function(){ this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true'); };
     $$('[data-dia]').forEach(function(cb){ cb.onchange = function(){ var d = cb.getAttribute('data-dia'); $('[data-ini="' + d + '"]').disabled = $('[data-fim="' + d + '"]').disabled = !cb.checked; }; });
     var logoNovo = a.marca && a.marca.logo || '';
-    function linkAtual(){ return linkAgenda({slug:slugify($('#agSlug').value), dominio:$('#agDom').value}); }
+    function linkAtual(){ return tec ? linkAgenda({slug:slugify($('#agSlug').value), dominio:$('#agDom').value}) : linkAgenda(a); }
+    $('#agCopia').onclick = function(){ var l = linkAtual(); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
+    if (tec){
     $('#agSlug').oninput = $('#agDom').oninput = function(){ $('#agAbre').href = linkAtual(); };
     $('#agLogo').onchange = function(){ lerLogo(this.files[0]).then(function(u){ logoNovo = u; $('#agLogoBox').innerHTML = '<img src="' + u + '" alt="Logo">'; $('#agLogoTira').hidden = false; }, function(e){ aviso(esc(e.message)); }); };
     $('#agLogoTira').onclick = function(){ logoNovo = ''; $('#agLogoBox').innerHTML = '<span>Sem logo</span>'; this.hidden = true; };
     $('#agMarcaPadrao').onclick = function(){ $$('[data-cor]').forEach(function(x){ x.value = {topo:'#1E3050', cor:'#2F6FED', fundo:'#F4F6FA'}[x.getAttribute('data-cor')]; }); $('#agFonte').value = 'moderna'; };
-    $('#agCopia').onclick = function(){ var l = linkAtual(); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
+    }
     $('#agSalva').onclick = function(){
       var n = Object.assign({}, a);
       n.ativo = $('#agAtivo').getAttribute('aria-checked') === 'true';
+      if (tec){
       n.slug = slugify($('#agSlug').value) || a.slug;
       n.dominio = limpaDominio($('#agDom').value);
       if (n.dominio && !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(n.dominio)){ aviso('Endereço próprio inválido. Exemplo: agendar.seusite.com.br'); return; }
@@ -1991,6 +2033,7 @@
       $$('[data-cor]').forEach(function(x){ n.marca[x.getAttribute('data-cor')] = x.value; });
       var pad = {topo:'#1e3050', cor:'#2f6fed', fundo:'#f4f6fa'};
       Object.keys(pad).forEach(function(k){ if (String(n.marca[k]).toLowerCase() === pad[k]) delete n.marca[k]; });
+      }
       n.confirmacao = $('#agConf [aria-pressed="true"]').getAttribute('data-c');
       n.dias = {}; $$('[data-dia]').forEach(function(cb){ var d = cb.getAttribute('data-dia'); if (cb.checked){ var i = $('[data-ini="' + d + '"]').value, f = $('[data-fim="' + d + '"]').value; if (i && f && i < f) n.dias[d] = [{ini:i, fim:f}]; } });
       n.passo = +$('#agPasso').value; n.intervalo = +$('#agInt').value; n.antecedenciaH = +$('#agAnt').value; n.limiteDias = +$('#agLim').value;

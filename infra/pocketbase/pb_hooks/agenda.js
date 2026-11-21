@@ -14,19 +14,31 @@ const PADRAO = {
 }
 const FONTES = ["moderna", "elegante", "classica", "suave"]
 
+// endereço e aparência definidos pela equipe da abertodigital (empresas.perfil.agenda) valem sobre o que a empresa salvou
+function junta(app, empresaId, a) {
+  const ag = Object.assign({}, PADRAO, a || {})
+  try {
+    let p = {}; try { p = JSON.parse(app.findRecordById("empresas", empresaId).getString("perfil") || "{}") || {} } catch (x) {}
+    const f = p.agenda || {}
+    if (f.dominio) ag.dominio = f.dominio
+    if (f.slug) ag.slug = f.slug
+    if (f.marca && typeof f.marca === "object") ag.marca = f.marca
+  } catch (e) {}
+  return ag
+}
 function cfg(app, empresaId) {
   let rec = null
   try { rec = app.findFirstRecordByFilter("configuracoes", "empresa = {:e}", { e: empresaId }) } catch (e) {}
   const d = rec ? W.lerDados(rec) : {}
-  return Object.assign({}, PADRAO, d.agenda || {})
+  return junta(app, empresaId, d.agenda)
 }
 function porSlug(app, slug) {
   slug = String(slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60)
   if (!slug) return null
   const L = app.findRecordsByFilter("configuracoes", "id != ''", "", 0, 0)
   for (let i = 0; i < L.length; i++) {
-    const a = (W.lerDados(L[i]).agenda) || {}
-    if (a.ativo && String(a.slug || "").toLowerCase() === slug) return { empresaId: L[i].getString("empresa"), ag: Object.assign({}, PADRAO, a) }
+    const a = junta(app, L[i].getString("empresa"), W.lerDados(L[i]).agenda)
+    if (a.ativo && String(a.slug || "").toLowerCase() === slug) return { empresaId: L[i].getString("empresa"), ag: a }
   }
   return null
 }
@@ -39,8 +51,8 @@ function porDominio(app, host) {
   if (!host || host.indexOf(".") < 0) return null
   const L = app.findRecordsByFilter("configuracoes", "id != ''", "", 0, 0)
   for (let i = 0; i < L.length; i++) {
-    const a = (W.lerDados(L[i]).agenda) || {}
-    if (a.ativo && a.slug && limpaDominio(a.dominio) === host) return { empresaId: L[i].getString("empresa"), ag: Object.assign({}, PADRAO, a) }
+    const a = junta(app, L[i].getString("empresa"), W.lerDados(L[i]).agenda)
+    if (a.ativo && a.slug && limpaDominio(a.dominio) === host) return { empresaId: L[i].getString("empresa"), ag: a }
   }
   return null
 }

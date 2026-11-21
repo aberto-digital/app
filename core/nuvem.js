@@ -135,6 +135,14 @@
         // Servidor vazio: envia o que está neste navegador (se houver)
         var local = ler(CHAVE) || {};
         var n = (local.contatos || []).length;
+        var nm = localStorage.getItem('abertocore-empresa-nome') || '';
+        if (nm && !/^abertodigital$/i.test(nm.trim())) {
+          // empresa cliente nova: começa vazia, sem os dados da demonstração nem o catálogo da abertodigital
+          aplicandoRemoto = true;
+          gravar(CHAVE, { contatos: [], eventos: [], produtos: [], ia: { ativo: true, nome: 'Assistente', tom: 'Próximo e direto', horario: '', base: '', humano: true, agendar: true }, msgsCanal: {}, prox: { c: 1, e: 1, p: 1 } });
+          aplicandoRemoto = false;
+          return enviarAgora(true).then(function () { marca('ok'); return 'vazio'; });
+        }
         var levar = n && confirm('A conta ainda está vazia no servidor.\n\nEste navegador tem ' + n + ' contatos (podem ser os dados de exemplo da demonstração).\n\nOK = enviar esses contatos para o servidor\nCancelar = começar com o sistema vazio (mantém produtos e configurações)');
         if (!levar) {
           aplicandoRemoto = true;

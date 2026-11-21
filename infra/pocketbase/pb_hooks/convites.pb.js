@@ -19,6 +19,30 @@ routerAdd("GET", "/api/abertocore/admin/empresas", (e) => {
   return e.json(200, { empresas: lista })
 }, $apis.requireAuth("users"))
 
+// cria uma empresa cliente nova (vazia), para depois gerar o acesso dela
+routerAdd("POST", "/api/abertocore/admin/empresa", (e) => {
+  function agencia(app, auth) {
+    if (!auth || auth.getString("papel") === "equipe") return false
+    try { return app.findRecordById("empresas", auth.getString("empresa")).getString("nome") === "abertodigital" } catch (er) { return false }
+  }
+  if (!agencia(e.app, e.auth)) throw new ForbiddenError("Só a equipe da abertodigital.")
+  const b = e.requestInfo().body || {}
+  const nome = String(b.nome || "").replace(/\s+/g, " ").trim().slice(0, 80)
+  const plano = ["Start", "Presença", "Completo", "Piloto", "Teste"].indexOf(b.plano) >= 0 ? b.plano : "Completo"
+  if (nome.length < 2) throw new BadRequestError("Informe o nome da empresa.")
+  try { e.app.findFirstRecordByFilter("empresas", "nome = {:n}", { n: nome }); throw new BadRequestError("Já existe uma empresa com esse nome.") } catch (er) { if (er instanceof BadRequestError) throw er }
+  const emp = new Record(e.app.findCollectionByNameOrId("empresas"))
+  emp.set("nome", nome)
+  emp.set("plano", plano)
+  emp.set("ativa", true)
+  e.app.save(emp)
+  const conf = new Record(e.app.findCollectionByNameOrId("configuracoes"))
+  conf.set("empresa", emp.id)
+  conf.set("dados", { msgsCanal: {}, prox: { c: 1, e: 1, p: 1 } })
+  e.app.save(conf)
+  return e.json(200, { id: emp.id, nome: nome, plano: plano })
+}, $apis.requireAuth("users"))
+
 routerAdd("POST", "/api/abertocore/admin/acesso", (e) => {
   function agencia(app, auth) {
     if (!auth || auth.getString("papel") === "equipe") return false

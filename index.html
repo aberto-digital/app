@@ -1364,15 +1364,21 @@
       var L = j.empresas || [];
       box.innerHTML = '<h2>Clientes no AbertoCore</h2><p class="nota-bot">Crie o acesso e mande o link para a pessoa. Ela mesma cria a senha (o link vale 7 dias e funciona uma vez).</p>' +
         L.map(function(e){ return '<div class="adm-emp"><b>' + esc(e.nome) + '</b> ' + (e.plano ? '<span class="chip">' + esc(e.plano) + '</span>' : '') + '<small>' + (e.usuarios.length ? e.usuarios.map(function(x){ return esc(x.email) + ' (' + esc(x.papel || 'dono') + ')'; }).join(', ') : 'Ninguém com acesso ainda') + '</small></div>'; }).join('') +
-        '<form id="admF" style="margin-top:14px"><div class="duas"><div class="campo"><label for="admE">Empresa</label><select id="admE">' + L.map(function(e){ return '<option value="' + e.id + '">' + esc(e.nome) + '</option>'; }).join('') + '</select></div>' +
+        '<form id="admF" style="margin-top:14px"><div class="duas"><div class="campo"><label for="admE">Empresa</label><select id="admE">' + L.map(function(e){ return '<option value="' + e.id + '">' + esc(e.nome) + '</option>'; }).join('') + '<option value="__nova">+ Nova empresa…</option></select></div>' +
+        '<div class="campo" id="admNovaC" hidden><label for="admN">Nome da empresa nova</label><input id="admN" autocomplete="off" maxlength="80" placeholder="Ex.: Auto Center Lima"></div>' +
         '<div class="campo"><label for="admP">Acesso</label><select id="admP"><option value="dono">Dono</option><option value="equipe">Equipe</option></select></div></div>' +
         '<div class="campo"><label for="admM">E-mail da pessoa</label><input id="admM" type="email" required autocomplete="off" placeholder="nome@exemplo.com"></div>' +
         '<button class="btn pri" type="submit">Criar acesso e gerar link</button></form><div id="admR"></div>';
       var alvo = $('.ajustes'); if (!alvo || $('#admCli')) return; alvo.appendChild(box);
+      $('#admE').onchange = function(){ $('#admNovaC').hidden = this.value !== '__nova'; if (this.value === '__nova') $('#admN').focus(); };
       $('#admF').onsubmit = function(ev){
         ev.preventDefault();
         var bt = ev.target.querySelector('button'); bt.disabled = true;
-        N.req('POST', '/api/abertocore/admin/acesso', {empresa:$('#admE').value, email:$('#admM').value.trim(), papel:$('#admP').value}).then(function(r){
+        var nova = $('#admE').value === '__nova';
+        (nova ? N.req('POST', '/api/abertocore/admin/empresa', {nome:$('#admN').value.trim()}) : Promise.resolve({id:$('#admE').value})).then(function(emp){
+          if (nova){ var o = document.createElement('option'); o.value = emp.id; o.textContent = emp.nome; $('#admE').insertBefore(o, $('#admE').lastElementChild); $('#admE').value = emp.id; $('#admNovaC').hidden = true; }
+          return N.req('POST', '/api/abertocore/admin/acesso', {empresa:emp.id, email:$('#admM').value.trim(), papel:$('#admP').value});
+        }).then(function(r){
           var msg = 'Oi! Seu acesso ao AbertoCore (' + r.empresa + ') está pronto. Abra este link no celular, crie sua senha e pronto: ' + r.link;
           $('#admR').innerHTML = '<p class="nota-bot" style="margin-top:12px">' + (r.novo ? 'Acesso criado' : 'Novo link gerado') + ' para <b>' + esc(r.email) + '</b>.</p><div class="link-conv">' + esc(r.link) + '</div>' +
             '<div class="bts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn peq" id="admCp" type="button">Copiar mensagem</button><a class="btn peq" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">Enviar no WhatsApp</a></div>';

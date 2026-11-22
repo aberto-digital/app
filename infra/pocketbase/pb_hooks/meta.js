@@ -115,7 +115,10 @@ function processaWebhook(app, corpo) {
       d.msgs = W.unirMsgs(d.msgs, [nova])
       if (d.msgs.length === antes) return // repetida, ou eco de algo que o AbertoCore já gravou
       if (eco) {
-        d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + 12 * 3600000 })
+        // abordagem nossa (prospecção): a pessoa ainda não escreveu nada. A IA pode continuar quando ela responder.
+        const clienteJaFalou = (d.msgs || []).some((m) => m.de === "cli")
+        if (!clienteJaFalou) { d.prospeccao = true; d.tipo = d.tipo || "Lead" }
+        else d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + 12 * 3600000 })
         d.status = "esperando"
       } else {
         d.naoLidas = (d.naoLidas || 0) + 1

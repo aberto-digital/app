@@ -27,7 +27,9 @@ function decide(app, empresaId, rec, canalNome) {
   const agora = Date.now()
   // equipe escreveu há pouco? (ignora cópias de respostas da própria IA)
   const daIa = new Set((d.msgs || []).filter((m) => m.de === "ia").map((m) => m.txt))
-  if ((d.msgs || []).some((m) => m.de === "eq" && !daIa.has(m.txt) && agora - (m.ts || 0) < 30 * 60000)) return null
+  // só conta a equipe que respondeu depois que o cliente já falou (a abordagem de prospecção não tira a IA)
+  const msgs = d.msgs || [], primeiraCli = msgs.findIndex((m) => m.de === "cli")
+  if (msgs.some((m, i) => i > primeiraCli && primeiraCli >= 0 && m.de === "eq" && !daIa.has(m.txt) && agora - (m.ts || 0) < 30 * 60000)) return null
   if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return null
   if (d.iaPausa && agora < d.iaPausa) return null
   if (d.ignorado) return null // contato ignorado: a IA não responde
@@ -37,7 +39,9 @@ function decide(app, empresaId, rec, canalNome) {
   const sistema = [
     "Você é " + (at.nome || "o atendente virtual") + ", atendente de " + ctx.nome + " no " + canalNome + ". Responda em português do Brasil, " + curto + ", tom " + tom + ", como alguém da equipe.",
     "Use só as informações abaixo. Se não souber algo, diga que a equipe confirma em seguida. Nunca invente preços, prazos, descontos ou promessas.",
-    "Objetivo: tirar dúvidas, entender o que a pessoa precisa e levar ao próximo passo do negócio (por exemplo, marcar uma conversa ou uma avaliação).",
+    d.prospeccao
+      ? "Esta conversa começou com uma mensagem NOSSA de prospecção (a pessoa não nos procurou). Objetivo: aquecer o contato com calma. Responda ao que ela disse, mostre interesse genuíno pelo negócio dela, faça no máximo uma pergunta por vez e ofereça a auditoria gratuita ou uma conversa rápida de 15 minutos com a equipe de " + ctx.nome + ". Não despeje preços nem pacotes; fale de preço só se perguntarem, com os valores das informações. Não prometa resultados. Se ela disser que não tem interesse ou pedir para não receber mensagens, agradeça, peça desculpas pelo incômodo, diga que não vai mais mandar mensagens e marque parar = true. Marque chamar_equipe = true quando ela aceitar a auditoria ou a conversa, pedir proposta, preço fechado ou reunião."
+      : "Objetivo: tirar dúvidas, entender o que a pessoa precisa e levar ao próximo passo do negócio (por exemplo, marcar uma conversa ou uma avaliação).",
     at.agendar ? "Pode sugerir marcar um horário; a equipe confirma o horário exato." : "",
     at.horario ? "Horário de atendimento da equipe: " + limpa(at.horario, 300) : "",
     "Seja assertivo: responda primeiro exatamente o que foi perguntado, com os dados das informações abaixo (preço, prazo, como funciona). Depois faça no máximo UMA pergunta que avance a venda (ex.: qual o negócio, o que já tem hoje, quando quer começar).",
@@ -45,7 +49,7 @@ function decide(app, empresaId, rec, canalNome) {
     "Só diga que é o assistente virtual se for a primeira resposta da conversa ou se perguntarem; a equipe acompanha a conversa.",
     at.humano === false ? "" : "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa. Mesmo assim, responda na mesma mensagem tudo o que as informações abaixo permitem.",
     (d.iaChamou && agora - d.iaChamou < 12 * 3600000) ? "A equipe JÁ foi avisada nesta conversa. Continue respondendo as dúvidas objetivas (preço, opções, prazos, como funciona) com as informações abaixo; não ofereça de novo falar com a equipe e não repita que vai chamar alguém. Se não souber, diga que a equipe responde em breve." : "",
-    'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
+    'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"parar":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
     "", "Informações do negócio:", limpa(at.base || ctx.base, 3000),
   ].filter(Boolean).join("\n")
   let r
@@ -53,7 +57,7 @@ function decide(app, empresaId, rec, canalNome) {
   catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return null }
   const texto = limpa(r && r.resposta, canalNome === "E-mail" ? 4000 : 1000)
   if (!texto) return null
-  return { texto: texto, chamar: !!r.chamar_equipe, motivo: limpa(r.motivo, 160), crm: (r.crm && typeof r.crm === "object") ? r.crm : null, ctx: ctx }
+  return { texto: texto, chamar: !!r.chamar_equipe, parar: !!r.parar, motivo: limpa(r.motivo, 160), crm: (r.crm && typeof r.crm === "object") ? r.crm : null, ctx: ctx }
 }
 
 // Grava a resposta da IA na conversa (e o aviso para a equipe, se for o caso).
@@ -75,6 +79,9 @@ function registra(app, rec, r, extra) {
   const jaAvisou = d.iaChamou && Date.now() - d.iaChamou < 6 * 3600000
   if (r.chamar && !jaAvisou) d.iaChamou = Date.now()
   if (r.chamar) d.status = "entrada"
+  if (r.parar) { // pediu para não receber mensagens: perdido e ignorado (sem avisos, sem IA)
+    d.optout = true; d.ignorado = true; d.etapa = "Perdido"; d.motivoPerda = "Pediu para não receber mensagens"; d.status = "finalizado"
+  }
   if (r.chamar && !jaAvisou) {
     try {
       const col = app.findCollectionByNameOrId("ia_chat")

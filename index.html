@@ -452,6 +452,9 @@
   .ia-st.on{background:#E3F4EA;color:#1F7A45}.ia-st svg{width:16px;height:16px}
   .alerta-ia{display:flex;gap:8px;font-size:12.5px;line-height:1.45;background:#FFF6E0;color:#6B4E00;border-radius:10px;padding:10px 12px;margin:4px 0 14px}.alerta-ia svg{flex:none;width:16px;height:16px;margin-top:1px}
   .botoes-ia{display:flex;gap:8px;flex-wrap:wrap}
+  .via-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--sec);padding:6px 12px 0}
+  .via-sel button{font:inherit;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--linha);background:var(--branco);color:var(--sec);cursor:pointer}
+  .via-sel button[aria-checked=true]{background:var(--azul,#0F1B2D);border-color:transparent;color:#fff}
   .fonte-ia{margin-top:16px}.fonte-ia textarea{width:100%;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--linha);border-radius:8px;background:var(--branco);color:inherit}
   .uso-ia{font-size:12.5px;color:var(--sec);margin:12px 0 0}
   .resumo-ia{background:var(--papel);border-radius:10px;padding:12px 14px;margin:12px 0 10px}.resumo-ia .rt{font-weight:600;font-size:13px;margin-bottom:4px}.resumo-ia .rx{white-space:pre-wrap;font-size:13.5px;line-height:1.5}
@@ -1627,6 +1630,7 @@
       resumoIA(c) +
       '<div class="fio" id="fio">' + html + iaQuietaHtml(c) + '</div>' +
       '<div class="compor">' +
+        (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel" role="radiogroup" aria-label="Responder por">Responder por ' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</div>' : ''; })() +
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
@@ -1696,6 +1700,7 @@
         }).catch(function(err){ b.disabled = false; b.textContent = 'Atualizar resumo'; aviso(esc(err.message)); });
       }, 800);
     };
+    box.querySelectorAll('.via-sel [data-via]').forEach(function(b){ b.onclick = function(){ c.via = b.getAttribute('data-via'); salva(); box.querySelectorAll('.via-sel [data-via]').forEach(function(x){ x.setAttribute('aria-checked', x === b); }); }; });
     $('#fEnvia').addEventListener('submit', function(e){
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
       var via = viaDe(c);
@@ -1706,7 +1711,7 @@
       desenhaLista(); desenhaConversa();
       if (via){
         var cid = c.id;
-        var envio = via === 'wa' ? Nuvem.enviarWhatsApp(cid, t, m.k) : via === 'em' ? Nuvem.enviarEmail(cid, t, m.k, c.assunto) : Nuvem.enviarSocial(cid, t, m.k);
+        var envio = via === 'wa' ? Nuvem.enviarWhatsApp(cid, t, m.k) : via === 'em' ? Nuvem.enviarEmail(cid, t, m.k, c.assunto) : Nuvem.enviarSocial(cid, t, m.k, via);
         envio.catch(function(err){
           var cc = contato(cid); if (!cc) return;
           cc.msgs.forEach(function(x){ if (x.k === m.k){ x.pend = undefined; x.erro = err.message; } });
@@ -1719,13 +1724,24 @@
     });
   }
   /* ---------- arquivos: biblioteca, PDFs e envio pelo canal da conversa ---------- */
+  // canais por onde dá para responder (contato juntado pode ter vários)
+  function viasDe(c){
+    var N = window.Nuvem && Nuvem.logado() ? Nuvem : null, sid = (c && c.social) || '', out = [];
+    if (!N || !c) return out;
+    var ids = c.ids || [];
+    var tem = function(p){ return ids.indexOf(p) >= 0 || sid.indexOf(p + ':') === 0; };
+    if ((c.canal === 'WhatsApp' || tem('wa')) && N.waConectado()) out.push('wa');
+    if (tem('ig') && N.canalLigado && N.canalLigado('instagram')) out.push('ig');
+    if (tem('fb') && N.canalLigado && N.canalLigado('messenger')) out.push('fb');
+    if (tem('em') && N.canalLigado && N.canalLigado('email')) out.push('em');
+    return out;
+  }
+  var NOME_VIA = {wa:'WhatsApp', ig:'Instagram', fb:'Messenger', em:'E-mail'};
   function viaDe(c){
-    var N = window.Nuvem && Nuvem.logado() ? Nuvem : null, sid = (c && c.social) || '';
-    if (!N || !c) return '';
-    return (c.canal === 'WhatsApp' && N.waConectado()) ? 'wa'
-      : (sid.indexOf('ig:') === 0 && N.canalLigado && N.canalLigado('instagram')) ? 'ig'
-      : (sid.indexOf('fb:') === 0 && N.canalLigado && N.canalLigado('messenger')) ? 'fb'
-      : (sid.indexOf('em:') === 0 && N.canalLigado && N.canalLigado('email')) ? 'em' : '';
+    var vs = viasDe(c); if (!vs.length) return '';
+    if (c.via && vs.indexOf(c.via) >= 0) return c.via;
+    var pad = {WhatsApp:'wa', Instagram:'ig', Facebook:'fb', Messenger:'fb', 'E-mail':'em'}[c.canal];
+    return vs.indexOf(pad) >= 0 ? pad : vs[0];
   }
   function enviaArquivo(cid, arq, texto){
     var c = contato(cid); if (!c) return Promise.resolve();

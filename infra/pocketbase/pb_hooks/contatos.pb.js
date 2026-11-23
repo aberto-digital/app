@@ -3,6 +3,20 @@
 //   POST /api/abertocore/contatos/juntar { manter: local_id, juntar: local_id }
 // As mensagens viram uma linha do tempo única, as identidades (Instagram, WhatsApp, e-mail) passam para
 // o contato mantido — as próximas mensagens de qualquer canal caem nele — e o outro contato é apagado.
+function foneBR(n) {
+  const m = String(n || "").replace(/\D/g, "").match(/^55(\d{2})(\d{4,5})(\d{4})$/)
+  return m ? "(" + m[1] + ") " + m[2] + "-" + m[3] : "+" + String(n || "").replace(/\D/g, "")
+}
+
+// canais pelos quais dá para responder este contato (para o app oferecer a escolha)
+function identidades(rec) {
+  const todos = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).filter(Boolean)
+  const ids = []
+  if (rec.getString("wa_id") || todos.some((x) => x.indexOf("wa:") === 0)) ids.push("wa")
+  ;["ig", "fb", "em"].forEach((p) => { if (todos.some((x) => x.indexOf(p + ":") === 0)) ids.push(p) })
+  return ids
+}
+
 routerAdd("POST", "/api/abertocore/contatos/juntar", (e) => {
   const W = require(`${__hooks}/wa.js`)
   const empresaId = e.auth.getString("empresa")
@@ -19,7 +33,7 @@ routerAdd("POST", "/api/abertocore/contatos/juntar", (e) => {
   const generico = (n) => !n || /^(Instagram|Facebook) \d{4}$/.test(n) || /@/.test(n)
   // dados: o mantido vale; o que estiver vazio vem do outro
   if (generico(da.nome) && !generico(db.nome)) da.nome = db.nome
-  ;["negocio", "tel", "email", "usuario", "followup"].forEach((k) => { if (!da[k] && db[k]) da[k] = db[k] })
+  ;["negocio", "tel", "wa", "email", "usuario", "followup", "endereco", "site", "empresa"].forEach((k) => { if (!da[k] && db[k]) da[k] = db[k] })
   if (db.nota && db.nota !== da.nota) da.nota = [da.nota, db.nota].filter(Boolean).join("\n")
   if ((db.valor || 0) > (da.valor || 0)) da.valor = db.valor
   if (db.tipo === "Cliente") da.tipo = "Cliente"
@@ -39,6 +53,11 @@ routerAdd("POST", "/api/abertocore/contatos/juntar", (e) => {
   if (!A.getString("telefone") && B.getString("telefone")) A.set("telefone", B.getString("telefone"))
   if (!A.getString("site_sessao") && B.getString("site_sessao")) A.set("site_sessao", B.getString("site_sessao"))
   A.set("aliases", ali.size ? " " + Array.from(ali).join(" ") + " " : "")
+  // telefone visível no card: se só havia o número do WhatsApp, mostra ele
+  const W2 = A.getString("wa_id")
+  if (!da.tel && W2) da.tel = foneBR(W2)
+  if (!A.getString("telefone") && da.tel) A.set("telefone", da.tel)
+  da.ids = identidades(A)
   A.set("nome", da.nome)
   A.set("dados", da)
 

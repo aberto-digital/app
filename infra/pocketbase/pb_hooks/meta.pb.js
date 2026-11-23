@@ -119,7 +119,10 @@ routerAdd("POST", "/api/abertocore/social/enviar", (e) => {
   let rec
   try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }) }
   catch (err) { throw new NotFoundError("Contato não encontrado no servidor. Aguarde salvar e tente de novo.") }
-  const sid = rec.getString("social_id")
+  // contato juntado: a identidade escolhida (ig/fb) pode estar nos apelidos
+  const todos = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).filter(Boolean)
+  const pref = b.via === "fb" ? "fb:" : b.via === "ig" ? "ig:" : null
+  const sid = todos.find((x) => pref ? x.indexOf(pref) === 0 : (x.indexOf("ig:") === 0 || x.indexOf("fb:") === 0)) || ""
   const tipo = sid.indexOf("ig:") === 0 ? "instagram" : sid.indexOf("fb:") === 0 ? "messenger" : null
   if (!tipo) throw new BadRequestError("Este contato não veio do Instagram nem do Messenger.")
   const canal = M.canalDaEmpresaTipo($app, empresaId, tipo)

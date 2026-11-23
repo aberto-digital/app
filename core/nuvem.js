@@ -435,7 +435,7 @@
     req: req, entrarComResposta: entrarComResposta,
     ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp,
     canais: function () { return canaisSt; }, statusCanais: statusCanais, canalLigado: canalLigado,
-    enviarSocial: function (localId, texto, k) { return enviarPorCanal('/api/abertocore/social/enviar', localId, { texto: texto, k: k }); },
+    enviarSocial: function (localId, texto, k, via) { return enviarPorCanal('/api/abertocore/social/enviar', localId, { texto: texto, k: k, via: via }); },
     enviarEmail: function (localId, texto, k, assunto) { return enviarPorCanal('/api/abertocore/email/enviar', localId, { texto: texto, k: k, assunto: assunto }); },
     enviarArquivo: function (localId, arquivo, texto, k) { return enviarPorCanal('/api/abertocore/arquivo/enviar', localId, { arquivo: arquivo, texto: texto, k: k }); },
     arquivos: function (filtro) { return api('GET', '/api/collections/arquivos/records?perPage=200&sort=-created' + (filtro ? '&filter=' + encodeURIComponent(filtro) : '')).then(function (j) { return j.items || []; }); },

@@ -50,7 +50,7 @@ routerAdd("POST", "/api/abertocore/email/enviar", (e) => {
   let rec
   try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }) }
   catch (err) { throw new NotFoundError("Contato não encontrado no servidor. Aguarde salvar e tente de novo.") }
-  const sid = rec.getString("social_id")
+  const sid = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).find((x) => x && x.indexOf("em:") === 0) || ""
   if (sid.indexOf("em:") !== 0) throw new BadRequestError("Este contato não veio do e-mail.")
   const canal = M.canalDaEmpresaTipo($app, empresaId, "email")
   if (!canal) throw new BadRequestError("O e-mail desta empresa não está conectado.")

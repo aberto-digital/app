@@ -147,7 +147,7 @@ function le(app, canal) {
     let corpo = ""
     try { corpo = textoDeHtml((zoho(app, canal, "GET", "/folders/" + x.folderId + "/messages/" + m.messageId + "/content") || {}).content) } catch (e) { corpo = m.summary || "" }
     corpo = semCitacao(corpo).slice(0, 4000)
-    const assunto = String(m.subject || "").slice(0, 200)
+    const assunto = textoDeHtml(String(m.subject || "")).replace(/\s+/g, " ").slice(0, 200)
     const rec = contatoEmail(app, canal.getString("empresa"), de, String(m.sender || "").replace(/<.*>/, "").replace(/"/g, "").trim())
     const d = W.lerDados(rec)
     const antes = (d.msgs || []).length
@@ -195,7 +195,7 @@ function leEnviados(app, canal) {
       if ((d.msgs || []).some((x2) => x2.wa === "em:" + m.messageId || (x2.de === "eq" && Math.abs((x2.ts || 0) - ts) < 120000 && /^em:/.test(x2.wa || "")))) return
       let corpo = ""
       try { corpo = textoDeHtml((zoho(app, canal, "GET", "/folders/" + x.sentId + "/messages/" + m.messageId + "/content") || {}).content) } catch (e) { corpo = m.summary || "" }
-      const assunto = String(m.subject || "").slice(0, 200)
+      const assunto = textoDeHtml(String(m.subject || "")).replace(/\s+/g, " ").slice(0, 200)
       d.msgs = W.unirMsgs(d.msgs, [{ de: "eq", txt: (assunto ? "Assunto: " + assunto + "\n\n" : "") + semCitacao(corpo).slice(0, 4000), ts: ts, wa: "em:" + m.messageId, st: "sent" }])
       if (!d.assunto) d.assunto = assunto
       d.emailMsg = d.emailMsg || String(m.messageId)

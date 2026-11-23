@@ -3,22 +3,22 @@
 //   POST /api/abertocore/contatos/juntar { manter: local_id, juntar: local_id }
 // As mensagens viram uma linha do tempo única, as identidades (Instagram, WhatsApp, e-mail) passam para
 // o contato mantido — as próximas mensagens de qualquer canal caem nele — e o outro contato é apagado.
-function foneBR(n) {
-  const m = String(n || "").replace(/\D/g, "").match(/^55(\d{2})(\d{4,5})(\d{4})$/)
-  return m ? "(" + m[1] + ") " + m[2] + "-" + m[3] : "+" + String(n || "").replace(/\D/g, "")
-}
-
-// canais pelos quais dá para responder este contato (para o app oferecer a escolha)
-function identidades(rec) {
-  const todos = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).filter(Boolean)
-  const ids = []
-  if (rec.getString("wa_id") || todos.some((x) => x.indexOf("wa:") === 0)) ids.push("wa")
-  ;["ig", "fb", "em"].forEach((p) => { if (todos.some((x) => x.indexOf(p + ":") === 0)) ids.push(p) })
-  return ids
-}
-
 routerAdd("POST", "/api/abertocore/contatos/juntar", (e) => {
   const W = require(`${__hooks}/wa.js`)
+  // (no PocketBase, a rota não enxerga funções declaradas fora dela)
+  function foneBR(n) {
+    const m = String(n || "").replace(/\D/g, "").match(/^55(\d{2})(\d{4,5})(\d{4})$/)
+    return m ? "(" + m[1] + ") " + m[2] + "-" + m[3] : "+" + String(n || "").replace(/\D/g, "")
+  }
+
+  // canais pelos quais dá para responder este contato (para o app oferecer a escolha)
+  function identidades(rec) {
+    const todos = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).filter(Boolean)
+    const ids = []
+    if (rec.getString("wa_id") || todos.some((x) => x.indexOf("wa:") === 0)) ids.push("wa")
+    ;["ig", "fb", "em"].forEach((p) => { if (todos.some((x) => x.indexOf(p + ":") === 0)) ids.push(p) })
+    return ids
+  }
   const empresaId = e.auth.getString("empresa")
   const b = e.requestInfo().body || {}
   const idA = parseInt(b.manter, 10) || 0, idB = parseInt(b.juntar, 10) || 0

@@ -83,7 +83,32 @@ function textoMensagem(msg) {
   if (t === "file") return "📄 Arquivo"
   if (t === "share" || t === "story_mention") return t === "story_mention" ? "Mencionou você no story" : "🔗 Compartilhou uma publicação"
   if (t === "ig_reel" || t === "reel") return "🎬 Compartilhou um reel"
+  if (t === "template" || t === "fallback") return textoCartao(a.payload || {}, a.title)
   return "[" + t + "]"
+}
+
+// cartões automáticos (ex.: "Número de telefone" com botões de WhatsApp) viram texto legível
+function textoCartao(p, titulo) {
+  const partes = []
+  if (p.text) partes.push(p.text)
+  if (titulo) partes.push(titulo)
+  ;(p.elements || []).forEach((el) => { [el.title, el.subtitle].forEach((x) => { if (x) partes.push(x) }) })
+  const botoes = (p.buttons || []).concat(...(p.elements || []).map((el) => el.buttons || []))
+  botoes.forEach((b) => {
+    const u = String(b.url || "")
+    const wa = u.match(/(?:wa\.me|api\.whatsapp\.com\/send\?phone=)\/?(\d{10,13})/)
+    if (wa) partes.push("WhatsApp " + wa[1])
+    else if (u && /^https?:/.test(u)) partes.push((b.title ? b.title + ": " : "") + u)
+    else if (b.payload && /^\+?\d{10,13}$/.test(String(b.payload))) partes.push("Telefone " + b.payload)
+  })
+  const unicas = partes.filter((v, i, a) => a.indexOf(v) === i)
+  return "📇 " + (unicas.length ? unicas.join(" · ") : "Cartão de contato")
+}
+
+// telefone de WhatsApp que o contato mandou na conversa (ex.: resposta automática de empresa)
+function telefoneNoTexto(txt) {
+  const m = String(txt || "").match(/(?:\+?55\s?)?\(?(\d{2})\)?\s?(9\d{4})[-\s.]?(\d{4})/)
+  return m ? "(" + m[1] + ") " + m[2] + "-" + m[3] : ""
 }
 
 // Processa o webhook (object = "page" ou "instagram"). Retorna quantas mensagens foram gravadas.
@@ -128,6 +153,12 @@ function processaWebhook(app, corpo) {
         d.status = "esperando"
       } else {
         d.naoLidas = (d.naoLidas || 0) + 1
+        // a pessoa passou um WhatsApp: guarda no contato, e a conversa do WhatsApp cai neste mesmo contato
+        const telMsg = !d.tel && telefoneNoTexto(txt)
+        if (telMsg) {
+          d.tel = telMsg; rec.set("telefone", telMsg)
+          d.msgs.push({ de: "sis", txt: "WhatsApp informado na conversa: " + telMsg + ". Ficou salvo no contato.", ts: ts + 1 })
+        }
         if (d.status === "finalizado" || d.status === "esperando" || d.status === "prospeccao") d.status = "entrada"
       }
       d.social = d.social || rec.getString("social_id")

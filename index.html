@@ -452,6 +452,17 @@
   .ia-st.on{background:#E3F4EA;color:#1F7A45}.ia-st svg{width:16px;height:16px}
   .alerta-ia{display:flex;gap:8px;font-size:12.5px;line-height:1.45;background:#FFF6E0;color:#6B4E00;border-radius:10px;padding:10px 12px;margin:4px 0 14px}.alerta-ia svg{flex:none;width:16px;height:16px;margin-top:1px}
   .botoes-ia{display:flex;gap:8px;flex-wrap:wrap}
+  .sug-junta{display:flex;gap:8px;align-items:flex-start;width:calc(100% - 20px);margin:8px 10px;padding:9px 12px;border:1px dashed var(--ceu);border-radius:10px;background:var(--branco);color:var(--texto);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+  .sug-junta:hover{background:var(--papel)}.sug-junta span{line-height:1.4}.sug-junta b{font-weight:600}
+  .sj-lista{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;margin:6px 0}
+  .sj-item{border:1px solid var(--linha);border-radius:12px;padding:10px 12px}
+  .sj-par{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+  .sj-par>span{display:flex;gap:8px;align-items:center;min-width:0}.sj-par>span>span{display:flex;flex-direction:column;min-width:0}
+  .sj-par b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sj-par small{font-size:11.5px;color:var(--sec)}
+  .sj-par .av{flex:none}.sj-mais{color:var(--sec);font-weight:700}
+  .sj-rodape{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .sj-por{font-size:11.5px;font-weight:600;color:var(--sec);background:var(--papel);border-radius:999px;padding:2px 9px}.sj-por.forte{color:#1f7a45;background:#E3F6EA}
+  .sj-bts{display:flex;gap:6px}
   .via-sel{display:flex;align-items:center;gap:8px;margin:0 0 8px 50px;font-size:12px;color:var(--sec)}
   .via-seg{display:inline-flex;padding:2px;border:1px solid var(--linha);border-radius:999px;background:var(--papel)}
   .via-seg button{font:inherit;font-size:12px;font-weight:600;padding:3px 11px;border:0;border-radius:999px;background:transparent;color:var(--sec);cursor:pointer;line-height:1.5}
@@ -922,7 +933,8 @@
     var intro = '<div class="msg cli resp-ia"><span class="quem">' + ic('ia') + 'Assistente</span><div class="txt-ia">' +
       (con ? 'Oi! Sou o assistente interno do AbertoCore. Respondo sobre seus contatos, o funil e a agenda, mando o resumo do dia às 18h e aviso quando um cliente fica sem resposta. Esta conversa é da equipe toda.' :
         'Para eu funcionar, conecte a IA em Atendimento automático → Assistente de IA.') + '</div>' +
-      (con ? '<div class="sug-ia">' + SUGESTOES_IA.map(function(q){ return '<button type="button" class="chip-ia">' + esc(q) + '</button>'; }).join('') + '</div>' : '<button class="btn pri peq" id="iaIrCfg">Conectar a IA</button>') + '</div>';
+      (con ? '<div class="sug-ia">' + SUGESTOES_IA.map(function(q){ return '<button type="button" class="chip-ia">' + esc(q) + '</button>'; }).join('') +
+        (function(){ var n = sugestoesJuntar().length; return n ? '<button type="button" class="chip-ia" data-sugj>🔗 ' + n + (n === 1 ? ' contato repetido para juntar' : ' contatos repetidos para juntar') + '</button>' : ''; })() + '</div>' : '<button class="btn pri peq" id="iaIrCfg">Conectar a IA</button>') + '</div>';
     box.innerHTML = '<div class="conv-topo">' +
         '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button><span class="av av-ia">' + ic('ia') + '</span>' +
         '<div><div class="nm">Assistente AbertoCore</div><div class="ng">Interno, compartilhado com a equipe</div></div>' +
@@ -945,7 +957,7 @@
     function cfg(){ abaAt = 'ia'; vai('assistente'); }
     $('#iaCfg').onclick = cfg; var ic2 = $('#iaIrCfg'); if (ic2) ic2.onclick = cfg;
     fio.addEventListener('click', function(e){
-      var c = e.target.closest('.chip-ia'); if (c) return perguntaIA(c.textContent);
+      var c = e.target.closest('.chip-ia'); if (c && c.hasAttribute('data-sugj')) return modalSugJuntar(); if (c) return perguntaIA(c.textContent);
       var a = e.target.closest('.abre-ct'); if (a) abre(+a.getAttribute('data-c'));
     });
     var ta = $('#texto');
@@ -1574,6 +1586,8 @@
       Object.keys(CANAIS).map(function(k){ return '<label><input type="checkbox" data-canal value="' + k + '"' + (canaisSel.indexOf(k) >= 0 ? ' checked' : '') + '>' + chipCanal(k) + '</label>'; }).join('');
     var q = busca.trim().toLowerCase();
     var fixo = ''; // o Assistente AbertoCore agora abre pelo botão ✦ no topo
+    var nSug = sugestoesJuntar().length;
+    var avisoSug = nSug ? '<button type="button" class="sug-junta" data-sugj>🔗 <span><b>' + nSug + (nSug === 1 ? ' par de contatos parece' : ' pares de contatos parecem') + ' a mesma pessoa.</b> Revisar e juntar</span></button>' : '';
     ABAS.forEach(function(a){
       var pane = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (!pane) return;
       var L = filtrados(a[0]), y = pane.scrollTop;
@@ -1583,10 +1597,11 @@
         html = (resp.length ? '<div class="div-lista">Para responder <span>' + resp.length + '</span></div>' + resp.map(itemContato).join('') : '<div class="div-lista">Para responder <span>0</span></div><div class="vazio peq">Ninguém esperando sua resposta.</div>') +
           (esp.length ? '<div class="div-lista esp">Aguardando retorno do cliente <span>' + esp.length + '</span></div><div class="grupo-esp">' + esp.map(itemContato).join('') + '</div>' : '');
       }
-      pane.innerHTML = fixo + (html ? html : L.length ? L.map(itemContato).join('') :
+      pane.innerHTML = fixo + ((a[0] === 'entrada' || a[0] === 'prospeccao') ? avisoSug : '') + (html ? html : L.length ? L.map(itemContato).join('') :
         (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'arquivada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
           '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
       pane.scrollTop = y;
+      var sj = pane.querySelector('[data-sugj]'); if (sj) sj.onclick = modalSugJuntar;
     });
   }
   function abre(id){
@@ -2265,6 +2280,61 @@
     if (depois) return '';
     return '<div class="ia-quieta">' + ic('ia') + '<span>A IA não respondeu: ' + esc(q.motivo) + '</span></div>';
   }
+  /* ---------- contatos que parecem a mesma pessoa (sugestão de juntar) ---------- */
+  var PAL_GEN = /^(pizzaria|restaurante|lanchonete|hamburgueria|padaria|confeitaria|doceria|studio|estudio|salao|clinica|loja|oficina|mecanica|auto|centro|espaco|casa|buffet|escola|instituto|oficial|aruja|sp|de|da|do|das|dos|e|the|and|a|o|ltda|me|mei)$/;
+  function chaveNome(t){
+    return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’'`´]/g, '').replace(/[^a-z0-9 ]+/g, ' ')
+      .split(' ').filter(function(w){ return w.length > 1 && !PAL_GEN.test(w); });
+  }
+  function digitos(t){ var d = String(t || '').replace(/\D/g, ''); if (d.length > 11 && d.indexOf('55') === 0) d = d.slice(2); return d.length >= 10 ? d.slice(-10) : ''; }
+  function generico(n){ return !n || /^(Instagram|Facebook|WhatsApp) \d{4}$/.test(n) || /^\+?\d[\d\s()-]+$/.test(n); }
+  function sugestoesJuntar(){
+    var nao = S.naoJuntar || [], out = [], L = S.contatos.filter(function(c){ return !c.ignorado; });
+    var info = L.map(function(c){
+      var nomes = chaveNome(c.nome).concat(chaveNome(c.negocio));
+      return {c:c, tel:digitos(c.tel), mail:String(c.email || '').toLowerCase(), ig:String(c.usuario || '').toLowerCase().replace(/^@/, ''),
+        site:String(c.site || '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, ''),
+        nome:generico(c.nome) && !c.negocio ? [] : nomes.filter(function(w, i, a){ return a.indexOf(w) === i; })};
+    });
+    for (var i = 0; i < info.length; i++) for (var j = i + 1; j < info.length; j++){
+      var a = info[i], b = info[j], par = [a.c.id, b.c.id].sort(function(x, y){ return x - y; }).join('-');
+      if (nao.indexOf(par) >= 0) continue;
+      var por = '';
+      if (a.tel && a.tel === b.tel) por = 'mesmo telefone';
+      else if (a.mail && a.mail === b.mail) por = 'mesmo e-mail';
+      else if (a.ig && a.ig === b.ig) por = 'mesmo Instagram';
+      else if (a.site && a.site === b.site) por = 'mesmo site';
+      else if (a.nome.length && b.nome.length){
+        var comum = a.nome.filter(function(w){ return w.length >= 4 && b.nome.indexOf(w) >= 0; });
+        if (comum.length >= 2 || (comum.length === 1 && comum[0].length >= 7) || (a.nome.join('') === b.nome.join('') && a.nome.join('').length >= 5)) por = 'nome parecido';
+      }
+      if (!por) continue;
+      // mantém a conversa com mais mensagens de verdade (a outra costuma ser o lead importado)
+      var na = (a.c.msgs || []).filter(function(m){ return m.de !== 'sis'; }).length, nb = (b.c.msgs || []).filter(function(m){ return m.de !== 'sis'; }).length;
+      var manter = na >= nb ? a.c : b.c, outro = manter === a.c ? b.c : a.c;
+      out.push({manter:manter, outro:outro, por:por, par:par, forte:por !== 'nome parecido'});
+    }
+    return out.sort(function(x, y){ return (y.forte ? 1 : 0) - (x.forte ? 1 : 0); }).slice(0, 30);
+  }
+  function modalSugJuntar(){
+    var M = $('#modal');
+    function desenhaSug(){
+      var L = sugestoesJuntar();
+      M.innerHTML = '<form method="dialog" id="fSj"><h3>Contatos que parecem a mesma pessoa</h3>' +
+        '<p class="nota-bot">Encontrei pelo telefone, e-mail, Instagram, site ou nome parecido (prospecção, Instagram, WhatsApp, e-mail). Juntar une as conversas num contato só.</p>' +
+        (L.length ? '<div class="sj-lista">' + L.map(function(p, i){ return '<div class="sj-item"><div class="sj-par">' +
+          '<span>' + avatar(p.manter) + '<span><b>' + esc(p.manter.nome) + '</b><small>' + esc(p.manter.canal || '') + ((p.manter.msgs || []).length ? ' · ' + (p.manter.msgs || []).length + ' msgs' : '') + '</small></span></span>' +
+          '<span class="sj-mais">+</span>' +
+          '<span>' + avatar(p.outro) + '<span><b>' + esc(p.outro.nome) + '</b><small>' + esc(p.outro.canal || '') + ((p.outro.msgs || []).length ? ' · ' + (p.outro.msgs || []).length + ' msgs' : '') + '</small></span></span></div>' +
+          '<div class="sj-rodape"><span class="sj-por' + (p.forte ? ' forte' : '') + '">' + esc(p.por) + '</span><span class="sj-bts"><button type="button" class="btn peq" data-nao="' + i + '">Não é a mesma</button><button type="button" class="btn pri peq" data-sj="' + i + '">Juntar</button></span></div></div>'; }).join('') + '</div>'
+          : '<p class="vazio peq">Nenhum contato repetido por aqui. 👌</p>') +
+        '<div class="bts"><button class="btn" value="fechar" formnovalidate>Fechar</button></div></form>';
+      M.querySelectorAll('[data-sj]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-sj')]; M.close(); juntar(p.manter.id, p.outro.id); }; });
+      M.querySelectorAll('[data-nao]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-nao')]; S.naoJuntar = (S.naoJuntar || []).concat([p.par]); salva(); desenhaSug(); desenhaLista(); }; });
+    }
+    desenhaSug(); M.returnValue = ''; if (!M.open) M.showModal();
+  }
+
   function modalJuntar(id){
     var c = contato(id), M = $('#modal'); if (!c) return;
     function linha(x){ var u = ultima(x); return '<button type="button" class="jt-item" data-j="' + x.id + '">' + avatar(x) + '<span><b>' + esc(x.nome) + '</b><small>' + esc(x.canal || '') + (x.usuario ? ' · @' + esc(x.usuario) : '') + (x.tel ? ' · ' + esc(x.tel) : '') + (u ? ' · ' + esc(String(u.txt || '').slice(0, 40)) : '') + '</small></span></button>'; }

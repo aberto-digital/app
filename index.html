@@ -2324,7 +2324,7 @@
     info.forEach(function(x){ x.nome.forEach(function(w){ df[w] = (df[w] || 0) + 1; }); });
     for (var i = 0; i < info.length; i++) for (var j = i + 1; j < info.length; j++){
       var a = info[i], b = info[j], par = [a.c.id, b.c.id].sort(function(x, y){ return x - y; }).join('-');
-      if (nao.indexOf(par) >= 0) continue;
+      if (nao.indexOf(par) >= 0 || (a.c.naoJuntar || []).indexOf(b.c.id) >= 0 || (b.c.naoJuntar || []).indexOf(a.c.id) >= 0) continue;
       var por = '';
       if (a.tel && a.tel === b.tel) por = 'mesmo telefone';
       else if (a.mail && a.mail === b.mail) por = 'mesmo e-mail';
@@ -2356,7 +2356,10 @@
           : '<p class="vazio peq">Nenhum contato repetido por aqui. 👌</p>') +
         '<div class="bts"><button class="btn" value="fechar" formnovalidate>Fechar</button></div></form>';
       M.querySelectorAll('[data-sj]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-sj')]; M.close(); juntar(p.manter.id, p.outro.id); }; });
-      M.querySelectorAll('[data-nao]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-nao')]; S.naoJuntar = (S.naoJuntar || []).concat([p.par]); salva(); desenhaSug(); desenhaLista(); }; });
+      M.querySelectorAll('[data-nao]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-nao')];
+        // fica gravado nos dois contatos (vai para o servidor e vale para a equipe toda)
+        p.manter.naoJuntar = (p.manter.naoJuntar || []).concat([p.outro.id]); p.outro.naoJuntar = (p.outro.naoJuntar || []).concat([p.manter.id]);
+        salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); desenhaSug(); desenhaLista(); }; });
     }
     desenhaSug(); M.returnValue = ''; if (!M.open) M.showModal();
   }

@@ -599,13 +599,12 @@
     .agenda .ag-lado{order:-1}
     .lista .busca{margin:12px 12px 8px}
     .abas-linha{margin:0 12px}
-    .topo{transition:transform .25s ease}
-    .principal{transition:padding-top .25s ease}
-    .rolou .topo{transform:translateY(-100%)}
-    .rolou .principal{padding-top:env(safe-area-inset-top)}
-    .lista .busca{max-height:60px;transition:max-height .25s ease,margin .25s ease,padding .25s ease,opacity .2s ease,border-width .25s}
-    .rolou .lista .busca{max-height:0;margin-top:0;margin-bottom:8px;padding-top:0;padding-bottom:0;opacity:0;border-width:0;overflow:hidden}
-    .rolou .abas-linha{padding-top:8px}
+    /* barra superior some ao rolar: só transform (sem mexer em layout durante a animação) */
+    .topo{transition:transform .28s cubic-bezier(.2,.8,.2,1);will-change:transform}
+    .principal{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+    .rolou .topo,.rolou-conv .topo{transform:translateY(-100%)}
+    .rolou .principal,.rolou-conv .principal{transform:translateY(-60px);margin-bottom:-60px}
+    .trilho{position:relative;z-index:46}
     .compor{padding:10px 12px}
     .inbox{grid-template-columns:minmax(0,1fr)}
     .inbox>*{min-width:0}
@@ -623,16 +622,6 @@
     .conv-topo .ng{max-height:24px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
     .conv-topo .ng .canal{display:inline-flex}
     .conversa .res-ia{max-height:420px;overflow:hidden}
-    .rolou-conv .topo{transform:translateY(-100%)}
-    .rolou-conv .principal{padding-top:env(safe-area-inset-top)}
-    .rolou-conv .conv-topo{padding:6px 12px}
-    .rolou-conv .conv-topo .voltar{width:30px;height:30px}
-    .rolou-conv .conv-topo .av{width:30px;height:30px;font-size:11px}
-    .rolou-conv .conv-topo .av .sel{display:none}
-    .rolou-conv .conv-topo .nm{font-size:14.5px}
-    .rolou-conv .conv-topo .ng{max-height:0;opacity:0}
-    .rolou-conv .conv-topo .acoes{opacity:0;pointer-events:none;width:0;overflow:hidden}
-    .rolou-conv .conversa .res-ia{max-height:0;opacity:0;margin:0;padding-top:0;padding-bottom:0;border-width:0}
     .fio{padding:14px 12px}
     .msg{max-width:88%}
     .agenda,.assist,.prod,.dash,.canais,.ajustes{padding:14px}
@@ -956,16 +945,8 @@
       '<div class="compor"><form class="linha" id="fIA"><textarea id="texto" rows="1" placeholder="' + (con ? 'Pergunte algo, ex.: quem eu preciso retornar hoje?' : 'Conecte a IA para perguntar') + '" aria-label="Pergunta para o assistente"' + (con ? '' : ' disabled') + '></textarea><button class="envia" aria-label="Enviar"' + (con ? '' : ' disabled') + '>' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
-    var ultF = fio.scrollTop, travaF = 0;
-    fio.addEventListener('scroll', function(){
-      if (!matchMedia('(max-width:760px)').matches) return;
-      var y = fio.scrollTop, fundo = fio.scrollHeight - fio.clientHeight - y, ag = Date.now();
-      if (ag < travaF){ ultF = y; return; }
-      var compacto = appEl.classList.contains('rolou-conv');
-      if (!compacto && Math.abs(y - ultF) > 8 && fundo > 90){ appEl.classList.add('rolou-conv'); travaF = ag + 350; }
-      else if (compacto && fundo < 24){ appEl.classList.remove('rolou-conv'); travaF = ag + 350; }
-      ultF = y;
-    }, {passive:true});
+    if (rolar) rolar.el = null;
+    fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
     $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv'); $('#inbox').classList.remove('mostra-conv'); };
     function cfg(){ abaAt = 'ia'; vai('assistente'); }
     $('#iaCfg').onclick = cfg; var ic2 = $('#iaIrCfg'); if (ic2) ic2.onclick = cfg;
@@ -1528,7 +1509,7 @@
       if (canaisSel.length === Object.keys(CANAIS).length) canaisSel = [];
       desenhaLista();
     });
-    var itens = $('#itens'), ultY = 0, trava = 0;
+    var itens = $('#itens');
     var tCar = 0;
     itens.addEventListener('scroll', function(e){
       if (e.target === itens){
@@ -1539,12 +1520,7 @@
         }, 60);
         return;
       }
-      var pane = e.target, y = pane.scrollTop, app = $('#app'), agora = Date.now();
-      if (agora < trava){ ultY = y; return; }
-      var sobra = pane.scrollHeight - pane.clientHeight;
-      if (y > ultY + 6 && y > 50 && sobra > 180 && !app.classList.contains('rolou')){ app.classList.add('rolou'); trava = agora + 350; }
-      else if ((y < ultY - 6 || y < 10) && app.classList.contains('rolou')){ app.classList.remove('rolou'); trava = agora + 350; }
-      ultY = y;
+      barraRolagem(e.target, 'rolou');
     }, {passive:true, capture:true});
     window.addEventListener('resize', function(){ vaiParaAba(aba, false); });
     $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (!b) return; if (b.hasAttribute('data-ia')) abreIA(); else abre(+b.getAttribute('data-id')); });
@@ -1665,18 +1641,10 @@
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
-    var ultF = fio.scrollTop, travaF = 0;
-    fio.addEventListener('scroll', function(){
-      if (!matchMedia('(max-width:760px)').matches) return;
-      var y = fio.scrollTop, fundo = fio.scrollHeight - fio.clientHeight - y, ag = Date.now();
-      if (ag < travaF){ ultF = y; return; }
-      var compacto = appEl.classList.contains('rolou-conv');
-      if (!compacto && Math.abs(y - ultF) > 8 && fundo > 90){ appEl.classList.add('rolou-conv'); travaF = ag + 350; }
-      else if (compacto && fundo < 24){ appEl.classList.remove('rolou-conv'); travaF = ag + 350; }
-      ultF = y;
-    }, {passive:true});
+    if (rolar) rolar.el = null;
+    fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
     $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv'); $('#inbox').classList.remove('mostra-conv'); };
-    $('#verDet').onclick = function(){ $('#inbox').classList.add('mostra-det'); };
+    $('#verDet').onclick = function(){ appEl.classList.remove('rolou-conv', 'rolou'); $('#inbox').classList.add('mostra-det'); };
     var f = $('#finaliza'); if (f) f.onclick = function(){
       c.status = 'finalizado'; salva();
       aviso('Conversa com <b>' + esc(c.nome) + '</b> arquivada. Ela volta para a Entrada se o cliente escrever de novo.');
@@ -2288,6 +2256,32 @@
     M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#cNome').focus(); }, 30);
   }
   // por que a IA não respondeu a última mensagem do cliente (vem do servidor)
+  /* Esconde/mostra a barra superior no celular conforme a rolagem: soma o quanto rolou na mesma direção
+     (evita piscar com rolagem curta e com o "elástico" do iOS) e decide uma vez por quadro. */
+  var rolar = {el:null, y:0, soma:0, quadro:0};
+  function barraRolagem(pane, classe, opc){
+    if (!matchMedia('(max-width:760px)').matches) return;
+    if (rolar.quadro) return;
+    rolar.quadro = requestAnimationFrame(function(){
+      rolar.quadro = 0;
+      var app = $('#app'), y = pane.scrollTop, max = pane.scrollHeight - pane.clientHeight;
+      if (rolar.el !== pane){ rolar.el = pane; rolar.y = y; rolar.soma = 0; return; }
+      if (y < 0 || y > max) return;                          // elástico do iOS
+      var d = y - rolar.y; rolar.y = y;
+      if (!d) return;
+      rolar.soma = (rolar.soma > 0) === (d > 0) ? rolar.soma + d : d;
+      var oculta = app.classList.contains(classe);
+      if (opc && opc.mostraNoFundo){                         // conversa: o fim é embaixo
+        var fundo = max - y;
+        if (!oculta && rolar.soma < -40 && fundo > 120) app.classList.add(classe);
+        else if (oculta && (fundo < 30 || rolar.soma > 60)) app.classList.remove(classe);
+        return;
+      }
+      if (!oculta && rolar.soma > 40 && y > 80 && max > 220) app.classList.add(classe);
+      else if (oculta && (rolar.soma < -40 || y < 20)) app.classList.remove(classe);
+    });
+  }
+
   var custosIA = null, custosEm = 0;
   function custoIA(id){
     var el = document.getElementById('dCustoIA'); if (!el) return;

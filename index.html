@@ -2491,8 +2491,9 @@
   /* ========== ASSISTENTE DE IA (interno + atendimento) ========== */
   var iaSt = null; // situação vinda do servidor (/api/abertocore/ia)
   var MODELOS_IA = [
-    {id:'gemini-flash-lite-latest', nome:'Flash-Lite (recomendado)'},
-    {id:'gemini-flash-latest', nome:'Flash (mais capaz)'}
+    {id:'gemini-3.5-flash-lite', nome:'Flash-Lite 3.5 (recomendado)'},
+    {id:'gemini-3.5-flash', nome:'Flash 3.5 (mais capaz)'},
+    {id:'gemini-flash-lite-latest', nome:'Flash-Lite mais recente (instável)'}
   ];
   var SUGESTOES_IA = ['Quem eu preciso retornar hoje?', 'Quais orçamentos estão parados há mais de 5 dias?', 'Quanto está em negociação agora?', 'Quem está esperando resposta da equipe?'];
   function iaLogado(){ return window.Nuvem && Nuvem.logado(); }

@@ -4,7 +4,7 @@
 
 const ETAPAS = ["Novo contato", "Qualificado", "Proposta enviada", "Negociação", "Fechado", "Perdido"]
 const FINAIS = ["Fechado", "Perdido"]
-const MODELO_PADRAO = "gemini-flash-lite-latest"
+const MODELO_PADRAO = "gemini-3.5-flash-lite"
 const FUSO_MS = -3 * 3600000 // Brasília
 
 function lerDados(rec) {
@@ -83,7 +83,7 @@ function chama(app, cfg, tipo, sistema, texto, json, maxTokens, contato) {
   const inicio = Date.now()
   // alta demanda costuma ser de um modelo só: tenta o escolhido e depois outros modelos rápidos
   // os modelos "-latest" apontam para versões novas que vivem sobrecarregadas: as reservas começam pelas estáveis
-  const reservas = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"].filter((m) => m !== modelo)
+  const reservas = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-flash-lite-latest"].filter((m) => m !== modelo)
   const tentativas = [modelo].concat(reservas)
   let r, ultimoErro
   for (let i = 0; i < tentativas.length && !r && Date.now() - inicio < 70000; i++) {

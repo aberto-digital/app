@@ -62,17 +62,18 @@ function chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens, comPensame
   return { texto: saida, tin: u.promptTokenCount || 0, tout: (u.candidatesTokenCount || 0) + (u.thoughtsTokenCount || 0) }
 }
 
-function registraUso(app, empresaId, tipo, modelo, tin, tout, ok) {
+function registraUso(app, empresaId, tipo, modelo, tin, tout, ok, contato) {
   try {
     const r = new Record(app.findCollectionByNameOrId("ia_uso"))
     r.set("empresa", empresaId); r.set("tipo", tipo); r.set("modelo", modelo)
     r.set("tokens_in", tin || 0); r.set("tokens_out", tout || 0); r.set("ok", !!ok)
+    if (contato) r.set("contato", String(contato))
     app.save(r)
   } catch (e) { app.logger().warn("ia: uso não registrado", "erro", String(e)) }
 }
 
 // Chama a IA com a configuração da empresa e registra o uso.
-function chama(app, cfg, tipo, sistema, texto, json, maxTokens) {
+function chama(app, cfg, tipo, sistema, texto, json, maxTokens, contato) {
   const empresaId = cfg.getString("empresa")
   const modelo = cfg.getString("modelo") || MODELO_PADRAO
   const chave = cfg.getString("api_key")
@@ -87,14 +88,14 @@ function chama(app, cfg, tipo, sistema, texto, json, maxTokens) {
     try { r = chamaGemini(chave, tentativas[i], sistema, texto, json, maxTokens) }
     catch (e) {
       ultimoErro = e
-      registraUso(app, empresaId, tipo, tentativas[i], 0, 0, false)
+      registraUso(app, empresaId, tipo, tentativas[i], 0, 0, false, contato)
       if (!temporario(e) && !(i >= 2 && /não encontrado/.test(String(e)))) throw e
       if (/HTTP 404|não encontrado/i.test(String(e)) && i >= 2) continue
       try { sleep(Math.min(1500 * (i + 1), 4000)) } catch (x) {}
     }
   }
   if (!r) throw ultimoErro
-  registraUso(app, empresaId, tipo, modelo, r.tin, r.tout, true)
+  registraUso(app, empresaId, tipo, modelo, r.tin, r.tout, true, contato)
   if (!json) return r.texto
   try { return JSON.parse(r.texto.replace(/^```(json)?\s*|\s*```$/g, "")) }
   catch (e) { throw new Error("A IA devolveu um formato inesperado.") }
@@ -119,6 +120,12 @@ function contextoEmpresa(app, empresaId) {
   // a própria agência tem um playbook comercial com fatos de mercado (iFood, Cardápio Web...)
   let playbook = ""
   if (/^abertodigital$/i.test(String(nome).trim())) { try { playbook = require(`${__hooks}/playbook_agencia.js`) } catch (e) {} }
+  // base de conhecimento ligada à planilha (abas publicadas em CSV, atualizada a cada hora)
+  try {
+    const cfg = cfgDaEmpresa(app, empresaId)
+    const f = cfg && cfg.getString("fonte")
+    if (f) playbook = (playbook ? playbook + "\n\n" : "") + "BASE DA PLANILHA (vale mais que o resto se houver conflito; linhas com \"Pode usar?\" = Não são proibidas):\n" + f
+  } catch (e) {}
   return { nome: nome || "a empresa", base: base, etapas: etapas, finais: finais, desc: desc, playbook: playbook }
 }
 
@@ -209,7 +216,7 @@ function analisaContato(app, cfg, rec) {
   const texto = "Contato: " + (d.nome || "Sem nome") + (d.negocio ? " (" + d.negocio + ")" : "") +
     "\nEtapa atual no funil: " + (d.etapa || ctx.etapas[0]) + "\nValor atual no card: " + brl(d.valor) +
     "\nPróximo retorno atual: " + (d.followup || "nenhum") + "\n\nConversa (mais antiga primeiro):\n" + conversa(d, 16)
-  const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 700)
+  const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 700, rec.id)
 
   // grava de novo em cima da versão mais recente do registro
   const atual = app.findRecordById("contatos", rec.id)
@@ -408,6 +415,82 @@ function usoDoMes(app, empresaId) {
   return u
 }
 
+// ---------- base de conhecimento (planilha publicada em CSV) ----------
+function csvLinhas(txt) {
+  const out = []; let row = [], cel = "", q = false
+  for (let i = 0; i < txt.length; i++) {
+    const ch = txt[i]
+    if (q) { if (ch === '"') { if (txt[i + 1] === '"') { cel += '"'; i++ } else q = false } else cel += ch }
+    else if (ch === '"') q = true
+    else if (ch === ",") { row.push(cel); cel = "" }
+    else if (ch === "\n") { row.push(cel); out.push(row); row = []; cel = "" }
+    else if (ch !== "\r") cel += ch
+  }
+  if (cel || row.length) { row.push(cel); out.push(row) }
+  return out
+}
+function urlsFonte(txt) {
+  return String(txt || "").split(/[\s,]+/).map((u) => u.trim()).filter(Boolean)
+}
+function validaUrlFonte(u) {
+  return /^https:\/\/docs\.google\.com\/spreadsheets\/d\/e\/[\w-]+\/pub\?[\w=&%.-]*output=csv/.test(u)
+}
+// Baixa as abas e monta um texto compacto (uma linha por linha da planilha).
+function lerFonte(urls) {
+  const partes = []
+  urls.forEach((u) => {
+    const res = $http.send({ url: u, method: "GET", timeout: 20 })
+    if (res.statusCode >= 300) throw new Error("Não consegui ler a planilha (HTTP " + res.statusCode + "). Confira se a aba está publicada na web.")
+    let txt = ""
+    try { txt = toString(res.body) } catch (e) { txt = String(res.raw || "") }
+    if (/^\s*<!DOCTYPE|<html/i.test(txt)) throw new Error("O link não devolveu CSV. Publique a aba como \"Valores separados por vírgula (.csv)\".")
+    const linhas = csvLinhas(txt).map((r) => r.map((c) => String(c).trim()).filter(Boolean)).filter((r) => r.length > 1)
+    if (linhas.length) partes.push(linhas.map((r) => r.join(" | ")).join("\n"))
+  })
+  return partes.join("\n\n").slice(0, 58000)
+}
+function atualizaFonte(app, cfg) {
+  const urls = urlsFonte(cfg.getString("fonte_url"))
+  if (!urls.length) { cfg.set("fonte", ""); cfg.set("fonte_em", ""); return cfg }
+  cfg.set("fonte", lerFonte(urls))
+  cfg.set("fonte_em", new Date().toISOString())
+  return cfg
+}
+function rodaFontes(app) {
+  let n = 0
+  app.findRecordsByFilter("ia_config", "fonte_url != ''", "", 0, 0).forEach((cfg) => {
+    try { atualizaFonte(app, cfg); app.save(cfg); n++ } catch (e) { app.logger().warn("ia: base da planilha não atualizou", "erro", String(e)) }
+  })
+  return n
+}
+
+// ---------- custo da IA por contato ----------
+// preço público por 1 milhão de tokens (US$), aproximado; o "lite" é bem mais barato
+function precoModelo(m) {
+  m = String(m || "")
+  if (/lite/.test(m)) return { i: 0.10, o: 0.40 }
+  if (/pro/.test(m)) return { i: 1.25, o: 10 }
+  return { i: 0.30, o: 2.50 }
+}
+const DOLAR = 5.4
+function custos(app, empresaId) {
+  const recs = app.findRecordsByFilter("ia_uso", "empresa = {:e} && contato != ''", "", 200000, 0, { e: empresaId })
+  const por = {}
+  recs.forEach((r) => {
+    const c = r.getString("contato"), p = precoModelo(r.getString("modelo"))
+    const x = por[c] || (por[c] = { chamadas: 0, erros: 0, tin: 0, tout: 0, brl: 0 })
+    if (r.getBool("ok")) x.chamadas++; else x.erros++
+    x.tin += r.getInt("tokens_in"); x.tout += r.getInt("tokens_out")
+    x.brl += (r.getInt("tokens_in") * p.i + r.getInt("tokens_out") * p.o) / 1e6 * DOLAR
+  })
+  // devolve pela numeração local do app (local_id)
+  const out = {}
+  Object.keys(por).forEach((id) => {
+    try { const rec = app.findRecordById("contatos", id); out[rec.getInt("local_id")] = por[id] } catch (e) {}
+  })
+  return out
+}
+
 // ---------- usados pelas rotas ----------
 function podeConfigurar(auth) { return auth.getString("papel") !== "equipe" }
 
@@ -424,6 +507,9 @@ function situacao(cfg, empresaId) {
     resumo_dia: cfg.getBool("resumo_dia"),
     uso: usoDoMes($app, empresaId),
     resumo: resumo && resumo.texto ? resumo : null,
+    fonte_url: cfg.getString("fonte_url"),
+    fonte_em: cfg.getString("fonte_em"),
+    fonte_linhas: cfg.getString("fonte") ? cfg.getString("fonte").split("\n").length : 0,
   }
 }
 
@@ -438,4 +524,5 @@ module.exports = {
   podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
   ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, aplicaAnalise, ultimaDoCliente, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes, contextoEmpresa, conversa, registraUso,
+  urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos,
 }

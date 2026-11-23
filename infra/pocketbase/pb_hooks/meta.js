@@ -173,7 +173,8 @@ function processaWebhook(app, corpo) {
         // abordagem nossa (prospecção): a pessoa ainda não escreveu nada. A IA pode continuar quando ela responder.
         const clienteJaFalou = (d.msgs || []).some((m) => m.de === "cli")
         if (!clienteJaFalou) { d.prospeccao = true; d.tipo = d.tipo || "Lead" }
-        else d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + 12 * 3600000 })
+        // em lead de prospecção a IA volta 30 min depois da resposta manual (para seguir esquentando); nos demais, 12 h
+        else d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + (d.prospeccao ? 30 * 60000 : 12 * 3600000) })
         d.status = "esperando"
       } else {
         d.naoLidas = (d.naoLidas || 0) + 1

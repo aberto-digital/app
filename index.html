@@ -452,6 +452,7 @@
   .ia-st.on{background:#E3F4EA;color:#1F7A45}.ia-st svg{width:16px;height:16px}
   .alerta-ia{display:flex;gap:8px;font-size:12.5px;line-height:1.45;background:#FFF6E0;color:#6B4E00;border-radius:10px;padding:10px 12px;margin:4px 0 14px}.alerta-ia svg{flex:none;width:16px;height:16px;margin-top:1px}
   .botoes-ia{display:flex;gap:8px;flex-wrap:wrap}
+  .fonte-ia{margin-top:16px}.fonte-ia textarea{width:100%;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--linha);border-radius:8px;background:var(--branco);color:inherit}
   .uso-ia{font-size:12.5px;color:var(--sec);margin:12px 0 0}
   .resumo-ia{background:var(--papel);border-radius:10px;padding:12px 14px;margin:12px 0 10px}.resumo-ia .rt{font-weight:600;font-size:13px;margin-bottom:4px}.resumo-ia .rx{white-space:pre-wrap;font-size:13.5px;line-height:1.5}
   #iaResumo .btn{margin-top:10px}
@@ -1840,11 +1841,13 @@
       (c.site ? '<div class="dado"><span>Site</span><a href="' + esc(/^https?:/.test(c.site) ? c.site : 'https://' + c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a></div>' : '') +
       (c.endereco ? '<div class="dado"><span>Endereço</span><a href="https://www.google.com/maps/search/' + encodeURIComponent(c.endereco) + '" target="_blank" rel="noopener">' + esc(c.endereco) + '</a></div>' : '') +
       ((c.canais || []).length > 1 ? '<div class="dado"><span>Canais</span><span>' + c.canais.map(function(k){ return chipCanal(k); }).join(' ') + '</span></div>' : '') +
-      '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' + blocoLead(c) +
+      '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' +
+      (window.Nuvem && Nuvem.logado() ? '<div class="dado" id="dCustoIA" hidden><span>Custo da IA</span><span></span></div>' : '') + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });
     box.insertAdjacentHTML('beforeend', '<button class="btn det-juntar" id="dJunta" type="button">Juntar com outro contato</button><button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
+    custoIA(c.id);
     $('#dNomeEd').onclick = function(){ modalContato(c.id); };
     $('#dJunta').onclick = function(){ modalJuntar(c.id); };
     $('#dExclui').onclick = function(){
@@ -2227,6 +2230,14 @@
     M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#cNome').focus(); }, 30);
   }
   // por que a IA não respondeu a última mensagem do cliente (vem do servidor)
+  var custosIA = null, custosEm = 0;
+  function custoIA(id){
+    var el = document.getElementById('dCustoIA'); if (!el) return;
+    var mostra = function(){ var x = custosIA && custosIA[id]; if (!x || !x.chamadas) return; el.hidden = false;
+      el.lastChild.textContent = 'R$ ' + x.brl.toFixed(x.brl < 0.1 ? 3 : 2).replace('.', ',') + ' · ' + x.chamadas + (x.chamadas === 1 ? ' chamada' : ' chamadas'); };
+    if (custosIA && Date.now() - custosEm < 60000) return mostra();
+    Nuvem.ia('GET', '/custos').then(function(j){ custosIA = j.contatos || {}; custosEm = Date.now(); if (document.getElementById('dCustoIA') === el) mostra(); }).catch(function(){});
+  }
   function iaQuietaHtml(c){
     var q = c.iaQuieta, u = (c.msgs || []).filter(function(m){ return m.de === 'cli'; }).pop();
     if (!q || !u || q.ts < (u.ts || 0) || c.ignorado) return '';
@@ -2524,7 +2535,12 @@
           '<div class="dica">Pegue em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. A chave vai direto para o servidor e não aparece mais na tela.</div></div>' +
         '<p class="alerta-ia">' + ic('info') + '<span><b>Camada grátis só para testes.</b> Nela o Google pode usar as conversas para melhorar os produtos dele, e pessoas podem revisá-las. Com clientes reais, ative o faturamento no Google Cloud (a mesma chave passa a ser paga e as conversas deixam de ser usadas).</span></p>' +
         '<div class="botoes-ia"><button class="btn pri" id="iaConSalva">' + (st.conectada ? 'Salvar e testar' : 'Conectar') + '</button>' + (st.conectada ? '<button class="btn" id="iaConRem">Remover chave</button>' : '') + '</div>' +
-        (st.uso ? '<p class="uso-ia">Este mês: ' + numBR(st.uso.chamadas) + ' chamadas à IA' + (st.uso.erros ? ' (' + numBR(st.uso.erros) + ' com erro)' : '') + ' · ' + numBR(st.uso.tokens_in) + ' tokens lidos e ' + numBR(st.uso.tokens_out) + ' escritos.</p>' : '');
+        (st.uso ? '<p class="uso-ia">Este mês: ' + numBR(st.uso.chamadas) + ' chamadas à IA' + (st.uso.erros ? ' (' + numBR(st.uso.erros) + ' com erro)' : '') + ' · ' + numBR(st.uso.tokens_in) + ' tokens lidos e ' + numBR(st.uso.tokens_out) + ' escritos.</p>' : '') +
+        (st.conectada ? '<div class="fonte-ia"><label for="iaFonte"><b>Base de conhecimento na planilha</b></label>' +
+          '<p class="nota-bot">Cole o link de <b>Arquivo → Compartilhar → Publicar na web</b> de cada aba (formato .csv), um por linha. A IA relê a planilha a cada hora e segue o que estiver lá.</p>' +
+          '<textarea id="iaFonte" rows="3" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&single=true&output=csv">' + esc(st.fonte_url || '') + '</textarea>' +
+          (st.fonte_em ? '<p class="uso-ia">Lida às ' + esc(new Date(st.fonte_em).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})) + ' · ' + numBR(st.fonte_linhas || 0) + ' linhas.</p>' : '') +
+          '<div class="botoes-ia"><button class="btn" id="iaFonteSalva">Salvar e ler agora</button></div></div>' : '');
       $('#iaConSalva').onclick = function(){
         var b = this, chave = $('#iaKey').value.trim(), corpo = {modelo:$('#iaMod').value, testar:true};
         if (chave) corpo.chave = chave;
@@ -2532,6 +2548,11 @@
         b.disabled = true; b.textContent = 'Testando…';
         Nuvem.ia('POST', '', corpo).then(function(j){ iaSt = j; stAt('ia', j.conectada); desenhaCon(); desenhaOpcoes(); aviso('IA <b>conectada</b>. O teste com o Gemini funcionou.'); })
           .catch(function(err){ b.disabled = false; b.textContent = st.conectada ? 'Salvar e testar' : 'Conectar'; aviso(esc(err.message)); });
+      };
+      var fs = $('#iaFonteSalva'); if (fs) fs.onclick = function(){
+        var b = this; b.disabled = true; b.textContent = 'Lendo a planilha…';
+        Nuvem.ia('POST', '', {fonte_url:$('#iaFonte').value}).then(function(j){ iaSt = j; desenhaCon(); aviso(j.fonte_url ? 'Base lida: <b>' + numBR(j.fonte_linhas) + ' linhas</b>. A IA já usa nas próximas respostas.' : 'Base da planilha removida.'); })
+          .catch(function(err){ b.disabled = false; b.textContent = 'Salvar e ler agora'; aviso(esc(err.message)); });
       };
       var rm = $('#iaConRem'); if (rm) rm.onclick = function(){
         if (!confirm('Remover a chave da IA? O CRM automático e o resumo do dia param até você colar outra.')) return;

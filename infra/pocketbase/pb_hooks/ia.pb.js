@@ -32,6 +32,14 @@ routerAdd("POST", "/api/abertocore/ia", (e) => {
   if (typeof b.crm_auto === "boolean") cfg.set("crm_auto", b.crm_auto)
   if (typeof b.resumo_dia === "boolean") cfg.set("resumo_dia", b.resumo_dia)
 
+  if (typeof b.fonte_url === "string" && I.podeConfigurar(e.auth)) {
+    const urls = I.urlsFonte(b.fonte_url)
+    if (urls.length > 6) throw new BadRequestError("Use no máximo 6 abas.")
+    const ruim = urls.find((u) => !I.validaUrlFonte(u))
+    if (ruim) throw new BadRequestError("Link inválido. Use o link de \"Publicar na web\" da aba, no formato .csv (começa com https://docs.google.com/spreadsheets/d/e/).")
+    cfg.set("fonte_url", urls.join("\n"))
+    try { I.atualizaFonte($app, cfg) } catch (err) { throw new BadRequestError(String(err.message || err)) }
+  }
   if (b.remover) { cfg.set("api_key", ""); cfg.set("final_chave", "") }
   const chave = String(b.chave || "").trim()
   if (chave) {
@@ -99,4 +107,16 @@ cronAdd("ia-crm", "*/10 * * * *", () => {
 cronAdd("ia-resumo-dia", "0 21 * * *", () => {
   const I = require(`${__hooks}/ia.js`)
   I.rodaResumoDia($app)
+})
+
+// custo de IA por contato (local_id -> chamadas, tokens, R$ aproximado)
+routerAdd("GET", "/api/abertocore/ia/custos", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  return e.json(200, { contatos: I.custos($app, e.auth.getString("empresa")) })
+}, $apis.requireAuth("users"))
+
+// base de conhecimento da planilha: atualiza a cada hora
+cronAdd("ia-fonte", "41 * * * *", () => {
+  const I = require(`${__hooks}/ia.js`)
+  I.rodaFontes($app)
 })

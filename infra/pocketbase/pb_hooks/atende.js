@@ -64,7 +64,7 @@ function decide(app, empresaId, rec, canalNome) {
     ctx.playbook ? "\nPlaybook comercial (use quando o assunto for iFood, apps de entrega, Cardápio Web ou concorrentes; argumente com estes fatos, sem despejar tudo de uma vez):\n" + ctx.playbook : "",
   ].filter(Boolean).join("\n")
   let r
-  try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 10) + "\n\nResponda à última mensagem do cliente.", true, 450) }
+  try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 10) + "\n\nResponda à última mensagem do cliente.", true, 450, rec.id) }
   catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return quieta(app, rec, "A IA deu erro ao responder: " + String(e.message || e).slice(0, 160)) }
   const texto = limpa(r && r.resposta, canalNome === "E-mail" ? 4000 : 1000)
   if (!texto) return quieta(app, rec, "A IA leu a mensagem e preferiu não responder (parece resposta automática ou não havia o que responder).")

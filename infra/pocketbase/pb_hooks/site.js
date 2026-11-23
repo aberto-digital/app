@@ -121,7 +121,7 @@ function respondeIA(app, canalRec, rec) {
     "", "Informações do negócio:", limpa(canalRec.getString("contexto"), 8000), limpa(ctx.base, 6000),
   ].join("\n")
   let r
-  try { r = IA.chama(app, cfg, "site", sistema, "Conversa até agora:\n" + IA.conversa(d, 16) + "\n\nResponda à última mensagem do cliente.", true, 600) }
+  try { r = IA.chama(app, cfg, "site", sistema, "Conversa até agora:\n" + IA.conversa(d, 16) + "\n\nResponda à última mensagem do cliente.", true, 600, rec.id) }
   catch (e) { app.logger().warn("site: IA não respondeu", "erro", String(e)); return false }
   const txt = limpa(r && r.resposta, 1200)
   if (!txt) return false

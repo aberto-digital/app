@@ -63,7 +63,7 @@ function canalDaEmpresa(app, empresaId) {
 function contatoPorNumero(app, empresaId, waId, nomePerfil) {
   const col = app.findCollectionByNameOrId("contatos")
   let rec = null
-  try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && wa_id = {:w}", { e: empresaId, w: waId }) } catch (e) {}
+  try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && (wa_id = {:w} || aliases ~ {:a})", { e: empresaId, w: waId, a: " wa:" + waId + " " }) } catch (e) {}
   if (!rec) {
     const todos = app.findRecordsByFilter("contatos", "empresa = {:e}", "", 0, 0, { e: empresaId })
     for (let i = 0; i < todos.length; i++) {
@@ -168,7 +168,7 @@ function processaWebhook(app, corpo) {
       // status das mensagens enviadas (entregue / lida / falhou)
       ;(v.statuses || []).forEach((s) => {
         let rec = null
-        try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && wa_id = {:w}", { e: empresaId, w: s.recipient_id }) } catch (e) { return }
+        try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && (wa_id = {:w} || aliases ~ {:a})", { e: empresaId, w: s.recipient_id, a: " wa:" + s.recipient_id + " " }) } catch (e) { return }
         const d = lerDados(rec)
         let mudou = false
         ;(d.msgs || []).forEach((m) => {

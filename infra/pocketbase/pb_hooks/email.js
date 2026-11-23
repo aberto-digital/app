@@ -99,7 +99,7 @@ const ROBO = /(no-?reply|nao-?responda|mailer-daemon|postmaster|notifications?@|
 
 function contatoEmail(app, empresaId, email, nome) {
   const sid = "em:" + String(email).toLowerCase()
-  try { return app.findFirstRecordByFilter("contatos", "empresa = {:e} && social_id = {:s}", { e: empresaId, s: sid }) } catch (e) {}
+  try { return app.findFirstRecordByFilter("contatos", "empresa = {:e} && (social_id = {:s} || aliases ~ {:a})", { e: empresaId, s: sid, a: " " + sid + " " }) } catch (e) {}
   const S = require(`${__hooks}/site.js`)
   const rec = S.novoContato(app, empresaId, { nome: nome || email, canal: "E-mail", origem: "E-mail", nota: email })
   rec.set("social_id", sid)

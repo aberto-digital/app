@@ -278,6 +278,14 @@
   .transc{display:block;margin-top:6px;font-style:italic;opacity:.9;white-space:pre-wrap}
   .transc-bt{display:block;margin-top:6px;font:600 12.5px inherit;font-family:inherit;padding:5px 10px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;opacity:.85;cursor:pointer}
   .transc-bt:disabled{opacity:.5;cursor:default}
+  .nm-ed{border:0;background:transparent;color:var(--sec);cursor:pointer;font-size:15px;padding:2px 4px;border-radius:6px}
+  .nm-ed:hover{color:var(--texto);background:var(--linha)}
+  .det-juntar{width:100%;justify-content:center;margin-top:18px}
+  .jt-lista{display:grid;gap:6px;max-height:50vh;overflow:auto;margin-top:6px}
+  .jt-item{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--linha);background:var(--branco);border-radius:10px;padding:8px 10px;cursor:pointer;color:inherit;font:inherit}
+  .jt-item:hover{border-color:#2F6FED}
+  .jt-item small{display:block;color:var(--sec);font-size:12px}
+  .jt-item .av{flex:none}
   .arq-aviso{font-size:13px;color:var(--sec);margin:12px 0 0}
   .arq-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
   .arq-cab h3{margin:0}
@@ -684,7 +692,7 @@
 <dialog id="modal"></dialog>
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
-<script src="core/i18n.js?v=5"></script>
+<script src="core/i18n.js?v=6"></script>
 <script src="core/dados.js?v=2"></script>
 <script src="core/nuvem.js?v=13"></script>
 <script>
@@ -1812,7 +1820,7 @@
     var c = contato(sel), box = $('#detalhe'); if (!box || !c) return;
     var evs = S.eventos.filter(function(e){ return e.contato === c.id && diffDias(e.data) >= 0; });
     box.innerHTML = '<div class="det-barra"><button class="btn peq" id="fechaDet">' + ic('x') + 'Fechar</button><button class="btn pri peq" id="salvaDet">' + ic('ok') + 'Salvar</button></div>' +
-      '<div class="cab">' + avatar(c, true) + '<div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + '</div></div>' +
+      '<div class="cab">' + avatar(c, true) + '<div class="nm">' + esc(c.nome) + ' <button class="nm-ed" id="dNomeEd" type="button" title="Editar nome e dados" aria-label="Editar nome e dados">✎</button></div><div class="ng">' + esc(c.negocio) + '</div></div>' +
       '<div class="campo"><span class="rot">Classificação</span><div class="seg" id="segTipo">' +
         '<button class="lead" data-t="Lead" aria-pressed="' + (c.tipo === 'Lead') + '">Lead</button>' +
         '<button class="cliente" data-t="Cliente" aria-pressed="' + (c.tipo === 'Cliente') + '">Cliente</button></div></div>' +
@@ -1825,11 +1833,16 @@
       '<div class="grupo-t" style="display:flex;justify-content:space-between;align-items:center">Contato<button class="btn peq" id="dEditar" type="button">Editar</button></div>' +
       '<div class="dado"><span>Canal</span>' + chipCanal(c.canal) + '</div>' +
       '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
+      (c.usuario ? '<div class="dado"><span>Instagram</span><a href="https://instagram.com/' + encodeURIComponent(c.usuario) + '" target="_blank" rel="noopener">@' + esc(c.usuario) + '</a></div>' : '') +
+      (c.email ? '<div class="dado"><span>E-mail</span><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a></div>' : '') +
+      ((c.canais || []).length > 1 ? '<div class="dado"><span>Canais</span><span>' + c.canais.map(function(k){ return chipCanal(k); }).join(' ') + '</span></div>' : '') +
       '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });
-    box.insertAdjacentHTML('beforeend', '<button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
+    box.insertAdjacentHTML('beforeend', '<button class="btn det-juntar" id="dJunta" type="button">Juntar com outro contato</button><button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
+    $('#dNomeEd').onclick = function(){ modalContato(c.id); };
+    $('#dJunta').onclick = function(){ modalJuntar(c.id); };
     $('#dExclui').onclick = function(){
       if (!confirm('Excluir a conversa com ' + c.nome + '?\n\nApaga o contato, as mensagens e os compromissos dele no AbertoCore. As mensagens continuam no WhatsApp/Instagram/e-mail do cliente. Não dá para desfazer.')) return;
       var nome = c.nome;
@@ -2164,6 +2177,8 @@
       '<div class="campo"><label for="cNeg">' + esc(CONFIG.rotuloNegocio || 'Empresa ou negócio') + '</label><input id="cNeg" autocomplete="off" value="' + esc(v.negocio) + '" placeholder="' + esc(CONFIG.exemploNegocio || 'Ex.: Padaria Pão Dourado') + '"></div>' +
       '<div class="campo"><label for="cTel">WhatsApp ou telefone</label><input id="cTel" type="tel" inputmode="tel" autocomplete="off" value="' + esc(v.tel) + '" placeholder="(11) 9 9999-9999"></div>' +
       '<div id="cDup"></div>' +
+      '<div class="duas"><div class="campo"><label for="cIg">Instagram</label><input id="cIg" autocomplete="off" value="' + esc(v.usuario ? '@' + v.usuario : '') + '" placeholder="@perfil"></div>' +
+      '<div class="campo"><label for="cMail">E-mail</label><input id="cMail" type="email" autocomplete="off" value="' + esc(v.email || '') + '" placeholder="nome@empresa.com"></div></div>' +
       '<div class="duas"><div class="campo"><label for="cCanal">Fala com você por</label><select id="cCanal">' + opts(Object.keys(CANAIS), v.canal) + '</select></div>' +
       '<div class="campo"><label for="cOrig">Como chegou</label><select id="cOrig">' + opts(ORIGENS.indexOf(v.origem) < 0 && v.origem ? ORIGENS.concat([v.origem]) : ORIGENS, v.origem) + '</select></div></div>' +
       (c ? '' :
@@ -2188,12 +2203,14 @@
       var nome = $('#cNome').value.trim(); if (!nome) return;
       if (c){
         c.nome = nome; c.negocio = $('#cNeg').value.trim(); c.tel = $('#cTel').value.trim(); c.canal = $('#cCanal').value; c.origem = $('#cOrig').value;
+        c.usuario = $('#cIg').value.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, '') || undefined; c.email = $('#cMail').value.trim().toLowerCase() || undefined;
         salva(); aviso('Dados de <b>' + esc(c.nome) + '</b> atualizados.'); desenha(); return;
       }
       var maxId = S.contatos.reduce(function(m, x){ return Math.max(m, x.id); }, 0);
       var n = {id:Math.max(maxId + 1, S.prox.c || 1), nome:nome, negocio:$('#cNeg').value.trim(), canal:$('#cCanal').value, tipo:$('#cTipo').value,
         etapa:$('#cEt').value, valor:+$('#cVal').value || 0, followup:$('#cFol').value || null, status:'entrada', tel:$('#cTel').value.trim(),
         origem:$('#cOrig').value, nota:$('#cNota').value.trim(), naoLidas:0, criado:HOJE, criadoTs:agoraMs(),
+        usuario:$('#cIg').value.trim().replace(/^@/, '') || undefined, email:$('#cMail').value.trim().toLowerCase() || undefined,
         msgs:[{de:'sis', txt:'Contato cadastrado em ' + dataCurta(HOJE) + '.', ts:agoraMs()}]};
       if (n.etapa === CONFIG.etapaGanho) n.tipo = 'Cliente';
       S.contatos.push(n); S.prox.c = n.id + 1; salva();
@@ -2202,6 +2219,49 @@
       aviso('<b>' + esc(n.nome) + '</b> cadastrado.');
     };
     M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#cNome').focus(); }, 30);
+  }
+  function modalJuntar(id){
+    var c = contato(id), M = $('#modal'); if (!c) return;
+    function linha(x){ var u = ultima(x); return '<button type="button" class="jt-item" data-j="' + x.id + '">' + avatar(x) + '<span><b>' + esc(x.nome) + '</b><small>' + esc(x.canal || '') + (x.usuario ? ' · @' + esc(x.usuario) : '') + (x.tel ? ' · ' + esc(x.tel) : '') + (u ? ' · ' + esc(String(u.txt || '').slice(0, 40)) : '') + '</small></span></button>'; }
+    function lista(q){
+      q = (q || '').toLowerCase();
+      var L = S.contatos.filter(function(x){ return x.id !== c.id && (!q || [x.nome, x.negocio, x.tel, x.usuario, x.email].join(' ').toLowerCase().indexOf(q) >= 0); })
+        .sort(function(a, b){ return (ultima(b) || {}).ts - (ultima(a) || {}).ts; }).slice(0, 30);
+      $('#jtL').innerHTML = L.length ? L.map(linha).join('') : '<p class="nota-bot">Nenhum contato encontrado.</p>';
+    }
+    M.innerHTML = '<form method="dialog" id="fJt"><h3>Juntar com ' + esc(c.nome) + '</h3>' +
+      '<p class="nota-bot">Para a mesma pessoa que falou por canais diferentes (Instagram, WhatsApp, e-mail). As conversas viram uma só, e as próximas mensagens de qualquer um desses canais chegam aqui.</p>' +
+      '<div class="campo"><input id="jtB" autocomplete="off" placeholder="Buscar por nome, @, telefone ou e-mail"></div><div id="jtL" class="jt-lista"></div>' +
+      '<div class="bts"><button class="btn" value="cancelar" formnovalidate>Cancelar</button></div></form>';
+    $('#jtB').oninput = function(){ lista(this.value); }; lista('');
+    $('#jtL').onclick = function(ev){
+      var b = ev.target.closest('[data-j]'); if (!b) return;
+      var o = contato(+b.getAttribute('data-j')); if (!o) return;
+      if (!confirm('Juntar "' + o.nome + '" em "' + c.nome + '"?\n\nAs mensagens das duas conversas ficam juntas aqui e "' + o.nome + '" deixa de existir como contato separado.')) return;
+      M.close(); juntar(c.id, o.id);
+    };
+    M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#jtB').focus(); }, 30);
+  }
+  function juntar(idA, idB){
+    var A = contato(idA), B = contato(idB); if (!A || !B) return;
+    function aplica(novo){
+      S.contatos = S.contatos.filter(function(x){ return x.id !== idB; });
+      S.eventos.forEach(function(e){ if (e.contato === idB) e.contato = idA; });
+      Object.keys(novo).forEach(function(k){ A[k] = novo[k]; }); A.id = idA;
+      salva(); sel = idA; desenha(); aviso('Conversas juntadas em <b>' + esc(A.nome) + '</b>.');
+    }
+    var N = window.Nuvem;
+    if (N && N.logado && N.logado()){
+      Promise.resolve(N.enviar ? N.enviar() : null).catch(function(){}).then(function(){ return N.req('POST', '/api/abertocore/contatos/juntar', {manter:idA, juntar:idB}); }).then(function(r){ aplica(r.contato || {}); })
+        .catch(function(err){ aviso(esc(err.message || 'Não consegui juntar agora.')); });
+      return;
+    }
+    var m = (A.msgs || []).concat(B.msgs || []).sort(function(x, y){ return (x.ts || 0) - (y.ts || 0); });
+    m.push({de:'sis', txt:'Conversa de ' + (B.canal || 'outro canal') + ' juntada a este contato.', ts:agoraMs()});
+    var novo = {msgs:m, canais:[A.canal, B.canal].filter(function(v, i, a){ return v && a.indexOf(v) === i; })};
+    ['negocio','tel','email','usuario'].forEach(function(k){ if (!A[k] && B[k]) novo[k] = B[k]; });
+    if (/^(Instagram|Facebook) \d{4}$/.test(A.nome) && B.nome) novo.nome = B.nome;
+    aplica(novo);
   }
   function modalEvento(cid, pre){
     pre = pre || {};

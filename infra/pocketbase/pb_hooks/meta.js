@@ -58,7 +58,7 @@ function nomePerfil(app, canal, tipo, pessoaId) {
 function contatoSocial(app, canal, tipo, pessoaId) {
   const empresaId = canal.getString("empresa")
   const sid = (tipo === "instagram" ? "ig:" : "fb:") + pessoaId
-  try { return app.findFirstRecordByFilter("contatos", "empresa = {:e} && social_id = {:s}", { e: empresaId, s: sid }) } catch (e) {}
+  try { return app.findFirstRecordByFilter("contatos", "empresa = {:e} && (social_id = {:s} || aliases ~ {:a})", { e: empresaId, s: sid, a: " " + sid + " " }) } catch (e) {}
   const S = require(`${__hooks}/site.js`)
   const p = nomePerfil(app, canal, tipo, pessoaId)
   const rotulo = ROTULO[tipo]
@@ -104,6 +104,12 @@ function processaWebhook(app, corpo) {
       if (txt === null) return
       const rec = contatoSocial(app, canal, tipo, pessoa)
       const d = W.lerDados(rec)
+      // contato criado pela nossa 1ª mensagem fica sem nome até a pessoa responder; aí o perfil libera nome e @
+      if (!eco && !d.usuario) {
+        const p = nomePerfil(app, canal, tipo, pessoa)
+        if (p.usuario) d.usuario = p.usuario
+        if (p.nome && /^(Instagram|Facebook) \d{4}$/.test(d.nome || "")) { d.nome = p.nome; rec.set("nome", p.nome) }
+      }
       if (eco && ecoNosso(app, msg.mid, txt, d)) return
       const ultimo = (d.msgs || []).reduce((x, y) => Math.max(x, y.ts || 0), 0)
       const ts = Math.max(parseInt(ev.timestamp, 10) || Date.now(), Math.min(ultimo + 1, Date.now()))

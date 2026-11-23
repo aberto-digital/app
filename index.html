@@ -2281,7 +2281,7 @@
     return '<div class="ia-quieta">' + ic('ia') + '<span>A IA não respondeu: ' + esc(q.motivo) + '</span></div>';
   }
   /* ---------- contatos que parecem a mesma pessoa (sugestão de juntar) ---------- */
-  var PAL_GEN = /^(pizzaria|restaurante|lanchonete|hamburgueria|padaria|confeitaria|doceria|studio|estudio|salao|clinica|loja|oficina|mecanica|auto|centro|espaco|casa|buffet|escola|instituto|oficial|aruja|sp|de|da|do|das|dos|e|the|and|a|o|ltda|me|mei)$/;
+  var PAL_GEN = /^(pizzaria|restaurante|lanchonete|hamburgueria|padaria|confeitaria|doceria|studio|estudio|salao|clinica|loja|oficina|mecanica|auto|centro|espaco|casa|buffet|escola|instituto|oficial|aruja|sp|de|da|do|das|dos|e|the|and|a|o|ltda|me|mei|calcados|roupas|moda|doces|paes|bolos|esquadrias|vidracaria|vidros|aluminio|materiais|construcao|deposito|fotografia|terapias|cursos|burguer|burger|pizza|cookies|beauty|hair|pets|pet|eletrica|chaveiro|residencial|odontologia|estetica|podologia|tattoo|kids)$/;
   function chaveNome(t){
     return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’'`´]/g, '').replace(/[^a-z0-9 ]+/g, ' ')
       .split(' ').filter(function(w){ return w.length > 1 && !PAL_GEN.test(w); });

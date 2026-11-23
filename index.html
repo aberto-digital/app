@@ -1630,6 +1630,7 @@
       if (m.de !== 'cli'){
         if (m.erro) st = ' <span class="st erro" title="' + esc(m.erro) + '">não enviada</span>';
         else if (m.pend) st = ' <span class="st">enviando…</span>';
+        else if (m.fora) st = ' <span class="st" style="letter-spacing:0">pelo ' + esc(m.fora) + ' ↗</span>';
         else if (m.st === 'read') st = ' <span class="st lida" aria-label="lida">✓✓</span>';
         else if (m.st === 'delivered') st = ' <span class="st" aria-label="entregue">✓✓</span>';
         else if (m.st === 'sent' || m.wa) st = ' <span class="st" aria-label="enviada">✓</span>';
@@ -1717,12 +1718,18 @@
         }).catch(function(err){ b.disabled = false; b.textContent = 'Atualizar resumo'; aviso(esc(err.message)); });
       }, 800);
     };
-    var phVia = function(){ var v = viaDe(c), t = $('#texto'); if (t && viasDe(c).length > 1) t.placeholder = 'Mensagem pelo ' + NOME_VIA[v]; };
+    var phVia = function(){ var v = viaDe(c), t = $('#texto'); if (t && viasDe(c).length > 1) t.placeholder = v === 'wal' ? 'Mensagem para abrir no WhatsApp' : 'Mensagem pelo ' + NOME_VIA[v]; };
     phVia();
     box.querySelectorAll('.via-sel [data-via]').forEach(function(b){ b.onclick = function(){ c.via = b.getAttribute('data-via'); salva(); box.querySelectorAll('.via-sel [data-via]').forEach(function(x){ x.setAttribute('aria-checked', x === b); }); phVia(); $('#texto').focus(); }; });
     $('#fEnvia').addEventListener('submit', function(e){
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
       var via = viaDe(c);
+      if (via === 'wal'){
+        window.open('https://wa.me/' + foneWa(c.tel) + '?text=' + encodeURIComponent(t), '_blank', 'noopener');
+        c.msgs.push({de:'eq', txt:t, ts:agoraMs(), fora:'WhatsApp'}); c.status = 'esperando'; salva(); ta.value = '';
+        desenhaLista(); desenhaConversa(); aviso('Abri o WhatsApp com a mensagem pronta. É só tocar em enviar lá.');
+        return;
+      }
       var m = {de:'eq', txt:t, ts:agoraMs()};
       if (via){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
       c.msgs.push(m); c.status = 'esperando';
@@ -1753,14 +1760,17 @@
     if (tem('ig') && N.canalLigado && N.canalLigado('instagram')) out.push('ig');
     if (tem('fb') && N.canalLigado && N.canalLigado('messenger')) out.push('fb');
     if (tem('em') && N.canalLigado && N.canalLigado('email')) out.push('em');
+    // tem telefone mas a pessoa nunca escreveu no nosso WhatsApp: abre o WhatsApp com a mensagem pronta
+    if (out.indexOf('wa') < 0 && foneWa(c.tel)) out.push('wal');
     return out;
   }
-  var NOME_VIA = {wa:'WhatsApp', ig:'Instagram', fb:'Messenger', em:'E-mail'};
+  function foneWa(t){ var d = String(t || '').replace(/\D/g, ''); if (d.length === 10 || d.length === 11) d = '55' + d; return d.length >= 12 && d.length <= 13 ? d : ''; }
+  var NOME_VIA = {wa:'WhatsApp', ig:'Instagram', fb:'Messenger', em:'E-mail', wal:'WhatsApp ↗'};
   function viaDe(c){
     var vs = viasDe(c); if (!vs.length) return '';
     if (c.via && vs.indexOf(c.via) >= 0) return c.via;
     var pad = {WhatsApp:'wa', Instagram:'ig', Facebook:'fb', Messenger:'fb', 'E-mail':'em'}[c.canal];
-    return vs.indexOf(pad) >= 0 ? pad : vs[0];
+    return vs.indexOf(pad) >= 0 ? pad : (vs[0] === 'wal' && vs.length > 1 ? vs[1] : vs[0]);
   }
   function enviaArquivo(cid, arq, texto){
     var c = contato(cid); if (!c) return Promise.resolve();

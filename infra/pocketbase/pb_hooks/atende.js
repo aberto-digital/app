@@ -51,6 +51,7 @@ function decide(app, empresaId, rec, canalNome) {
     (d.iaChamou && agora - d.iaChamou < 12 * 3600000) ? "A equipe JÁ foi avisada nesta conversa. Continue respondendo as dúvidas objetivas (preço, opções, prazos, como funciona) com as informações abaixo; não ofereça de novo falar com a equipe e não repita que vai chamar alguém. Se não souber, diga que a equipe responde em breve." : "",
     'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"parar":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
     "", "Informações do negócio:", limpa(at.base || ctx.base, 3000),
+    ctx.playbook ? "\nPlaybook comercial (use quando o assunto for iFood, apps de entrega, Cardápio Web ou concorrentes; argumente com estes fatos, sem despejar tudo de uma vez):\n" + ctx.playbook : "",
   ].filter(Boolean).join("\n")
   let r
   try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 10) + "\n\nResponda à última mensagem do cliente.", true, 450) }

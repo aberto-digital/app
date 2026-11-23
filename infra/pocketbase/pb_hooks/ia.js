@@ -112,7 +112,10 @@ function contextoEmpresa(app, empresaId) {
   const etapas = Array.isArray(perfil.etapas) && perfil.etapas.length > 2 ? perfil.etapas : ETAPAS
   const finais = [perfil.etapaGanho || "Fechado", perfil.etapaPerda || "Perdido"]
   const desc = perfil.descEtapas || "Qualificado = cliente explicou o que precisa; Proposta enviada = a empresa mandou preço ou orçamento; Negociação = discutindo preço, prazo ou condições; Fechado = cliente confirmou a compra; Perdido = cliente desistiu"
-  return { nome: nome || "a empresa", base: base, etapas: etapas, finais: finais, desc: desc }
+  // a própria agência tem um playbook comercial com fatos de mercado (iFood, Cardápio Web...)
+  let playbook = ""
+  if (/^abertodigital$/i.test(String(nome).trim())) { try { playbook = require(`${__hooks}/playbook_agencia.js`) } catch (e) {} }
+  return { nome: nome || "a empresa", base: base, etapas: etapas, finais: finais, desc: desc, playbook: playbook }
 }
 
 function ultimaMsg(d) {
@@ -313,7 +316,8 @@ function perguntar(app, cfg, pergunta, historico) {
   const sistema = "Você é o assistente interno do AbertoCore, o sistema de atendimento de " + ctx.nome + ". " +
     "Responde perguntas do dono e da equipe sobre os contatos, o funil, a agenda e os números do negócio, usando só os dados abaixo. " +
     "Hoje é " + hoje + " (Brasília). Responda em português do Brasil, curto e direto, em texto simples (listas com hífen quando ajudar). " +
-    "Cite os contatos pelo nome. Se os dados não respondem, diga isso. Não invente."
+    "Cite os contatos pelo nome. Se os dados não respondem, diga isso. Não invente." +
+    (ctx.playbook ? " Você também ajuda a equipe a preparar argumentos de venda e conversas técnicas usando o playbook abaixo (fatos com data; diga que podem mudar).\n\n" + ctx.playbook : "")
   const texto = "Etapas do funil: " + ctx.etapas.join(" > ") + "\n\nContatos (" + contatos.length + "):\n" +
     (contatos.map(linhaContato).join("\n") || "(nenhum)") +
     "\n\nAgenda dos próximos 30 dias:\n" + (agenda.map((ev) => dataCurta(ev.data) + " " + (ev.hora || "") + " " + (ev.titulo || "") + (ev.tipo ? " (" + ev.tipo + ")" : "")).join("\n") || "(vazia)") +

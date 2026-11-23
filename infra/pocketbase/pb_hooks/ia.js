@@ -46,7 +46,8 @@ function chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens, comPensame
   if (res.statusCode >= 300) {
     const m = (j.error && j.error.message) || ("HTTP " + res.statusCode)
     // modelo que não aceita desligar o "raciocínio": tenta de novo do jeito padrão
-    if (res.statusCode === 400 && /thinking/i.test(m) && !comPensamento) return chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens, true)
+    // (modelos novos recusam "thinkingBudget" com um genérico "invalid argument")
+    if (res.statusCode === 400 && !comPensamento && /thinking|invalid argument/i.test(m)) return chamaGemini(apiKey, modelo, sistema, texto, json, maxTokens, true)
     if (res.statusCode === 400 && /api key/i.test(m)) throw new Error("A chave da API não foi aceita pelo Google. Confira se copiou a chave inteira.")
     if (res.statusCode === 403) throw new Error("O Google recusou a chave (sem permissão para a API do Gemini).")
     if (res.statusCode === 404) throw new Error("Modelo \"" + modelo + "\" não encontrado no Gemini.")

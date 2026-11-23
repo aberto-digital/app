@@ -184,8 +184,10 @@ function leEnviados(app, canal) {
   }
   const lista = zoho(app, canal, "GET", "/messages/view?folderId=" + x.sentId + "&limit=25&sortorder=false") || []
   let n = 0, maior = x.ultimoEnv || 0
-  lista.filter((m) => parseInt(m.sentDateInGMT || m.receivedTime, 10) > (x.ultimoEnv || 0)).forEach((m) => {
-    const ts = parseInt(m.sentDateInGMT || m.receivedTime, 10) || Date.now()
+  // receivedTime é o horário real (sentDateInGMT da Zoho vem deslocado pelo fuso da conta)
+  const hora = (m) => Math.min(parseInt(m.receivedTime, 10) || parseInt(m.sentDateInGMT, 10) || Date.now(), Date.now())
+  lista.filter((m) => hora(m) > (x.ultimoEnv || 0)).forEach((m) => {
+    const ts = hora(m)
     maior = Math.max(maior, ts)
     const paras = String(m.toAddress || "").toLowerCase().match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/g) || []
     paras.forEach((para) => {

@@ -149,3 +149,23 @@ cronAdd("meta-assina", "23 */6 * * *", () => {
     })
   } catch (e) {}
 })
+
+// A IA deu erro (Gemini sobrecarregado ou lento): tenta responder de novo no Instagram/Messenger,
+// até 3 vezes, se a última mensagem ainda for do cliente e tiver menos de 2 horas.
+cronAdd("ia-retenta", "*/4 * * * *", () => {
+  const M = require(`${__hooks}/meta.js`)
+  let recs = []
+  try { recs = $app.findRecordsByFilter("contatos", "dados ~ '\"tentar\":' && (social_id ~ 'ig:%' || social_id ~ 'fb:%')", "-updated", 5, 0) } catch (e) { return }
+  recs.forEach((rec) => {
+    try {
+      const d = JSON.parse(rec.getString("dados") || "{}")
+      const q = d.iaQuieta || {}
+      if (!q.tentar || q.tentar > 3 || Date.now() - (q.ts || 0) < 3 * 60000) return
+      const ult = (d.msgs || []).filter((m) => m.de !== "sis").pop()
+      if (!ult || ult.de !== "cli" || Date.now() - (ult.ts || 0) > 2 * 3600000 || d.ignorado) return
+      const tipo = rec.getString("social_id").slice(0, 3) === "ig:" ? "instagram" : "messenger"
+      const canal = M.canalDaEmpresaTipo($app, rec.getString("empresa"), tipo)
+      if (canal) M.iaSocial($app, canal, tipo, rec)
+    } catch (e) { $app.logger().warn("ia-retenta: falhou", "erro", String(e)) }
+  })
+})

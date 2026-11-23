@@ -18,10 +18,13 @@ function cfgAtendimento(app, empresaId) {
 
 // Devolve { texto, chamar, motivo } ou null (a IA fica quieta).
 // Guarda no contato por que a IA ficou quieta (aparece na conversa para a equipe).
-function quieta(app, rec, motivo) {
+function quieta(app, rec, motivo, erro) {
   try {
     const atual = app.findRecordById("contatos", rec.id), d = lerDados(atual)
+    const antes = d.iaQuieta || {}
     d.iaQuieta = { motivo: motivo, ts: Date.now() }
+    // erro do Gemini (sobrecarga, demora): tenta de novo sozinha em alguns minutos, até 3 vezes
+    if (erro) d.iaQuieta.tentar = (antes.tentar || 0) + 1
     atual.set("dados", d); app.save(atual)
   } catch (e) {}
   return null
@@ -65,7 +68,7 @@ function decide(app, empresaId, rec, canalNome) {
   ].filter(Boolean).join("\n")
   let r
   try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 10) + "\n\nResponda à última mensagem do cliente.", true, 450, rec.id) }
-  catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return quieta(app, rec, "A IA deu erro ao responder: " + String(e.message || e).slice(0, 160)) }
+  catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return quieta(app, rec, "A IA deu erro ao responder: " + String(e.message || e).slice(0, 160), true) }
   const texto = limpa(r && r.resposta, canalNome === "E-mail" ? 4000 : 1000)
   if (!texto) return quieta(app, rec, "A IA leu a mensagem e preferiu não responder (parece resposta automática ou não havia o que responder).")
   return { texto: texto, chamar: !!r.chamar_equipe, parar: !!r.parar, motivo: limpa(r.motivo, 160), crm: (r.crm && typeof r.crm === "object") ? r.crm : null, ctx: ctx }

@@ -315,4 +315,4 @@ function ligaWhatsApp(app, empresaId, codigo, wabaId, phoneId) {
   return "WhatsApp " + (numero || phoneId)
 }
 
-module.exports = { assinaPagina, processaWebhook, enviaSocial, enviaAnexoSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }
+module.exports = { iaSocial, assinaPagina, processaWebhook, enviaSocial, enviaAnexoSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }

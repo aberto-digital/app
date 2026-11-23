@@ -35,7 +35,7 @@
   button,input,select,textarea{font:inherit;color:inherit}
   button{cursor:pointer;border:0;background:none}
   :focus-visible{outline:3px solid var(--ambar);outline-offset:2px;border-radius:6px}
-  .app{display:grid;grid-template-columns:72px 1fr;height:100dvh}
+  .app{display:grid;grid-template-columns:72px 1fr;grid-template-rows:minmax(0,1fr);height:100dvh;overflow:hidden}
 
   /* trilho lateral */
   .trilho{background:linear-gradient(180deg,var(--navy),var(--ink));display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px}
@@ -172,7 +172,7 @@
   .av .sel{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;border:2px solid var(--branco);display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff}
 
   /* ===== Mensagens ===== */
-  .inbox{display:grid;grid-template-columns:360px 1fr 300px;height:100%}
+  .inbox{display:grid;grid-template-columns:360px 1fr 300px;grid-template-rows:minmax(0,1fr);height:100%}
   .lista{min-width:0;border-right:1px solid var(--linha);background:var(--branco);display:flex;flex-direction:column;min-height:0}
   .lista .busca{display:flex;align-items:center;gap:8px;margin:14px 14px 8px;padding:9px 12px;border-radius:10px;background:var(--papel);border:1px solid var(--linha)}
   .lista .busca svg{width:17px;height:17px;color:var(--muted)}
@@ -541,7 +541,7 @@
   }
   @media (max-width:760px){
     body{font-size:14.5px}
-    .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
+    .app{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
     .trilho{order:2;flex-direction:row;justify-content:space-between;padding:calc(6px + env(safe-area-inset-bottom) / 2) 8px calc(6px + env(safe-area-inset-bottom) / 2);gap:4px;align-items:center;background:var(--ink);border-top:1px solid rgba(255,255,255,.06)}
     .teclado .trilho{display:none}
     .trilho .marca,.dica{display:none}

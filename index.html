@@ -918,6 +918,7 @@
   function abreIA(){
     sel = 'ia'; iaMarcaLido(); desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe();
     convMovel = true; var ib = $('#inbox'); if (ib){ ib.classList.add('mostra-conv'); ib.classList.remove('mostra-det'); }
+    var f = $('#fio'); if (f) fimConversa(f);
     if (!iaChatOk) carregaChatIA().then(function(){ iaMarcaLido(); desenhaNav(); if (sel === 'ia'){ desenhaLista(); desenhaConversa(); } }).catch(function(){});
   }
   function msgIA(m){
@@ -929,6 +930,7 @@
   }
   function desenhaIA(){
     var box = $('#conversa'); if (!box) return;
+    box.dataset.c = 'ia';
     var con = iaSt && iaSt.conectada, html = '', dAnt = '';
     IA_CHAT.forEach(function(m){ var d = rotDia(m.ts); if (d !== dAnt){ html += '<div class="dia">' + d + '</div>'; dAnt = d; } html += msgIA(m); });
     if (iaPensando) html += '<div class="digitando">pensando...</div>';
@@ -943,7 +945,7 @@
         '<div class="acoes"><button class="btn peq" id="iaCfg">' + ic('config') + '<span class="txt">Configurar</span></button></div></div>' +
       '<div class="fio" id="fio">' + (IA_CHAT.length ? html : intro + html) + '</div>' +
       '<div class="compor"><form class="linha" id="fIA"><textarea id="texto" rows="1" placeholder="' + (con ? 'Pergunte algo, ex.: quem eu preciso retornar hoje?' : 'Conecte a IA para perguntar') + '" aria-label="Pergunta para o assistente"' + (con ? '' : ' disabled') + '></textarea><button class="envia" aria-label="Enviar"' + (con ? '' : ' disabled') + '>' + ic('enviar') + '</button></form></div>';
-    var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
+    var fio = $('#fio'); fimConversa(fio);
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
     if (rolar) rolar.el = null;
     fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
@@ -1599,10 +1601,14 @@
     if (c.status !== aba){ aba = c.status; vaiParaAba(aba, false); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     convMovel = true; var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
+    var f = $('#fio'); if (f){ delete f.dataset.leu; fimConversa(f); }
   }
   function desenhaConversa(){
     if (sel === 'ia') return desenhaIA();
     var c = contato(sel), box = $('#conversa'); if (!box) return;
+    var fioAnt = $('#fio'), mesmo = box.dataset.c === String(sel),
+      posAnt = (mesmo && fioAnt && fioAnt.scrollHeight - fioAnt.clientHeight - fioAnt.scrollTop > 120) ? fioAnt.scrollTop : null;
+    box.dataset.c = String(sel);
     if (!c){ box.innerHTML = '<div class="vazio" style="margin:auto">Selecione ou cadastre um contato.</div>'; return; }
     var html = '', dAnt = '';
     c.msgs.forEach(function(m){
@@ -1639,7 +1645,7 @@
       '<div class="compor">' +
         (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel"><span id="viaRot">Responder por</span><span class="via-seg" role="radiogroup" aria-labelledby="viaRot">' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</span></div>' : ''; })() +
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
-    var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
+    var fio = $('#fio'); if (posAnt != null){ fio.scrollTop = posAnt; fio.dataset.leu = '1'; } else fimConversa(fio);
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
     if (rolar) rolar.el = null;
     fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
@@ -2259,6 +2265,17 @@
   /* Esconde/mostra a barra superior no celular conforme a rolagem: soma o quanto rolou na mesma direção
      (evita piscar com rolagem curta e com o "elástico" do iOS) e decide uma vez por quadro. */
   var rolar = {el:null, y:0, soma:0, quadro:0};
+  /* Leva a conversa até a última mensagem. Repete depois que a tela aparece (no celular ela abre escondida)
+     e depois que fotos e áudios carregam, a menos que a pessoa já tenha subido para ler. */
+  function fimConversa(fio){
+    if (!fio) return;
+    var vai = function(){ if (!fio.isConnected || fio.dataset.leu) return; fio.scrollTop = fio.scrollHeight; };
+    vai(); requestAnimationFrame(function(){ vai(); requestAnimationFrame(vai); });
+    setTimeout(vai, 250); setTimeout(vai, 700);
+    fio.querySelectorAll('img,video,audio').forEach(function(m){ m.addEventListener('load', vai, {once:true}); m.addEventListener('loadedmetadata', vai, {once:true}); });
+    var marca = function(){ if (fio.scrollHeight - fio.clientHeight - fio.scrollTop > 120) fio.dataset.leu = '1'; };
+    fio.addEventListener('touchmove', marca, {passive:true}); fio.addEventListener('wheel', marca, {passive:true});
+  }
   function barraRolagem(pane, classe, opc){
     if (!matchMedia('(max-width:760px)').matches) return;
     if (rolar.quadro) return;

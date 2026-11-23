@@ -97,9 +97,33 @@ function semCitacao(t) {
 }
 const ROBO = /(no-?reply|nao-?responda|mailer-daemon|postmaster|notifications?@|notificacao|newsletter|bounce|calendar-notification)/i
 
+// contato que já tem este e-mail salvo no card (ex.: lead do Instagram) ganha a identidade de e-mail
+function porEmailSalvo(app, empresaId, email) {
+  const sid = "em:" + String(email).toLowerCase()
+  let rec = null
+  try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && (social_id = {:s} || aliases ~ {:a})", { e: empresaId, s: sid, a: " " + sid + " " }) } catch (e) {}
+  if (rec) return rec
+  try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && dados.email = {:m}", { e: empresaId, m: String(email).toLowerCase() }) } catch (e) {}
+  if (!rec) try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && dados ~ {:m}", { e: empresaId, m: '"email":"' + String(email).toLowerCase() + '"' }) } catch (e) {}
+  if (!rec) return null
+  ligaEmail(rec, email)
+  return rec
+}
+function ligaEmail(rec, email) {
+  const sid = "em:" + String(email).toLowerCase()
+  if (rec.getString("social_id") === sid || (rec.getString("aliases") || "").indexOf(" " + sid + " ") >= 0) return
+  if (!rec.getString("social_id")) rec.set("social_id", sid)
+  else rec.set("aliases", " " + (rec.getString("aliases") || "").split(" ").filter(Boolean).concat([sid]).join(" ") + " ")
+  const d = W.lerDados(rec)
+  d.ids = [].concat(d.ids || []).concat(d.ids && d.ids.indexOf("em") >= 0 ? [] : ["em"])
+  if (!d.email) d.email = String(email).toLowerCase()
+  rec.set("dados", d)
+}
+
 function contatoEmail(app, empresaId, email, nome) {
   const sid = "em:" + String(email).toLowerCase()
-  try { return app.findFirstRecordByFilter("contatos", "empresa = {:e} && (social_id = {:s} || aliases ~ {:a})", { e: empresaId, s: sid, a: " " + sid + " " }) } catch (e) {}
+  const achado = porEmailSalvo(app, empresaId, email)
+  if (achado) return achado
   const S = require(`${__hooks}/site.js`)
   const rec = S.novoContato(app, empresaId, { nome: nome || email, canal: "E-mail", origem: "E-mail", nota: email })
   rec.set("social_id", sid)
@@ -146,12 +170,54 @@ function le(app, canal) {
   return n
 }
 
+// E-mails mandados direto pelo Zoho (fora do app) para alguém que já é contato: entram na conversa
+function leEnviados(app, canal) {
+  const x = ext(canal)
+  if (!x.sentId) {
+    try {
+      const pastas = zoho(app, canal, "GET", "/folders") || []
+      const s = pastas.filter((f) => String(f.folderType).toLowerCase() === "sent")[0]
+      if (!s) return 0
+      x.sentId = String(s.folderId); x.ultimoEnv = x.ultimoEnv || Date.now() - 3 * 86400000
+      const fr = app.findRecordById("canais", canal.id); const fx = ext(fr); fx.sentId = x.sentId; fx.ultimoEnv = x.ultimoEnv; fr.set("extra", fx); app.save(fr)
+    } catch (e) { return 0 }
+  }
+  const lista = zoho(app, canal, "GET", "/messages/view?folderId=" + x.sentId + "&limit=25&sortorder=false") || []
+  let n = 0, maior = x.ultimoEnv || 0
+  lista.filter((m) => parseInt(m.sentDateInGMT || m.receivedTime, 10) > (x.ultimoEnv || 0)).forEach((m) => {
+    const ts = parseInt(m.sentDateInGMT || m.receivedTime, 10) || Date.now()
+    maior = Math.max(maior, ts)
+    const paras = String(m.toAddress || "").toLowerCase().match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/g) || []
+    paras.forEach((para) => {
+      const rec = porEmailSalvo(app, canal.getString("empresa"), para)
+      if (!rec) return
+      const d = W.lerDados(rec)
+      if ((d.msgs || []).some((x2) => x2.wa === "em:" + m.messageId || (x2.de === "eq" && Math.abs((x2.ts || 0) - ts) < 120000 && /^em:/.test(x2.wa || "")))) return
+      let corpo = ""
+      try { corpo = textoDeHtml((zoho(app, canal, "GET", "/folders/" + x.sentId + "/messages/" + m.messageId + "/content") || {}).content) } catch (e) { corpo = m.summary || "" }
+      const assunto = String(m.subject || "").slice(0, 200)
+      d.msgs = W.unirMsgs(d.msgs, [{ de: "eq", txt: (assunto ? "Assunto: " + assunto + "\n\n" : "") + semCitacao(corpo).slice(0, 4000), ts: ts, wa: "em:" + m.messageId, st: "sent" }])
+      if (!d.assunto) d.assunto = assunto
+      d.emailMsg = d.emailMsg || String(m.messageId)
+      rec.set("dados", d)
+      app.save(rec)
+      n++
+    })
+  })
+  if (maior !== x.ultimoEnv) {
+    const fr = app.findRecordById("canais", canal.id); const fx = ext(fr); fx.ultimoEnv = maior; fr.set("extra", fx); app.save(fr)
+  }
+  return n
+}
+
 function leTodos(app) {
   let canais = []
   try { canais = app.findRecordsByFilter("canais", "tipo = 'email' && ativo = true", "", 0, 0) } catch (e) { return }
   canais.forEach((c) => {
     try { const n = le(app, c); if (n) app.logger().info("email: mensagens recebidas", "conta", c.getString("conta"), "n", n) }
     catch (e) { app.logger().warn("email: falha ao ler a caixa", "conta", c.getString("conta"), "erro", String(e.message || e)) }
+    try { leEnviados(app, app.findRecordById("canais", c.id)) }
+    catch (e) { app.logger().warn("email: falha ao ler enviados", "conta", c.getString("conta"), "erro", String(e.message || e)) }
   })
 }
 
@@ -189,4 +255,4 @@ function envia(app, canal, para, assunto, texto, responderA, assinatura, anexos)
   return (r && (r.messageId || r.mailId)) ? String(r.messageId || r.mailId) : "em:out" + Date.now().toString(36)
 }
 
-module.exports = { ESCOPOS, RETORNO, appZoho, liga, le, leTodos, envia }
+module.exports = { ESCOPOS, RETORNO, appZoho, liga, le, leEnviados, leTodos, envia, ligaEmail }

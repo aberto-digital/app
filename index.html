@@ -1759,7 +1759,7 @@
     if ((c.canal === 'WhatsApp' || tem('wa')) && N.waConectado()) out.push('wa');
     if (tem('ig') && N.canalLigado && N.canalLigado('instagram')) out.push('ig');
     if (tem('fb') && N.canalLigado && N.canalLigado('messenger')) out.push('fb');
-    if (tem('em') && N.canalLigado && N.canalLigado('email')) out.push('em');
+    if ((tem('em') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email || '').trim())) && N.canalLigado && N.canalLigado('email')) out.push('em');
     // tem telefone mas a pessoa nunca escreveu no nosso WhatsApp: abre o WhatsApp com a mensagem pronta
     if (out.indexOf('wa') < 0 && foneWa(c.tel)) out.push('wal');
     return out;

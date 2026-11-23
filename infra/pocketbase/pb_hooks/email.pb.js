@@ -50,16 +50,22 @@ routerAdd("POST", "/api/abertocore/email/enviar", (e) => {
   let rec
   try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }) }
   catch (err) { throw new NotFoundError("Contato não encontrado no servidor. Aguarde salvar e tente de novo.") }
-  const sid = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).find((x) => x && x.indexOf("em:") === 0) || ""
-  if (sid.indexOf("em:") !== 0) throw new BadRequestError("Este contato não veio do e-mail.")
+  let sid = [rec.getString("social_id")].concat((rec.getString("aliases") || "").split(" ")).find((x) => x && x.indexOf("em:") === 0) || ""
+  if (!sid) {
+    // contato de outro canal com e-mail salvo no card: escreve para esse e-mail e liga a identidade (a resposta cai aqui)
+    const salvo = String(W.lerDados(rec).email || "").trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(salvo)) throw new BadRequestError("Este contato não tem e-mail. Salve o e-mail no card do contato.")
+    E.ligaEmail(rec, salvo)
+    sid = "em:" + salvo
+  }
   const canal = M.canalDaEmpresaTipo($app, empresaId, "email")
   if (!canal) throw new BadRequestError("O e-mail desta empresa não está conectado.")
   const d = W.lerDados(rec)
-  const assunto = String(b.assunto || d.assunto || "").trim()
+  const assunto = String(b.assunto || d.assunto || "").trim() || ("abertodigital · " + (rec.getString("nome") || "contato"))
   let id
   let assinatura = ""
   try { assinatura = String((W.lerDados($app.findFirstRecordByFilter("configuracoes", "empresa = {:e}", { e: empresaId })).email || {}).assinatura || "") } catch (err) {}
-  try { id = E.envia($app, canal, sid.slice(3), /^re:/i.test(assunto) || !assunto ? assunto : "Re: " + assunto, texto, d.emailMsg || "", assinatura) }
+  try { id = E.envia($app, canal, sid.slice(3), /^re:/i.test(assunto) || !d.emailMsg ? assunto : "Re: " + assunto, texto, d.emailMsg || "", assinatura) }
   catch (err) { throw new BadRequestError("Não consegui enviar o e-mail: " + String(err.message || err)) }
   d.msgs = W.unirMsgs(d.msgs, [{ de: "eq", txt: texto, ts: Date.now(), wa: "em:" + id, k: b.k || undefined, st: "sent" }])
   d.status = "esperando"

@@ -79,15 +79,18 @@ function chama(app, cfg, tipo, sistema, texto, json, maxTokens) {
   if (!chave) throw new Error("A chave da API de IA ainda não foi cadastrada.")
   // Gemini às vezes devolve "alta demanda" (503/500): tenta de novo e depois troca de modelo
   const temporario = (e) => /high demand|overloaded|unavailable|try again|HTTP 5\d\d|Erro do Gemini: Internal/i.test(String(e))
-  const tentativas = [modelo, modelo, modelo === "gemini-flash-latest" ? "gemini-flash-lite-latest" : "gemini-flash-latest"]
+  // alta demanda costuma ser de um modelo só: tenta o escolhido e depois outros modelos rápidos
+  const reservas = ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-flash-lite-latest"].filter((m) => m !== modelo)
+  const tentativas = [modelo, modelo].concat(reservas)
   let r, ultimoErro
   for (let i = 0; i < tentativas.length && !r; i++) {
     try { r = chamaGemini(chave, tentativas[i], sistema, texto, json, maxTokens) }
     catch (e) {
       ultimoErro = e
       registraUso(app, empresaId, tipo, tentativas[i], 0, 0, false)
-      if (!temporario(e)) throw e
-      try { sleep(1500 * (i + 1)) } catch (x) {}
+      if (!temporario(e) && !(i >= 2 && /não encontrado/.test(String(e)))) throw e
+      if (/HTTP 404|não encontrado/i.test(String(e)) && i >= 2) continue
+      try { sleep(Math.min(1500 * (i + 1), 4000)) } catch (x) {}
     }
   }
   if (!r) throw ultimoErro

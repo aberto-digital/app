@@ -2264,6 +2264,18 @@
   // por que a IA não respondeu a última mensagem do cliente (vem do servidor)
   /* Esconde/mostra a barra superior no celular conforme a rolagem: soma o quanto rolou na mesma direção
      (evita piscar com rolagem curta e com o "elástico" do iOS) e decide uma vez por quadro. */
+
+  /* App instalado no celular fica aberto por dias: quando volta para a tela, confere se saiu versão nova e recarrega. */
+  (function(){
+    var marca = null, checando = false;
+    function versao(){ return fetch(location.pathname, {method:'HEAD', cache:'no-store'}).then(function(r){ return r.headers.get('etag') || r.headers.get('last-modified') || ''; }); }
+    versao().then(function(v){ marca = v; }).catch(function(){});
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState !== 'visible' || !marca || checando) return;
+      checando = true;
+      versao().then(function(v){ checando = false; if (v && v !== marca){ var t = document.querySelector('textarea:focus'); if (!t || !t.value) location.reload(); } }).catch(function(){ checando = false; });
+    });
+  })();
   var rolar = {el:null, y:0, soma:0, quadro:0};
   /* Leva a conversa até a última mensagem. Repete depois que a tela aparece (no celular ela abre escondida)
      e depois que fotos e áudios carregam, a menos que a pessoa já tenha subido para ler. */

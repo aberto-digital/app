@@ -1835,6 +1835,8 @@
       '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
       (c.usuario ? '<div class="dado"><span>Instagram</span><a href="https://instagram.com/' + encodeURIComponent(c.usuario) + '" target="_blank" rel="noopener">@' + esc(c.usuario) + '</a></div>' : '') +
       (c.email ? '<div class="dado"><span>E-mail</span><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a></div>' : '') +
+      (c.site ? '<div class="dado"><span>Site</span><a href="' + esc(/^https?:/.test(c.site) ? c.site : 'https://' + c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a></div>' : '') +
+      (c.endereco ? '<div class="dado"><span>Endereço</span><a href="https://www.google.com/maps/search/' + encodeURIComponent(c.endereco) + '" target="_blank" rel="noopener">' + esc(c.endereco) + '</a></div>' : '') +
       ((c.canais || []).length > 1 ? '<div class="dado"><span>Canais</span><span>' + c.canais.map(function(k){ return chipCanal(k); }).join(' ') + '</span></div>' : '') +
       '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
@@ -2179,6 +2181,8 @@
       '<div id="cDup"></div>' +
       '<div class="duas"><div class="campo"><label for="cIg">Instagram</label><input id="cIg" autocomplete="off" value="' + esc(v.usuario ? '@' + v.usuario : '') + '" placeholder="@perfil"></div>' +
       '<div class="campo"><label for="cMail">E-mail</label><input id="cMail" type="email" autocomplete="off" value="' + esc(v.email || '') + '" placeholder="nome@empresa.com"></div></div>' +
+      '<div class="duas"><div class="campo"><label for="cEnd">Endereço</label><input id="cEnd" autocomplete="off" value="' + esc(v.endereco || '') + '" placeholder="Rua, número, bairro"></div>' +
+      '<div class="campo"><label for="cSite">Site</label><input id="cSite" autocomplete="off" inputmode="url" value="' + esc(v.site || '') + '" placeholder="www.empresa.com.br"></div></div>' +
       '<div class="duas"><div class="campo"><label for="cCanal">Fala com você por</label><select id="cCanal">' + opts(Object.keys(CANAIS), v.canal) + '</select></div>' +
       '<div class="campo"><label for="cOrig">Como chegou</label><select id="cOrig">' + opts(ORIGENS.indexOf(v.origem) < 0 && v.origem ? ORIGENS.concat([v.origem]) : ORIGENS, v.origem) + '</select></div></div>' +
       (c ? '' :
@@ -2203,14 +2207,14 @@
       var nome = $('#cNome').value.trim(); if (!nome) return;
       if (c){
         c.nome = nome; c.negocio = $('#cNeg').value.trim(); c.tel = $('#cTel').value.trim(); c.canal = $('#cCanal').value; c.origem = $('#cOrig').value;
-        c.usuario = $('#cIg').value.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, '') || undefined; c.email = $('#cMail').value.trim().toLowerCase() || undefined;
+        c.usuario = $('#cIg').value.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, '') || undefined; c.email = $('#cMail').value.trim().toLowerCase() || undefined; c.endereco = $('#cEnd').value.trim() || undefined; c.site = $('#cSite').value.trim() || undefined;
         salva(); aviso('Dados de <b>' + esc(c.nome) + '</b> atualizados.'); desenha(); return;
       }
       var maxId = S.contatos.reduce(function(m, x){ return Math.max(m, x.id); }, 0);
       var n = {id:Math.max(maxId + 1, S.prox.c || 1), nome:nome, negocio:$('#cNeg').value.trim(), canal:$('#cCanal').value, tipo:$('#cTipo').value,
         etapa:$('#cEt').value, valor:+$('#cVal').value || 0, followup:$('#cFol').value || null, status:'entrada', tel:$('#cTel').value.trim(),
         origem:$('#cOrig').value, nota:$('#cNota').value.trim(), naoLidas:0, criado:HOJE, criadoTs:agoraMs(),
-        usuario:$('#cIg').value.trim().replace(/^@/, '') || undefined, email:$('#cMail').value.trim().toLowerCase() || undefined,
+        usuario:$('#cIg').value.trim().replace(/^@/, '') || undefined, email:$('#cMail').value.trim().toLowerCase() || undefined, endereco:$('#cEnd').value.trim() || undefined, site:$('#cSite').value.trim() || undefined,
         msgs:[{de:'sis', txt:'Contato cadastrado em ' + dataCurta(HOJE) + '.', ts:agoraMs()}]};
       if (n.etapa === CONFIG.etapaGanho) n.tipo = 'Cliente';
       S.contatos.push(n); S.prox.c = n.id + 1; salva();

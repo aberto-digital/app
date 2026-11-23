@@ -186,7 +186,8 @@ const SIS_ANALISE = (ctx, hoje) =>
   "\"proximo_retorno\": string AAAA-MM-DD ou null (quando a equipe deve voltar a falar com o cliente, se a conversa indicar), " +
   "\"etapa\": uma de " + JSON.stringify(ctx.etapas) + " (" + ctx.desc + "), " +
   "\"atencao\": boolean (true se a última mensagem é do cliente e ele espera resposta da equipe, ou se ele reclamou), " +
-  "\"motivo\": string (por que precisa de atenção, curto; vazio se atencao for false)}\n" +
+  "\"motivo\": string (por que precisa de atenção, curto; vazio se atencao for false), " +
+  "\"contato\": {\"negocio\": string, \"telefone\": string, \"email\": string, \"endereco\": string, \"site\": string} (só dados que o PRÓPRIO contato informou nas mensagens dele, como nome da empresa, WhatsApp, endereço e site; vazio quando não houver)}\n" +
   "Não invente valores, datas ou nomes. Use português do Brasil." +
   (ctx.base ? "\n\nInformações do negócio:\n" + ctx.base.slice(0, 2500) : "")
 
@@ -201,7 +202,7 @@ function analisaContato(app, cfg, rec) {
   const texto = "Contato: " + (d.nome || "Sem nome") + (d.negocio ? " (" + d.negocio + ")" : "") +
     "\nEtapa atual no funil: " + (d.etapa || ctx.etapas[0]) + "\nValor atual no card: " + brl(d.valor) +
     "\nPróximo retorno atual: " + (d.followup || "nenhum") + "\n\nConversa (mais antiga primeiro):\n" + conversa(d, 16)
-  const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 400)
+  const r = chama(app, cfg, "crm", SIS_ANALISE(ctx, hoje), texto, true, 700)
 
   // grava de novo em cima da versão mais recente do registro
   const atual = app.findRecordById("contatos", rec.id)
@@ -237,6 +238,18 @@ function aplicaAnalise(ctx, atual, dd, r, ate) {
   if (iNova > iAtual && FI.indexOf(r.etapa) < 0 && FI.indexOf(dd.etapa) < 0) {
     dd.etapa = r.etapa; atual.set("etapa", r.etapa); mudou.push("etapa " + r.etapa)
   }
+  // dados que o próprio contato passou na conversa: só preenchem campos vazios, nunca trocam o que a equipe escreveu
+  const k = r.contato || {}, limpo = (v, n) => String(v || "").replace(/\s+/g, " ").trim().slice(0, n)
+  const ROT = { negocio: "empresa", tel: "telefone", email: "e-mail", endereco: "endereço", site: "site" }
+  ;[["negocio", k.negocio, 120], ["tel", k.telefone, 40], ["email", String(k.email || "").toLowerCase(), 120], ["endereco", k.endereco, 200], ["site", k.site, 200]].forEach((x) => {
+    const v = limpo(x[1], x[2])
+    if (!v || dd[x[0]]) return
+    if (x[0] === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return
+    if (x[0] === "tel" && String(v).replace(/\D/g, "").length < 10) return
+    dd[x[0]] = v
+    if (x[0] === "tel") atual.set("telefone", v)
+    mudou.push(ROT[x[0]])
+  })
   if (mudou.length) dd.msgs = (dd.msgs || []).concat([{ de: "sis", txt: "IA atualizou o card: " + mudou.join(", ") + ".", ts: Date.now() }])
   return dd.ia
 }

@@ -111,6 +111,29 @@ function telefoneNoTexto(txt) {
   return m ? "(" + m[1] + ") " + m[2] + "-" + m[3] : ""
 }
 
+// Confirmação de entrega/leitura (Messenger: watermark; Instagram: mid da mensagem vista).
+// Marca as nossas mensagens até aquele ponto como entregues/lidas (os dois tiques).
+const NIVEL = { sent: 1, delivered: 2, read: 3 }
+function marcaStatus(app, canal, tipo, pessoaId, st, info) {
+  if (!pessoaId || pessoaId === "undefined") return
+  const sid = (tipo === "instagram" ? "ig:" : "fb:") + pessoaId
+  let rec
+  try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && (social_id = {:s} || aliases ~ {:a})", { e: canal.getString("empresa"), s: sid, a: " " + sid + " " }) } catch (e) { return }
+  const d = W.lerDados(rec), msgs = d.msgs || []
+  let corte = parseInt(info.watermark, 10) || 0
+  const mids = [].concat(info.mid ? [info.mid] : [], info.mids || [])
+  mids.forEach((id) => { const m = msgs.find((x) => x.wa === id); corte = Math.max(corte, m ? m.ts || 0 : Date.now()) })
+  if (!corte) corte = Date.now()
+  let mudou = false
+  msgs.forEach((m) => {
+    if (m.de === "cli" || m.de === "sis" || m.erro || (m.ts || 0) > corte) return
+    if ((NIVEL[m.st] || 0) < NIVEL[st]) { m.st = st; mudou = true }
+  })
+  if (!mudou) return
+  rec.set("dados", d)
+  app.save(rec)
+}
+
 // Processa o webhook (object = "page" ou "instagram"). Retorna quantas mensagens foram gravadas.
 function processaWebhook(app, corpo) {
   const tipo = corpo.object === "instagram" ? "instagram" : corpo.object === "page" ? "messenger" : null
@@ -120,6 +143,7 @@ function processaWebhook(app, corpo) {
     const canal = canalSocial(app, tipo, String(entry.id))
     if (!canal) { app.logger().warn("meta: conta sem canal", "tipo", tipo, "id", entry.id); return }
     ;(entry.messaging || []).concat(entry.standby || []).forEach((ev) => {
+      if (ev.read || ev.delivery) { try { marcaStatus(app, canal, tipo, String(ev.sender && ev.sender.id), ev.read ? "read" : "delivered", ev.read || ev.delivery) } catch (e) {} return }
       const msg = ev.message
       if (!msg || !msg.mid) return
       const eco = !!msg.is_echo
@@ -251,7 +275,7 @@ function salvaCanal(app, empresaId, filtro, params, valores) {
 
 // Liga a Página (Messenger) e, se tiver, o Instagram profissional ligado a ela.
 function assinaPagina(app, pageId, tok) {
-  graphPost(app, pageId + "/subscribed_apps?subscribed_fields=messages,message_echoes,messaging_postbacks,standby", tok, {})
+  graphPost(app, pageId + "/subscribed_apps?subscribed_fields=messages,message_echoes,messaging_postbacks,standby,message_reads,message_deliveries", tok, {})
 }
 
 function ligaPagina(app, empresaId, pagina) {

@@ -1611,7 +1611,7 @@
         else if (m.pend) st = ' <span class="st">enviando…</span>';
         else if (m.st === 'read') st = ' <span class="st lida" aria-label="lida">✓✓</span>';
         else if (m.st === 'delivered') st = ' <span class="st" aria-label="entregue">✓✓</span>';
-        else if (m.st === 'sent') st = ' <span class="st" aria-label="enviada">✓</span>';
+        else if (m.st === 'sent' || m.wa) st = ' <span class="st" aria-label="enviada">✓</span>';
       }
       html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : m.de === 'bot' ? '<span class="quem">' + ic('msg') + 'Chatbot</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.botoes ? '<span class="wa-bts fixos">' + (m.lista ? '<span class="wa-bt">☰ Ver opções</span>' : '') + m.botoes.map(function(b){ return '<span class="wa-bt">' + esc(b) + '</span>'; }).join('') + '</span>' : '') + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
     });

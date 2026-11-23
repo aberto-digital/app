@@ -139,3 +139,13 @@ routerAdd("POST", "/api/abertocore/social/enviar", (e) => {
   $app.save(rec)
   return e.json(200, { ok: true, mid: mid, dados: d })
 }, $apis.requireAuth("users"))
+
+// Reassina as Páginas ligadas (garante os campos novos do webhook, como leitura e entrega).
+cronAdd("meta-assina", "23 */6 * * *", () => {
+  const M = require(`${__hooks}/meta.js`)
+  try {
+    $app.findRecordsByFilter("canais", "tipo = 'messenger' && ativo = true", "", 0, 0).forEach((c) => {
+      try { M.assinaPagina($app, c.getString("page_id"), c.getString("access_token")) } catch (e) { $app.logger().warn("meta: reassinatura falhou", "erro", String(e)) }
+    })
+  } catch (e) {}
+})

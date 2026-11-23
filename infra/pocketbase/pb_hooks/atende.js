@@ -17,21 +17,31 @@ function cfgAtendimento(app, empresaId) {
 }
 
 // Devolve { texto, chamar, motivo } ou null (a IA fica quieta).
+// Guarda no contato por que a IA ficou quieta (aparece na conversa para a equipe).
+function quieta(app, rec, motivo) {
+  try {
+    const atual = app.findRecordById("contatos", rec.id), d = lerDados(atual)
+    d.iaQuieta = { motivo: motivo, ts: Date.now() }
+    atual.set("dados", d); app.save(atual)
+  } catch (e) {}
+  return null
+}
+
 function decide(app, empresaId, rec, canalNome) {
   const at = cfgAtendimento(app, empresaId)
-  if (!at.ativo) return null
+  if (!at.ativo) return quieta(app, rec, "O Assistente de IA está desligado em Configurações → Atendimento automático.")
   const IA = require(`${__hooks}/ia.js`)
   const cfg = IA.cfgDaEmpresa(app, empresaId)
-  if (!cfg || !cfg.getString("api_key")) return null
+  if (!cfg || !cfg.getString("api_key")) return quieta(app, rec, "A IA não está conectada (falta a chave do Gemini em Atendimento automático).")
   const d = lerDados(rec)
   const agora = Date.now()
   // equipe escreveu há pouco? (ignora cópias de respostas da própria IA)
   const daIa = new Set((d.msgs || []).filter((m) => m.de === "ia").map((m) => m.txt))
   // só conta a equipe que respondeu depois que o cliente já falou (a abordagem de prospecção não tira a IA)
   const msgs = d.msgs || [], primeiraCli = msgs.findIndex((m) => m.de === "cli")
-  if (msgs.some((m, i) => i > primeiraCli && primeiraCli >= 0 && m.de === "eq" && !daIa.has(m.txt) && agora - (m.ts || 0) < 30 * 60000)) return null
-  if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return null
-  if (d.iaPausa && agora < d.iaPausa) return null
+  if (msgs.some((m, i) => i > primeiraCli && primeiraCli >= 0 && m.de === "eq" && !daIa.has(m.txt) && agora - (m.ts || 0) < 30 * 60000)) return quieta(app, rec, "A equipe respondeu há menos de 30 minutos; a IA espera para não atropelar.")
+  if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return quieta(app, rec, "A conversa está com a equipe (modo humano) até " + new Date(d.bot.ate - 3 * 3600000).toISOString().slice(11, 16) + ".")
+  if (d.iaPausa && agora < d.iaPausa) return quieta(app, rec, "A IA está pausada nesta conversa.")
   if (d.ignorado) return null // contato ignorado: a IA não responde
   const ctx = IA.contextoEmpresa(app, empresaId)
   const tom = { "Formal": "formal e educado", "Animado": "animado e caloroso" }[at.tom] || "próximo e direto"
@@ -55,9 +65,9 @@ function decide(app, empresaId, rec, canalNome) {
   ].filter(Boolean).join("\n")
   let r
   try { r = IA.chama(app, cfg, "atendimento", sistema, "Conversa até agora:\n" + IA.conversa(d, 10) + "\n\nResponda à última mensagem do cliente.", true, 450) }
-  catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return null }
+  catch (e) { app.logger().warn("atende: IA não respondeu", "canal", canalNome, "erro", String(e)); return quieta(app, rec, "A IA deu erro ao responder: " + String(e.message || e).slice(0, 160)) }
   const texto = limpa(r && r.resposta, canalNome === "E-mail" ? 4000 : 1000)
-  if (!texto) return null
+  if (!texto) return quieta(app, rec, "A IA leu a mensagem e preferiu não responder (parece resposta automática ou não havia o que responder).")
   return { texto: texto, chamar: !!r.chamar_equipe, parar: !!r.parar, motivo: limpa(r.motivo, 160), crm: (r.crm && typeof r.crm === "object") ? r.crm : null, ctx: ctx }
 }
 
@@ -68,6 +78,7 @@ function registra(app, rec, r, extra) {
   const ts = Math.max(Date.now(), ultimo + 1)
   const msg = Object.assign({ de: "ia", txt: r.texto, ts: ts, k: "i" + ts.toString(36) }, extra || {})
   d.msgs = (d.msgs || []).concat([msg])
+  delete d.iaQuieta
   // a mesma chamada já trouxe a leitura do card: o CRM não precisa chamar a IA de novo
   if (r.crm && r.ctx) {
     try {

@@ -278,6 +278,8 @@
   .transc{display:block;margin-top:6px;font-style:italic;opacity:.9;white-space:pre-wrap}
   .transc-bt{display:block;margin-top:6px;font:600 12.5px inherit;font-family:inherit;padding:5px 10px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;opacity:.85;cursor:pointer}
   .transc-bt:disabled{opacity:.5;cursor:default}
+  .ia-quieta{display:flex;gap:8px;align-items:flex-start;margin:10px auto 4px;max-width:520px;font-size:13px;color:var(--sec);background:var(--branco);border:1px dashed var(--linha2);border-radius:10px;padding:8px 12px}
+  .ia-quieta svg{width:16px;height:16px;flex:none;margin-top:1px}
   .nm-ed{border:0;background:transparent;color:var(--sec);cursor:pointer;font-size:15px;padding:2px 4px;border-radius:6px}
   .nm-ed:hover{color:var(--texto);background:var(--linha)}
   .det-juntar{width:100%;justify-content:center;margin-top:18px}
@@ -1622,7 +1624,7 @@
           (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('arquivo') + '<span class="txt">Arquivar</span></button>' : '<button class="btn peq" id="reabre"><span>Desarquivar</span></button>') +
         '</div></div>' +
       resumoIA(c) +
-      '<div class="fio" id="fio">' + html + '</div>' +
+      '<div class="fio" id="fio">' + html + iaQuietaHtml(c) + '</div>' +
       '<div class="compor">' +
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
@@ -2223,6 +2225,14 @@
       aviso('<b>' + esc(n.nome) + '</b> cadastrado.');
     };
     M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#cNome').focus(); }, 30);
+  }
+  // por que a IA não respondeu a última mensagem do cliente (vem do servidor)
+  function iaQuietaHtml(c){
+    var q = c.iaQuieta, u = (c.msgs || []).filter(function(m){ return m.de === 'cli'; }).pop();
+    if (!q || !u || q.ts < (u.ts || 0) || c.ignorado) return '';
+    var depois = (c.msgs || []).some(function(m){ return (m.de === 'eq' || m.de === 'ia') && m.ts > u.ts; });
+    if (depois) return '';
+    return '<div class="ia-quieta">' + ic('ia') + '<span>A IA não respondeu: ' + esc(q.motivo) + '</span></div>';
   }
   function modalJuntar(id){
     var c = contato(id), M = $('#modal'); if (!c) return;

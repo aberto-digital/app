@@ -452,9 +452,11 @@
   .ia-st.on{background:#E3F4EA;color:#1F7A45}.ia-st svg{width:16px;height:16px}
   .alerta-ia{display:flex;gap:8px;font-size:12.5px;line-height:1.45;background:#FFF6E0;color:#6B4E00;border-radius:10px;padding:10px 12px;margin:4px 0 14px}.alerta-ia svg{flex:none;width:16px;height:16px;margin-top:1px}
   .botoes-ia{display:flex;gap:8px;flex-wrap:wrap}
-  .via-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--sec);padding:6px 12px 0}
-  .via-sel button{font:inherit;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--linha);background:var(--branco);color:var(--sec);cursor:pointer}
-  .via-sel button[aria-checked=true]{background:var(--azul,#0F1B2D);border-color:transparent;color:#fff}
+  .via-sel{display:flex;align-items:center;gap:8px;margin:0 0 8px 50px;font-size:12px;color:var(--sec)}
+  .via-seg{display:inline-flex;padding:2px;border:1px solid var(--linha);border-radius:999px;background:var(--papel)}
+  .via-seg button{font:inherit;font-size:12px;font-weight:600;padding:3px 11px;border:0;border-radius:999px;background:transparent;color:var(--sec);cursor:pointer;line-height:1.5}
+  .via-seg button[aria-checked=true]{background:var(--ceu);color:#fff}
+  .via-seg button:focus-visible{outline:2px solid var(--ceu);outline-offset:1px}
   .fonte-ia{margin-top:16px}.fonte-ia textarea{width:100%;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--linha);border-radius:8px;background:var(--branco);color:inherit}
   .uso-ia{font-size:12.5px;color:var(--sec);margin:12px 0 0}
   .resumo-ia{background:var(--papel);border-radius:10px;padding:12px 14px;margin:12px 0 10px}.resumo-ia .rt{font-weight:600;font-size:13px;margin-bottom:4px}.resumo-ia .rx{white-space:pre-wrap;font-size:13.5px;line-height:1.5}
@@ -1630,7 +1632,7 @@
       resumoIA(c) +
       '<div class="fio" id="fio">' + html + iaQuietaHtml(c) + '</div>' +
       '<div class="compor">' +
-        (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel" role="radiogroup" aria-label="Responder por">Responder por ' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</div>' : ''; })() +
+        (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel"><span id="viaRot">Responder por</span><span class="via-seg" role="radiogroup" aria-labelledby="viaRot">' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</span></div>' : ''; })() +
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fio.scrollTop = fio.scrollHeight;
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
@@ -1700,7 +1702,9 @@
         }).catch(function(err){ b.disabled = false; b.textContent = 'Atualizar resumo'; aviso(esc(err.message)); });
       }, 800);
     };
-    box.querySelectorAll('.via-sel [data-via]').forEach(function(b){ b.onclick = function(){ c.via = b.getAttribute('data-via'); salva(); box.querySelectorAll('.via-sel [data-via]').forEach(function(x){ x.setAttribute('aria-checked', x === b); }); }; });
+    var phVia = function(){ var v = viaDe(c), t = $('#texto'); if (t && viasDe(c).length > 1) t.placeholder = 'Mensagem pelo ' + NOME_VIA[v]; };
+    phVia();
+    box.querySelectorAll('.via-sel [data-via]').forEach(function(b){ b.onclick = function(){ c.via = b.getAttribute('data-via'); salva(); box.querySelectorAll('.via-sel [data-via]').forEach(function(x){ x.setAttribute('aria-checked', x === b); }); phVia(); $('#texto').focus(); }; });
     $('#fEnvia').addEventListener('submit', function(e){
       e.preventDefault(); var t = ta.value.trim(); if (!t) return;
       var via = viaDe(c);

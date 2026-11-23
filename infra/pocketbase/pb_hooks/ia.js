@@ -445,6 +445,8 @@ function lerFonte(urls) {
     try { txt = toString(res.body) } catch (e) { txt = String(res.raw || "") }
     if (/^\s*<!DOCTYPE|<html/i.test(txt)) throw new Error("O link não devolveu CSV. Publique a aba como \"Valores separados por vírgula (.csv)\".")
     const linhas = csvLinhas(txt).map((r) => r.map((c) => String(c).trim()).filter(Boolean)).filter((r) => r.length > 1)
+      // linhas sugeridas pela tarefa diária só valem depois que o Julio muda para "Ativo"
+      .filter((r) => !r.some((c) => /^(proposto|pausado|rascunho)$/i.test(c)))
     // aba não publicada: o Google devolve a primeira aba publicada; não repete o mesmo conteúdo
     const bloco = linhas.map((r) => r.join(" | ")).join("\n")
     if (bloco && partes.indexOf(bloco) < 0) partes.push(bloco)

@@ -2296,6 +2296,9 @@
         site:String(c.site || '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, ''),
         nome:generico(c.nome) && !c.negocio ? [] : nomes.filter(function(w, i, a){ return a.indexOf(w) === i; })};
     });
+    // palavra que aparece em muitos contatos é de ramo (fotografia, chaveiro, calçados): não identifica ninguém
+    var df = {};
+    info.forEach(function(x){ x.nome.forEach(function(w){ df[w] = (df[w] || 0) + 1; }); });
     for (var i = 0; i < info.length; i++) for (var j = i + 1; j < info.length; j++){
       var a = info[i], b = info[j], par = [a.c.id, b.c.id].sort(function(x, y){ return x - y; }).join('-');
       if (nao.indexOf(par) >= 0) continue;
@@ -2305,8 +2308,8 @@
       else if (a.ig && a.ig === b.ig) por = 'mesmo Instagram';
       else if (a.site && a.site === b.site) por = 'mesmo site';
       else if (a.nome.length && b.nome.length){
-        var comum = a.nome.filter(function(w){ return w.length >= 4 && b.nome.indexOf(w) >= 0; });
-        if (comum.length >= 2 || (comum.length === 1 && comum[0].length >= 7) || (a.nome.join('') === b.nome.join('') && a.nome.join('').length >= 5)) por = 'nome parecido';
+        var comum = a.nome.filter(function(w){ return w.length >= 4 && df[w] <= 2 && b.nome.indexOf(w) >= 0; });
+        if (comum.length) por = 'nome parecido';
       }
       if (!por) continue;
       // mantém a conversa com mais mensagens de verdade (a outra costuma ser o lead importado)

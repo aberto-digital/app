@@ -111,6 +111,35 @@
   .comp .c{border:1px solid var(--linha);border-radius:10px;padding:12px 14px}
   .comp .c .n{font-family:var(--display);font-weight:800;font-size:1.6rem}
   .comp .c .r{font-size:12.5px;color:var(--sec)}
+  .tp{width:100%;border-collapse:separate;border-spacing:0;border:2px solid var(--ceu);border-radius:14px;overflow:hidden;background:#fff;margin-top:6px}
+  .tp th{background:var(--ink);color:#fff;font-size:12px;padding:9px 10px}
+  .tp th.tp-pr-h{text-align:center;width:150px}
+  .tp td{padding:7px 10px;border-bottom:1px solid var(--linha);font-size:13px}
+  .tp .tp-g td{background:#EEF3FF;color:#1F4FC4;font-weight:800;font-size:11.5px;padding:5px 10px}
+  .tp td.tp-pr{background:#F5F8FF;border-left:1px solid var(--linha);text-align:center;vertical-align:middle;color:var(--ink);font-weight:400;font-size:13px}
+  .tp td.tp-pr b,.tp td.tp-pm b{display:block;font-family:var(--display);font-weight:800;font-size:1.15rem;line-height:1.15}
+  .tp td.tp-pr small,.tp td.tp-pm small{display:block;color:var(--sec);font-size:11px;margin-bottom:6px}
+  .tp .tp-nome{display:block;font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.2rem;margin-bottom:10px}
+  .tp td.tp-pm{text-align:center;vertical-align:middle;border-left:1px solid var(--linha)}
+  .tp td.tp-pm.tot{font-weight:800;font-size:12.5px;line-height:1.4}
+  .tp .tp-it{font-weight:600;width:40%}
+  .tp .ck{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--bom);color:#fff;font-style:normal;font-size:10px;font-weight:900;margin-right:7px;vertical-align:-3px}
+  .tp .tag{display:inline-block;background:var(--papel);color:var(--slate);border-radius:999px;font-size:10.5px;padding:0 7px;font-weight:700;margin-left:4px}
+  .tp .aud{display:block;color:var(--ink);font-weight:600}
+  .tp .ben{display:block;color:var(--sec)}
+  .tp .aud+.ben{font-size:12px;margin-top:2px}
+  .tp .tp-foot td{border-bottom:0;background:var(--ink);color:#fff}
+  .tp td.tp-tot{padding:12px 14px}
+  .tp .tot-l b{font-family:var(--display);font-size:1.1rem}
+  .tp .tot-l span{display:block;color:#C9D1DE;font-size:12.5px;margin:2px 0 8px}
+  .tp .tot-l span b{font-size:inherit;color:#fff}
+  .tp .tot-f{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .tp .fid{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+  .tp .fid span{font-size:11.5px;color:#C9D1DE}.tp .fid small{font-size:10.5px}
+  .tp .fid b{font-family:var(--display);font-size:1.1rem}
+  .tp .fid.melhor{background:var(--ambar);border-color:var(--ambar)}.tp .fid.melhor span,.tp .fid.melhor b{color:var(--ink)}
+  .tp.mod .tp-foot td.tp-pm{color:#fff}
+  .tp-sub{color:var(--sec);font-size:13px;margin:-4px 0 4px}
   .plano{border:2px solid var(--ceu);border-radius:14px;padding:16px 18px;background:#F5F8FF}
   .plano .pk{font-family:var(--display);font-weight:800;font-stretch:85%;font-size:1.35rem}
   .plano .pr{color:var(--slate);font-weight:600;margin-bottom:8px}
@@ -156,7 +185,7 @@
     .grade{display:block;padding:0;max-width:none}
     .rel{display:block!important;position:static;border:0;padding:0;border-radius:0}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .perdas li,.plano,.comp .c,table tr{break-inside:avoid}
+    .perdas li,.plano,.comp .c,table tr,.tp-foot{break-inside:avoid}
     .topo-rel{grid-template-columns:200px 1fr!important;gap:26px!important}
     .gauge{max-width:none!important;margin:0!important}
     .perdas li.cab{display:grid!important}
@@ -405,13 +434,74 @@
     }
     function preco(nome){ var p = rec.produtos.filter(function(x){ return x.nome === nome; })[0]; if (!p) return ''; return p.setup == null ? 'valor sob consulta' : Core.brl(p.setup) + (p.mensal ? ' + ' + Core.brl(p.mensal) + '/mês' : ''); }
     function ds(nome){ var p = rec.produtos.filter(function(x){ return x.nome === nome; })[0]; return p ? p.ds : ''; }
-    var porSol = {};
-    L.forEach(function(p){ var k = Core.ORDEM_PACOTES.indexOf(p.it.sol) >= 0 ? 'Pacote ' + rec.pacote : p.it.sol; (porSol[k] = porSol[k] || []).push(p.it.acao); });
-    var linhas = Object.keys(porSol).map(function(k){ return '<tr><td><b>' + esc(k) + '</b></td><td>' + porSol[k].map(esc).join('<br>') + '</td></tr>'; }).join('');
-    var plano = (c.geral === null || !L.length) ? '' : '<h3>Plano recomendado</h3><div class="plano">' +
-      (rec.pacote ? '<div class="pk">Pacote ' + rec.pacote + '</div><div class="pr">' + preco(rec.pacote) + ': ' + esc(ds(rec.pacote)) + '</div>' : '<div class="pk">Módulos avulsos</div>') +
-      (rec.modulos.length ? '<div class="pr" style="margin-top:6px">' + (rec.pacote ? 'Mais os módulos: ' : '') + rec.modulos.map(function(m){ return esc(m) + ' (' + preco(m) + ')'; }).join(', ') + '</div>' : '') +
-      '<table style="margin-top:10px"><thead><tr><th>Solução</th><th>O que resolve</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+    /* Itens de cada pacote, iguais à tabela do site (abertodigital.com/#pacotes).
+       p = a partir de qual pacote entra (0 Start, 1 Presença, 2 Completo); ids = itens da auditoria que ele resolve. */
+    var ITENS_PAC = [
+      {g:'Ser encontrado', t:'Perfil no Google otimizado e verificado', p:0, ids:['enc','g_busca','g_fotos','g_categoria','g_horario'], b:'Aparecer quando procuram o seu serviço na cidade'},
+      {g:'Ser encontrado', t:'Site de 1 página com botão de WhatsApp', p:0, ids:['site','site_mob','link_wa'], b:'Um endereço próprio que leva o cliente direto para a conversa'},
+      {g:'Ser encontrado', t:'Domínio no 1º ano, hospedagem e 1 alteração por mês', p:0, ids:[], b:'Site no ar e atualizado, sem custo extra'},
+      {g:'Ser escolhido', t:'Logo e identidade visual', p:1, ids:['visual'], b:'Visual profissional e igual em todos os canais'},
+      {g:'Ser escolhido', t:'Relatório mensal do Google', p:1, ids:[], b:'Quantas pessoas viram, ligaram e pediram rota'},
+      {g:'Ser escolhido', t:'1º mês de acompanhamento com reunião', p:1, ids:[], b:'Ajustes junto com você no primeiro mês'},
+      {g:'Atender rápido', t:'WhatsApp Business com catálogo e respostas rápidas', p:1, ids:['wa_bus','catalogo','saudacao'], b:'Cliente vê preços e serviços sem precisar perguntar'},
+      {g:'Atender rápido', t:'AbertoCore: conversas e clientes num só lugar', p:1, ids:[], b:'Nenhuma conversa esquecida', usu:['até 2 usuários','usuários ilimitados']},
+      {g:'Atender rápido', t:'Chatbot de menu com botões', p:1, ids:['atend'], b:'Responde as dúvidas comuns na hora'},
+      {g:'Atender rápido', t:'IA que atende sozinha 24h, qualifica e agenda', p:2, ids:['atend'], b:'Atendimento a qualquer hora, sem você parar o trabalho'},
+      {g:'Atender rápido', t:'Instagram, Facebook e e-mail na mesma caixa', p:2, ids:[], b:'Todas as mensagens num só lugar'},
+      {g:'Vender de novo', t:'Funil e agenda com lembrete de retorno', p:1, ids:[], b:'Lembra você de chamar o cliente de volta'},
+      {g:'Vender de novo', t:'Assistente de IA interno e resumo do dia', p:1, ids:[], b:'Resumo do que precisa de atenção no dia'},
+      {g:'Vender de novo', t:'Agendamento online', p:2, ids:['agenda'], b:'Cliente marca sozinho, com lembrete automático'},
+      {g:'Vender de novo', t:'E-mail com o seu domínio', p:2, ids:[], b:'E-mail profissional com o nome da empresa'},
+      {g:'Vender de novo', t:'Painel de resultados e ajustes sob medida', p:2, ids:[], b:'Números do negócio e melhorias contínuas'}
+    ];
+    function prod(nome){ return rec.produtos.filter(function(x){ return x.nome === nome; })[0] || null; }
+    function brl(v){ return Core.brl(v).replace(/^R\$ /, function(){ return 'R$\u00a0'; }); }
+    function precoHtml(p){
+      if (!p) return '';
+      if (p.setup == null) return 'Sob consulta';
+      var t = [];
+      if (p.setup) t.push('<b>' + brl(p.setup) + '</b><small>implantação</small>');
+      if (p.mensal) t.push('<b>' + brl(p.mensal) + '/mês</b>');
+      return t.join('') || '<b>Incluso</b>';
+    }
+    /* o que a auditoria apontou, agrupado pela solução */
+    var acoesDe = {}, usados = {};
+    L.forEach(function(p){ (acoesDe[p.it.id] = p.it); });
+    var plano = '';
+    if (c.geral !== null && L.length){
+      var nv = Core.ORDEM_PACOTES.indexOf(rec.pacote), pk = prod(rec.pacote);
+      if (rec.pacote && pk){
+        var itens = ITENS_PAC.filter(function(i){ return i.p <= nv && !(nv === 2 && i.t === 'Chatbot de menu com botões'); });
+        var grupoAnt = '', corpoPac = itens.map(function(i, k){
+          var achou = i.ids.filter(function(id){ return acoesDe[id] && !usados[id]; });
+          achou.forEach(function(id){ usados[id] = 1; });
+          var nome = esc(i.t) + (i.usu ? ' <span class="tag">' + i.usu[nv >= 2 ? 1 : 0] + '</span>' : '');
+          var res = achou.length ? '<span class="aud">' + achou.map(function(id){ return esc(acoesDe[id].acao); }).join('<br>') + '</span>' : '<span class="ben">' + esc(i.b) + '</span>';
+          var g = i.g !== grupoAnt ? '<tr class="tp-g"><td colspan="2">' + esc(i.g) + '</td>' + (k ? '' : '<td class="tp-pr" rowspan="' + (itens.length + itens.filter(function(x, j){ return !j || itens[j - 1].g !== x.g; }).length) + '"><span class="tp-nome">Pacote ' + esc(rec.pacote) + '</span>' + precoHtml(pk) + (pk.prazo ? '<small>pronto em ' + pk.prazo + ' dias úteis</small>' : '') + '</td>') + '</tr>' : '';
+          grupoAnt = i.g;
+          return g + '<tr><td class="tp-it"><i class="ck">✓</i>' + nome + '</td><td>' + res + '</td></tr>';
+        }).join('');
+        var linhasFid = Core.PLANOS.slice().reverse().map(function(pl){
+          var m = Core.mensalPlano(pk.mensal, pl.nome);
+          return '<div class="fid' + (pl.meses === 12 ? ' melhor' : '') + '"><span>' + (pl.meses ? 'Com fidelidade de ' + pl.meses + ' meses <small>(' + Math.round(pl.desconto * 100) + '% off na mensalidade)</small>' : 'Sem fidelidade') + '</span><b>' + brl(m) + '/mês</b></div>';
+        }).join('');
+        plano += '<h3>Plano recomendado</h3><table class="tp"><thead><tr><th>Item incluído</th><th>O que resolve no seu negócio</th><th class="tp-pr-h">Preço</th></tr></thead><tbody>' + corpoPac + '</tbody>' +
+          '<tbody class="tp-foot"><tr><td colspan="3" class="tp-tot"><div class="tot-l"><b>Total do Pacote ' + esc(rec.pacote) + '</b><span>Implantação de <b>' + brl(pk.setup) + '</b> (pagamento único) e a mensalidade conforme o plano:</span></div><div class="tot-f">' + linhasFid + '</div></td></tr></tbody></table>';
+      }
+      if (rec.modulos.length){
+        var sSetup = 0, sMes = 0;
+        var corpoMod = rec.modulos.map(function(m){
+          var p = prod(m) || {};
+          sSetup += p.setup || 0; sMes += p.mensal || 0;
+          var ac = L.filter(function(x){ return x.it.sol === m; }).map(function(x){ return x.it.acao; }).filter(function(v, i, a){ return a.indexOf(v) === i && v !== m; });
+          return '<tr><td class="tp-it"><b>' + esc(m) + '</b></td><td>' + (ac.length ? '<span class="aud">' + ac.map(esc).join('<br>') + '</span>' : '') + (p.ds ? '<span class="ben">' + esc(p.ds) + '</span>' : '') + '</td><td class="tp-pm">' + precoHtml(p) + '</td></tr>';
+        }).join('');
+        var totMod = (sSetup ? brl(sSetup) + ' de implantação' : '') + (sSetup && sMes ? ' + ' : '') + (sMes ? brl(sMes) + '/mês' : '');
+        plano += '<h3>' + (rec.pacote ? 'Módulos opcionais' : 'Módulos recomendados') + '</h3><p class="tp-sub">' + (rec.pacote ? 'Resolvem os outros pontos da auditoria. Você pode contratar junto com o pacote ou depois.' : 'Resolvem os pontos que a auditoria encontrou.') + '</p>' +
+          '<table class="tp mod"><thead><tr><th>Produto</th><th>Solução</th><th class="tp-pr-h">Preço</th></tr></thead><tbody>' + corpoMod + '</tbody>' +
+          (rec.modulos.length > 1 ? '<tbody class="tp-foot"><tr><td colspan="2" class="tp-tot"><b>Total dos módulos</b></td><td class="tp-pm tot">' + totMod + '</td></tr></tbody>' : '') + '</table>';
+      }
+    }
     $('#rel').innerHTML = '<div class="rel-cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
         '<div class="meta">Auditoria de presença digital<br>' + dataBR(A.data) + (A.resp ? '<br>Para: ' + esc(A.resp) : '') + '</div></div>' +
       '<h1>' + esc(emp) + '</h1><div class="sub">' + esc([A.ramo, A.cidade].filter(Boolean).join(', ')) + '</div>' +

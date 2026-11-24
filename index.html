@@ -1802,7 +1802,7 @@
         fim(); if (ev.data.erro) falha(new Error(ev.data.erro)); else ok(ev.data.blob);
       }
       window.addEventListener('message', ouve);
-      fr.src = tipo + '/?c=' + c.id + '&pdf=1';
+      fr.src = tipo + '/?c=' + c.id + '&pdf=1&t=' + Date.now(); // sem cache: sempre a versão nova do gerador
       document.body.appendChild(fr);
     }).then(function(blob){
       var nome = (tipo === 'auditoria' ? 'Auditoria ' : 'Proposta ') + (c.negocio || c.nome || 'cliente') + '.pdf';

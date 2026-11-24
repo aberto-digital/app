@@ -165,6 +165,65 @@ function processaWebhook(app, corpo) {
         }
       })
 
+      // ---- coexistência (número também no app WhatsApp Business) ----
+      // mensagem enviada pelo celular (app WhatsApp Business): entra na conversa como resposta da equipe
+      ;(v.message_echoes || []).forEach((m) => {
+        const txt = textoDaMensagem(m)
+        if (txt === null || !m.to) return
+        const rec = contatoPorNumero(app, empresaId, m.to, null)
+        const d = lerDados(rec)
+        const ultimo = (d.msgs || []).reduce((x, y) => Math.max(x, y.ts || 0), 0)
+        const ts = Math.max((parseInt(m.timestamp, 10) || Math.floor(Date.now() / 1000)) * 1000, Math.min(ultimo + 1, Date.now()))
+        const antes = (d.msgs || []).length
+        d.msgs = unirMsgs(d.msgs, [{ de: "eq", txt: txt, ts: ts, wa: m.id, st: "sent", app: true }])
+        if (d.msgs.length === antes) return
+        const clienteJaFalou = d.msgs.some((x) => x.de === "cli")
+        if (!clienteJaFalou) { d.prospeccao = true; d.tipo = d.tipo || "Lead" }
+        // respondeu pelo celular: IA e robô dão um tempo (30 min em prospecção, 12 h nos demais)
+        else d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + (d.prospeccao ? 30 * 60000 : 12 * 3600000) })
+        d.naoLidas = 0
+        d.status = "esperando"
+        d.wa = m.to
+        rec.set("dados", d)
+        app.save(rec)
+        n++
+      })
+      // histórico do app (até 6 meses), enviado pela Meta logo depois de conectar
+      ;(v.history || []).forEach((h) => {
+        ;(h.threads || []).forEach((t) => {
+          const cli = String(t.id || "")
+          if (!/^\d{6,20}$/.test(cli)) return
+          const novas = []
+          ;(t.messages || []).forEach((m) => {
+            const txt = textoDaMensagem(m)
+            if (txt === null) return
+            novas.push({ de: m.from === cli ? "cli" : "eq", txt: txt, ts: (parseInt(m.timestamp, 10) || 0) * 1000, wa: m.id, hist: true })
+          })
+          if (!novas.length) return
+          const rec = contatoPorNumero(app, empresaId, cli, null)
+          const d = lerDados(rec)
+          const vazio = !(d.msgs || []).length
+          d.msgs = unirMsgs(d.msgs, novas).sort((a, b) => (a.ts || 0) - (b.ts || 0))
+          if (vazio) { d.status = "finalizado"; d.naoLidas = 0; d.origem = d.origem === "WhatsApp" ? "WhatsApp (histórico)" : d.origem }
+          d.wa = cli
+          rec.set("dados", d)
+          app.save(rec)
+          n += novas.length
+        })
+      })
+      // contatos salvos na agenda do app: só corrige o nome de quem já está no AbertoCore sem nome
+      ;(v.state_sync || []).forEach((s) => {
+        const c = s.contact || {}
+        const num = digitos(c.phone_number || "")
+        const nome = String(c.full_name || c.first_name || "").trim()
+        if (!num || !nome || s.action === "remove") return
+        let rec = null
+        try { rec = app.findFirstRecordByFilter("contatos", "empresa = {:e} && (wa_id = {:w} || aliases ~ {:a})", { e: empresaId, w: num, a: " wa:" + num + " " }) } catch (e) { return }
+        if (!/^\+?[\d\s()-]+$/.test(rec.getString("nome"))) return
+        const d = lerDados(rec); d.nome = nome
+        rec.set("nome", nome); rec.set("dados", d); app.save(rec)
+      })
+
       // status das mensagens enviadas (entregue / lida / falhou)
       ;(v.statuses || []).forEach((s) => {
         let rec = null

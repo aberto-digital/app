@@ -87,3 +87,26 @@ routerAdd("GET", "/api/abertocore/automacoes/posts", (e) => {
     return e.json(200, { posts: (j.data || []).map((p) => ({ id: p.id, legenda: String(p.caption || "").slice(0, 120), img: p.thumbnail_url || p.media_url || "", link: p.permalink, ts: p.timestamp })) })
   } catch (err) { throw new BadRequestError("Não consegui ler os posts: " + String(err.message || err)) }
 }, $apis.requireAuth("users"))
+
+// Liga o aviso de comentários do Instagram no webhook do app da Meta (mantém os campos atuais).
+// Só a equipe da agência (dona do app da Meta) usa.
+routerAdd("POST", "/api/abertocore/automacoes/assinar-comentarios", (e) => {
+  const M = require(`${__hooks}/meta.js`)
+  const W = require(`${__hooks}/wa.js`)
+  const I = require(`${__hooks}/ia.js`)
+  if (!I.podeConfigurar(e.auth)) throw new ForbiddenError()
+  let nomeEmp = ""
+  try { nomeEmp = $app.findRecordById("empresas", e.auth.getString("empresa")).getString("nome") } catch (x) {}
+  if (!/aberto\s*digital/i.test(nomeEmp)) throw new ForbiddenError("Só a agência configura o app da Meta.")
+  const m = W.metaApp($app)
+  const appTok = m.getString("app_id") + "|" + m.getString("app_secret")
+  const s = M.graphGet($app, m.getString("app_id") + "/subscriptions", appTok, {})
+  const ig = (s.data || []).find((x) => x.object === "instagram")
+  if (!ig) throw new BadRequestError("O webhook do Instagram ainda não está configurado no app da Meta.")
+  const campos = Array.from(new Set((ig.fields || []).map((f) => f.name || f).concat(["comments"])))
+  M.graphPost($app, m.getString("app_id") + "/subscriptions?" + [
+    "object=instagram", "callback_url=" + encodeURIComponent(ig.callback_url),
+    "fields=" + encodeURIComponent(campos.join(",")), "verify_token=abertocore-webhook-meta", "include_values=true",
+  ].join("&"), appTok, {})
+  return e.json(200, { ok: true, campos: campos })
+}, $apis.requireAuth("users"))

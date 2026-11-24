@@ -142,6 +142,11 @@ function processaWebhook(app, corpo) {
   ;(corpo.entry || []).forEach((entry) => {
     const canal = canalSocial(app, tipo, String(entry.id))
     if (!canal) { app.logger().warn("meta: conta sem canal", "tipo", tipo, "id", entry.id); return }
+    // comentários em posts (automação "comentou, recebeu DM")
+    ;(entry.changes || []).forEach((ch) => {
+      if (tipo !== "instagram" || ch.field !== "comments" || !ch.value) return
+      try { if (comentario(app, canal, String(entry.id), ch.value)) n++ } catch (e) { app.logger().error("automação: erro no comentário", "erro", String(e)) }
+    })
     ;(entry.messaging || []).concat(entry.standby || []).forEach((ev) => {
       if (ev.read || ev.delivery) { try { marcaStatus(app, canal, tipo, String(ev.sender && ev.sender.id), ev.read ? "read" : "delivered", ev.read || ev.delivery) } catch (e) {} return }
       const msg = ev.message
@@ -191,6 +196,7 @@ function processaWebhook(app, corpo) {
       app.save(rec)
       if (eco) return
       n++
+      try { if (automacaoDM(app, canal, tipo, app.findRecordById("contatos", rec.id), msg, txt)) return } catch (e) { app.logger().error("automação: erro na DM", "erro", String(e)) }
       try { iaSocial(app, canal, tipo, app.findRecordById("contatos", rec.id)) } catch (e) { app.logger().error("meta: erro na IA", "erro", String(e)) }
     })
   })
@@ -238,6 +244,96 @@ function ecoNosso(app, mid, txt, d) {
   } catch (e) {}
   const agora = Date.now()
   return (d.msgs || []).some((m) => (m.de === "ia" || m.de === "bot" || m.de === "eq") && m.txt === txt && agora - (m.ts || 0) < 120000)
+}
+
+// ---------- automações (estilo ManyChat) ----------
+function vezRecente(app, chave, ms) {
+  try { const t = app.store().get(chave); if (t && Date.now() - t < ms) return true; app.store().set(chave, Date.now()) } catch (e) {}
+  return false
+}
+function gravaAuto(app, rec, a, msgsNovas, extra) {
+  const atual = app.findRecordById("contatos", rec.id), d = W.lerDados(atual)
+  d.msgs = W.unirMsgs(d.msgs, msgsNovas)
+  d.tipo = d.tipo || "Lead"
+  d.automacao = a.getString("nome")
+  const et = a.getString("etiqueta")
+  if (et) d.etiquetas = Array.from(new Set([].concat(d.etiquetas || [], [et])))
+  if (!d.origem || /^(Instagram|Facebook)$/.test(d.origem)) d.origem = "Automação: " + a.getString("nome")
+  Object.assign(d, extra || {})
+  atual.set("dados", d)
+  app.save(atual)
+}
+function enviaAuto(app, canal, recipient, message) {
+  const corpo = { recipient: recipient, message: message }
+  if (!recipient.comment_id) corpo.messaging_type = "RESPONSE"
+  try { app.store().set("meta_saindo:" + message.text, Date.now()) } catch (e) {}
+  let j
+  try { j = graphPost(app, canal.getString("page_id") + "/messages", canal.getString("access_token"), corpo) }
+  catch (e) {
+    if (!message.quick_replies) throw e
+    // alguns tipos de conversa não aceitam botões: manda só o texto
+    j = graphPost(app, canal.getString("page_id") + "/messages", canal.getString("access_token"), Object.assign({}, corpo, { message: { text: message.text } }))
+  }
+  if (j.message_id) try { app.store().set("meta_out:" + j.message_id, Date.now()) } catch (e) {}
+  return j.message_id || ""
+}
+
+// Alguém comentou num post: responde no comentário (opcional) e manda a DM privada.
+function comentario(app, canal, igId, v) {
+  const A = require(`${__hooks}/automacoes.js`)
+  const de = v.from || {}
+  if (!v.id || !de.id || String(de.id) === igId || v.parent_id) return false
+  if (vezRecente(app, "auto_cm:" + v.id, 7 * 86400000)) return false
+  const a = A.acha(app, canal.getString("empresa"), "comentario", v.text || "", v.media && v.media.id)
+  if (!a) return false
+  const tok = canal.getString("access_token")
+  const pub = A.respostaPublica(a)
+  if (pub) try { graphPost(app, v.id + "/replies", tok, { message: pub }) } catch (e) { app.logger().warn("automação: resposta pública falhou", "erro", String(e)) }
+  let mid = "", erro = ""
+  try { mid = enviaAuto(app, canal, { comment_id: v.id }, A.mensagem(a)) } catch (e) { erro = String(e.message || e) }
+  const rec = contatoSocial(app, canal, "instagram", String(de.id))
+  if (!rec.id || (rec.isNew && rec.isNew())) app.save(rec)
+  const agora = Date.now()
+  const novas = [{ de: "cli", txt: "💬 Comentou no post: “" + String(v.text || "").slice(0, 300) + "”", ts: agora, wa: "cm:" + v.id }]
+  if (mid) novas.push({ de: "bot", auto: a.getString("nome"), txt: a.getString("mensagem"), ts: agora + 1, wa: mid, st: "sent" })
+  else novas.push({ de: "sis", txt: "A automação “" + a.getString("nome") + "” não conseguiu mandar a DM: " + erro.slice(0, 160), ts: agora + 1 })
+  const extra = { status: mid ? "esperando" : "entrada" }
+  if (de.username) extra.usuario = de.username
+  const nomeAtual = rec.getString("nome")
+  if (de.username && /^Instagram \d{4}$/.test(nomeAtual)) { const r2 = app.findRecordById("contatos", rec.id); r2.set("nome", "@" + de.username); app.save(r2) }
+  gravaAuto(app, rec, a, novas, extra)
+  if (mid) A.conta(app, a)
+  else app.logger().warn("automação: DM do comentário falhou", "erro", erro)
+  return true
+}
+
+// DM recebida: botão tocado, resposta/menção de story ou palavra-chave. true = automação respondeu (a IA fica quieta).
+function automacaoDM(app, canal, tipo, rec, msg, txt) {
+  const A = require(`${__hooks}/automacoes.js`)
+  const d = W.lerDados(rec)
+  if (d.ignorado) return false
+  const pessoa = rec.getString("social_id").slice(3) || String((d.social || "").slice(3))
+  let a = null, texto = "", msgMeta = null
+  const qr = msg.quick_reply && msg.quick_reply.payload
+  const b = qr ? A.botao(app, qr) : null
+  if (b && b.a.getString("empresa") === canal.getString("empresa")) { a = b.a; texto = b.texto; msgMeta = { text: texto } }
+  else {
+    const story = tipo === "instagram" && ((msg.reply_to && msg.reply_to.story) || (msg.attachments || []).some((x) => x.type === "story_mention"))
+    if (story) {
+      a = A.acha(app, canal.getString("empresa"), "story", txt)
+      if (a && vezRecente(app, "auto_st:" + a.id + ":" + pessoa, 24 * 3600000)) a = null
+    }
+    if (!a && msg.text) a = A.acha(app, canal.getString("empresa"), "dm", msg.text)
+    if (a && a.getString("gatilho") === "dm" && !String(a.getString("palavras")).trim()) a = null // DM sem palavra-chave não dispara
+    if (a) { texto = a.getString("mensagem"); msgMeta = A.mensagem(a) }
+  }
+  if (!a || !texto) return false
+  let mid = "", erro = ""
+  try { mid = enviaAuto(app, canal, { id: pessoa }, msgMeta) } catch (e) { erro = String(e.message || e) }
+  gravaAuto(app, rec, a, [mid ? { de: "bot", auto: a.getString("nome"), txt: texto, ts: Date.now(), wa: mid, st: "sent" }
+    : { de: "sis", txt: "A automação “" + a.getString("nome") + "” não conseguiu responder: " + erro.slice(0, 160), ts: Date.now() }], { status: mid ? "esperando" : "entrada" })
+  if (mid) A.conta(app, a)
+  return !!mid
 }
 
 function iaSocial(app, canal, tipo, rec) {
@@ -315,4 +411,4 @@ function ligaWhatsApp(app, empresaId, codigo, wabaId, phoneId) {
   return "WhatsApp " + (numero || phoneId)
 }
 
-module.exports = { iaSocial, assinaPagina, processaWebhook, enviaSocial, enviaAnexoSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }
+module.exports = { comentario, iaSocial, contatoSocial, graphPost, assinaPagina, processaWebhook, enviaSocial, enviaAnexoSocial, canalSocial, canaisDaEmpresa, canalDaEmpresaTipo, trocaCodigo, paginasDoToken, ligaPagina, ligaWhatsApp, graphGet, ROTULO }

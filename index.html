@@ -431,6 +431,22 @@
 
   /* ===== Assistente ===== */
   .assist{display:grid;grid-template-columns:1fr 400px;gap:18px;padding:18px 22px}
+  .auto-pag{padding:12px 22px 6px;max-width:1240px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+  .auto-aviso{background:#FFF6E0;border:1px solid #F3D48A;color:#6B4E00;border-radius:10px;padding:9px 12px;font-size:13px;width:100%}
+  html[data-tema="escuro"] .auto-aviso{background:#3A2E10;border-color:#6B5418;color:#F3D48A}
+  .auto-ok{display:flex;gap:6px;align-items:center;font-size:13px;color:#1f7a45;font-weight:600}.auto-ok svg{width:16px;height:16px}
+  .auto-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;width:100%}
+  .auto-card{border:1px solid var(--linha);border-radius:12px;padding:12px 14px;background:var(--branco);display:flex;flex-direction:column;gap:8px}
+  .auto-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.auto-cab small{display:block;color:var(--sec);font-size:12px;margin-top:2px}
+  .auto-msg{margin:0;font-size:13px;white-space:pre-wrap;color:var(--texto);max-height:5.4em;overflow:hidden}
+  .auto-rod{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--sec)}
+  .auto-form{max-width:560px}.auto-bt{display:grid;grid-template-columns:140px 1fr;gap:6px;margin-bottom:6px}
+  .seg-ch{display:inline-flex;gap:6px}.seg-ch button{font:inherit;font-size:12.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--linha);background:var(--branco);color:var(--sec);cursor:pointer}
+  .seg-ch button[aria-pressed=true]{background:var(--ceu);border-color:transparent;color:#fff}
+  .auto-posts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;max-height:260px;overflow:auto}
+  .auto-post{aspect-ratio:1;border:2px solid transparent;border-radius:8px;overflow:hidden;padding:0;background:var(--papel);cursor:pointer;font-size:11px;color:var(--sec)}
+  .auto-post img{width:100%;height:100%;object-fit:cover;display:block}.auto-post[aria-pressed=true]{border-color:var(--ceu);box-shadow:0 0 0 2px var(--ceu)}
+  @media (max-width:760px){.auto-pag{padding:10px 14px 4px}.auto-bt{grid-template-columns:1fr}.auto-posts{grid-template-columns:repeat(3,1fr)}}
   .ia-pag{display:flex;flex-direction:column;gap:18px;padding:18px 22px 6px;max-width:1240px}
   .ia-pag h2{display:flex;align-items:center;justify-content:flex-start;gap:8px}.ia-pag h2 svg{width:18px;height:18px;color:var(--ceu)}
   .ia-duas{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
@@ -766,6 +782,7 @@
     enviar:'<path d="M4 12 20 4l-6 16-3-6.5z"/>',
     busca:'<path d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14zM20 20l-4-4"/>',
     mais:'<path d="M12 5v14M5 12h14"/>',
+    raio:'<path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3z"/>',
     voltar:'<path d="M15 5l-7 7 7 7"/>',
     info:'<path d="M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 11v6M12 7.5v.5"/>',
     ok:'<path d="M5 12.5 10 17l9-10"/>',
@@ -1630,7 +1647,7 @@
         else if (m.st === 'delivered') st = ' <span class="st" aria-label="entregue">✓✓</span>';
         else if (m.st === 'sent' || m.wa) st = ' <span class="st" aria-label="enviada">✓</span>';
       }
-      html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : m.de === 'bot' ? '<span class="quem">' + ic('msg') + 'Chatbot</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.botoes ? '<span class="wa-bts fixos">' + (m.lista ? '<span class="wa-bt">☰ Ver opções</span>' : '') + m.botoes.map(function(b){ return '<span class="wa-bt">' + esc(b) + '</span>'; }).join('') + '</span>' : '') + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
+      html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : m.de === 'bot' ? '<span class="quem">' + ic('msg') + (m.auto ? 'Automação · ' + esc(m.auto) : 'Chatbot') + '</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.botoes ? '<span class="wa-bts fixos">' + (m.lista ? '<span class="wa-bt">☰ Ver opções</span>' : '') + m.botoes.map(function(b){ return '<span class="wa-bt">' + esc(b) + '</span>'; }).join('') + '</span>' : '') + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
     });
     box.innerHTML = '<div class="conv-topo">' +
         '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button>' + avatar(c) +
@@ -2735,13 +2752,109 @@
   function stAt(t, on){ var e = document.querySelector('.abas-at [data-t="' + t + '"] .st-at'); if (e){ e.textContent = on ? 'ligado' : 'desligado'; e.classList.toggle('on', !!on); } }
   function vAtendimento(){
     $('#vista').innerHTML = '<div class="at-pag"><div id="vistaSub"></div>' +
+      '<div class="at-sep"><span>' + ic('raio') + 'Automações do Instagram</span><small>Estilo ManyChat: quem comenta uma palavra num post, responde um story ou manda uma palavra na DM recebe sua mensagem na hora, e o contato entra no CRM com etiqueta.</small></div>' +
+      '<div id="vistaAuto"></div>' +
       '<div class="at-sep"><span>' + ic('msg') + 'Chatbot de menu</span><small>Sem IA: manda um menu de opções na primeira mensagem do WhatsApp. Se a IA de atendimento estiver ligada, ela é quem responde.</small></div>' +
       '<div id="vistaBot"></div></div>';
-    vAssistente(); vChatbot();
+    vAssistente(); vAutomacoes(); vChatbot();
     if (abaAt === 'chatbot') setTimeout(function(){ var b = $('.at-sep'); if (b) b.scrollIntoView({block:'start'}); }, 60);
     abaAt = 'ia';
   }
 
+
+  /* ========== AUTOMAÇÕES DO INSTAGRAM (estilo ManyChat) ========== */
+  var GATILHO = {comentario:'Comentou no post', story:'Respondeu ou mencionou no story', dm:'Mandou palavra na DM'};
+  var autoSt = null;
+  function vAutomacoes(){
+    var V = $('#vistaAuto'); if (!V) return;
+    if (!(window.Nuvem && Nuvem.logado())){ V.innerHTML = '<div class="auto-pag"><p class="nota-bot">Entre na sua conta para criar automações.</p></div>'; return; }
+    V.innerHTML = '<div class="auto-pag"><p class="nota-bot">Carregando…</p></div>';
+    Nuvem.req('GET', '/api/abertocore/automacoes').then(function(j){ autoSt = j; desenhaAuto(); })
+      .catch(function(err){ V.innerHTML = '<div class="auto-pag"><p class="nota-bot">Não consegui carregar: ' + esc(err.message) + '</p></div>'; });
+  }
+  function desenhaAuto(){
+    var V = $('#vistaAuto'); if (!V || !autoSt) return;
+    var sit = autoSt.situacao || {}, L = autoSt.automacoes || [];
+    var faltaPerm = sit.instagram && sit.permissoes.length && sit.permissoes.indexOf('instagram_manage_comments') < 0;
+    var faltaHook = sit.instagram && sit.webhook && sit.webhook.indexOf('comments') < 0;
+    var faixa = !sit.instagram ? '<div class="auto-aviso">Ligue o Instagram em <b>Configurações → Canais</b> para usar as automações.</div>'
+      : (faltaPerm || faltaHook) ? '<div class="auto-aviso">Respostas de <b>story</b> e <b>DM</b> já funcionam em ' + esc(sit.instagram) + '. Para <b>comentários</b> falta ' +
+          [faltaPerm ? 'a permissão de comentários no login da Meta (reconectar o Instagram em Canais)' : '', faltaHook ? 'assinar o aviso de comentários no app da Meta' : ''].filter(Boolean).join(' e ') + '.</div>'
+      : '<div class="auto-ok">' + ic('ok') + 'Ligado em ' + esc(sit.instagram) + '</div>';
+    V.innerHTML = '<div class="auto-pag">' + faixa +
+      (L.length ? '<div class="auto-lista">' + L.map(function(a){
+        return '<div class="auto-card"><div class="auto-cab"><div><b>' + esc(a.nome) + '</b><small>' + GATILHO[a.gatilho] +
+          (a.palavras ? ' · ' + esc(a.palavras) : (a.gatilho === 'comentario' ? ' · qualquer comentário' : '')) +
+          (a.gatilho === 'comentario' ? ' · ' + (a.posts.length ? a.posts.length + (a.posts.length === 1 ? ' post' : ' posts') : 'todos os posts') : '') + '</small></div>' +
+          '<button class="chave" role="switch" data-auto-on="' + a.id + '" aria-checked="' + a.ativo + '" aria-label="Ligar ' + esc(a.nome) + '"></button></div>' +
+          '<p class="auto-msg">' + esc(a.mensagem) + '</p>' +
+          (a.botoes.length ? '<div class="wa-bts fixos">' + a.botoes.map(function(b){ return '<span class="wa-bt">' + esc(b.t) + '</span>'; }).join('') + '</div>' : '') +
+          '<div class="auto-rod"><span>' + (a.disparos ? a.disparos + (a.disparos === 1 ? ' disparo' : ' disparos') + (a.ultimo ? ' · último ' + esc(new Date(a.ultimo).toLocaleDateString('pt-BR')) : '') : 'Ainda não disparou') + (a.etiqueta ? ' · etiqueta ' + esc(a.etiqueta) : '') + '</span>' +
+          '<span><button class="btn peq" data-auto-ed="' + a.id + '">Editar</button></span></div></div>';
+      }).join('') + '</div>' : '<p class="nota-bot">Nenhuma automação ainda. Exemplo: quem comentar <b>SITE</b> no seu post recebe na DM o link da auditoria gratuita.</p>') +
+      '<button class="btn pri" id="autoNova">' + ic('mais') + 'Nova automação</button></div>';
+    $('#autoNova').onclick = function(){ modalAuto(null); };
+    V.querySelectorAll('[data-auto-ed]').forEach(function(b){ b.onclick = function(){ modalAuto(L.find(function(a){ return a.id === b.getAttribute('data-auto-ed'); })); }; });
+    V.querySelectorAll('[data-auto-on]').forEach(function(b){ b.onclick = function(){
+      var a = L.find(function(x){ return x.id === b.getAttribute('data-auto-on'); }); var novo = !a.ativo;
+      b.setAttribute('aria-checked', novo);
+      Nuvem.req('POST', '/api/abertocore/automacoes', Object.assign({}, a, {ativo:novo})).then(function(r){ Object.assign(a, r); desenhaAuto(); })
+        .catch(function(err){ b.setAttribute('aria-checked', a.ativo); aviso(esc(err.message)); });
+    }; });
+  }
+  function modalAuto(a){
+    var M = $('#modal'), novo = !a;
+    a = a || {nome:'', ativo:true, gatilho:'comentario', posts:[], palavras:'', resposta_publica:'', mensagem:'', botoes:[], etiqueta:''};
+    var sel = (a.posts || []).slice(), posts = null;
+    function bts(){ var b = a.botoes.slice(); while (b.length < 3) b.push({t:'', r:''}); return b; }
+    M.innerHTML = '<form method="dialog" id="fAuto" class="auto-form"><h3>' + (novo ? 'Nova automação' : 'Editar automação') + '</h3>' +
+      '<div class="campo"><label for="auN">Nome</label><input id="auN" maxlength="80" placeholder="Ex.: Comentou SITE" value="' + esc(a.nome) + '"></div>' +
+      '<div class="campo"><label for="auG">Quando disparar</label><select id="auG">' + Object.keys(GATILHO).map(function(g){ return '<option value="' + g + '"' + (g === a.gatilho ? ' selected' : '') + '>' + GATILHO[g] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="campo" id="auPw"><label for="auP">Palavras-chave</label><input id="auP" placeholder="Ex.: site, quero, eu quero" value="' + esc(a.palavras) + '"><div class="dica" id="auPd"></div></div>' +
+      '<div class="campo" id="auPostsW"><label>Em quais posts</label><div class="seg-ch"><button type="button" data-tp="todos">Todos os posts</button><button type="button" data-tp="esc">Escolher posts</button></div><div id="auPosts" class="auto-posts" hidden></div></div>' +
+      '<div class="campo" id="auPubW"><label for="auPub">Resposta pública no comentário (opcional)</label><textarea id="auPub" rows="2" placeholder="Uma por linha, o app sorteia. Ex.: Te mandei na DM! 📩">' + esc(a.resposta_publica) + '</textarea></div>' +
+      '<div class="campo"><label for="auM">Mensagem na DM</label><textarea id="auM" rows="4" maxlength="1000" placeholder="Ex.: Oi! Aqui está o link da auditoria gratuita: …">' + esc(a.mensagem) + '</textarea></div>' +
+      '<div class="campo"><label>Botões de resposta rápida (opcional, até 3)</label>' + bts().map(function(b, i){ return '<div class="auto-bt"><input data-bt="' + i + '" maxlength="20" placeholder="Botão ' + (i + 1) + '" value="' + esc(b.t) + '"><input data-br="' + i + '" placeholder="O que responder quando tocar" value="' + esc(b.r) + '"></div>'; }).join('') + '<div class="dica">Depois do botão, a IA de atendimento continua a conversa.</div></div>' +
+      '<div class="campo"><label for="auE">Etiqueta no contato (opcional)</label><input id="auE" maxlength="60" placeholder="Ex.: Campanha site" value="' + esc(a.etiqueta) + '"></div>' +
+      '<div id="auErro" class="aviso-dup" hidden></div>' +
+      '<div class="bts">' + (novo ? '' : '<button type="button" class="btn" id="auDel" style="margin-right:auto">Apagar</button>') + '<button class="btn" value="fechar" formnovalidate>Cancelar</button><button class="btn pri" id="auSalva" value="ok">Salvar</button></div></form>';
+    function mostra(){
+      var g = $('#auG').value;
+      $('#auPostsW').hidden = $('#auPubW').hidden = g !== 'comentario';
+      $('#auPw').hidden = g === 'story';
+      $('#auPd').textContent = g === 'dm' ? 'Obrigatório. Dispara quando a mensagem tem uma dessas palavras.' : 'Vazio = qualquer comentário. Separe por vírgula.';
+    }
+    function tipoPosts(esc_){
+      M.querySelectorAll('[data-tp]').forEach(function(b){ b.setAttribute('aria-pressed', (b.getAttribute('data-tp') === 'esc') === esc_); });
+      $('#auPosts').hidden = !esc_;
+      if (esc_ && !posts){ $('#auPosts').innerHTML = '<p class="nota-bot">Carregando posts…</p>';
+        Nuvem.req('GET', '/api/abertocore/automacoes/posts').then(function(j){ posts = j.posts || []; desenhaPosts(); })
+          .catch(function(err){ $('#auPosts').innerHTML = '<p class="nota-bot">' + esc(err.message) + '</p>'; }); }
+      if (!esc_) sel = [];
+    }
+    function desenhaPosts(){
+      $('#auPosts').innerHTML = posts.length ? posts.map(function(p){ return '<button type="button" class="auto-post" data-pid="' + p.id + '" aria-pressed="' + (sel.indexOf(p.id) >= 0) + '" title="' + esc(p.legenda) + '">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<span>' + esc(p.legenda.slice(0, 40)) + '</span>') + '</button>'; }).join('') : '<p class="nota-bot">Nenhum post encontrado.</p>';
+      $('#auPosts').querySelectorAll('[data-pid]').forEach(function(b){ b.onclick = function(){ var id = b.getAttribute('data-pid'), i = sel.indexOf(id); if (i >= 0) sel.splice(i, 1); else sel.push(id); b.setAttribute('aria-pressed', i < 0); }; });
+    }
+    $('#auG').onchange = mostra; mostra();
+    M.querySelectorAll('[data-tp]').forEach(function(b){ b.onclick = function(){ tipoPosts(b.getAttribute('data-tp') === 'esc'); }; });
+    tipoPosts(sel.length > 0);
+    if (!novo) $('#auDel').onclick = function(){
+      if (!confirm('Apagar a automação "' + a.nome + '"?')) return;
+      Nuvem.req('POST', '/api/abertocore/automacoes/apagar', {id:a.id}).then(function(){ M.close(); vAutomacoes(); aviso('Automação apagada.'); });
+    };
+    $('#fAuto').addEventListener('submit', function(e){
+      if (e.submitter && e.submitter.value === 'fechar') return;
+      e.preventDefault();
+      var corpo = {id:a.id || '', ativo:a.ativo !== false, nome:$('#auN').value, gatilho:$('#auG').value, palavras:$('#auP').value, posts:sel,
+        resposta_publica:$('#auPub').value, mensagem:$('#auM').value, etiqueta:$('#auE').value,
+        botoes:[0,1,2].map(function(i){ return {t:M.querySelector('[data-bt="' + i + '"]').value, r:M.querySelector('[data-br="' + i + '"]').value}; })};
+      var b = $('#auSalva'); b.disabled = true;
+      Nuvem.req('POST', '/api/abertocore/automacoes', corpo).then(function(){ M.close(); vAutomacoes(); aviso(novo ? 'Automação criada e ligada.' : 'Automação salva.'); })
+        .catch(function(err){ b.disabled = false; var x = $('#auErro'); x.hidden = false; x.textContent = err.message; });
+    });
+    M.returnValue = ''; M.showModal();
+  }
   /* ========== CHATBOT DE MENU ========== */
   var BOT_PADRAO = {
     ativo:false,

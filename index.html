@@ -1776,6 +1776,19 @@
     var pad = {WhatsApp:'wa', Instagram:'ig', Facebook:'fb', Messenger:'fb', 'E-mail':'em'}[c.canal];
     return vs.indexOf(pad) >= 0 ? pad : (vs[0] === 'wal' && vs.length > 1 ? vs[1] : vs[0]);
   }
+  function enviaSoLink(cid, texto){
+    var c = contato(cid); if (!c) return Promise.resolve();
+    var m = {de:'eq', txt:texto, ts:agoraMs(), pend:true};
+    m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7);
+    c.msgs.push(m); c.status = 'esperando'; salva(); aba = 'entrada';
+    if (sel === cid){ desenhaLista(); desenhaConversa(); }
+    return Nuvem.enviarSocial(cid, texto, m.k, 'ig').then(function(){ aviso('Link enviado pelo Instagram.'); }).catch(function(err){
+      var cc = contato(cid); if (!cc) return;
+      cc.msgs.forEach(function(x){ if (x.k === m.k){ x.pend = undefined; x.erro = err.message; } });
+      salva(); if (sel === cid) desenhaConversa();
+      aviso(esc(err.message));
+    });
+  }
   function enviaArquivo(cid, arq, texto){
     var c = contato(cid); if (!c) return Promise.resolve();
     var m = {de:'eq', txt:(texto ? texto + '\n' : '') + '📎 ' + arq.nome, anexo:{nome:arq.nome, url:Nuvem.urlArquivo(arq)}, ts:agoraMs(), pend:true};
@@ -1823,8 +1836,9 @@
     if (Nuvem.enviar) Nuvem.enviar();
     geraPdfDoc(tipo, c).then(function(arq){
       if (btn) btn.textContent = 'Enviando…';
-      var link = Nuvem.urlArquivo(arq);
-      return enviaArquivo(cid, arq, textoDoc(tipo, c) + (viaDe(c) === 'em' ? '' : '\n' + link));
+      var link = Nuvem.urlArquivo(arq), via = viaDe(c);
+      if (via === 'ig') return enviaSoLink(cid, textoDoc(tipo, c) + '\n' + link); // Instagram: só a mensagem com o link, sem anexo
+      return enviaArquivo(cid, arq, textoDoc(tipo, c) + (via === 'em' ? '' : '\n' + link));
     }).catch(function(err){ aviso(esc(err.message)); }).then(function(){ if (btn){ btn.disabled = false; btn.textContent = 'Enviar'; } });
   }
   function modalArquivos(cid){

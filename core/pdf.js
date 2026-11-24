@@ -49,7 +49,7 @@
       return window.html2pdf().set({
         margin: [12, 12, 12, 12], filename: nome + '.pdf',
         image: { type: 'jpeg', quality: 0.92 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 700, scrollX: 0, scrollY: 0 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 700, scrollX: 0, scrollY: 0, x: 0, y: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'], avoid: ['.perdas li', '.plano', '.plano-pag', 'tr', '.destaque', '.assin'] }
       }).from(el).outputPdf('blob');

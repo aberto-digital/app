@@ -25,14 +25,39 @@ routerAdd("POST", "/api/site/lead", (e) => {
   if (b.precisa) linhas.push("Precisa: " + S.limpa(b.precisa, 120))
   if (b.interesse) linhas.push("Interesse: " + S.limpa(b.interesse, 120))
   if (b.mensagem) linhas.push("Mensagem: " + S.limpa(b.mensagem, 600))
+  // página pública de auditoria (abertodigital.com/auditoria)
+  const aud = b.origem === "auditoria"
+  if (aud) {
+    linhas[0] = b.modo === "feita_por_nos" ? "🔎 Pediu a auditoria gratuita feita pela abertodigital" : "🔎 Fez o teste de presença digital no site"
+    if (negocio) linhas.splice(1, 0, "Negócio: " + negocio + (b.ramo ? " (" + S.limpa(b.ramo, 60) + ")" : ""))
+    if (b.nota !== undefined && b.nota !== null && b.nota !== "") linhas.push("Nota do teste: " + Math.max(0, Math.min(100, parseInt(b.nota, 10) || 0)) + "/100" + (b.areas ? " (" + S.limpa(b.areas, 160) + ")" : ""))
+    if (b.fracos) linhas.push("Pontos fracos: " + S.limpa(b.fracos, 500))
+    if (b.instagram) linhas.push("Instagram: @" + S.limpa(String(b.instagram).replace(/^@/, ""), 60))
+    if (b.site) linhas.push("Site: " + S.limpa(b.site, 120))
+    if (b.email) linhas.push("E-mail: " + S.limpa(b.email, 120))
+  }
   linhas.push("Autorizou contato pelo WhatsApp.")
 
   let rec = S.acharPorTelefone($app, empresaId, tel), novo = false
-  if (!rec) { rec = S.novoContato($app, empresaId, { nome: nome, tel: tel, negocio: negocio, canal: "WhatsApp", origem: "Site" }); novo = true }
+  if (!rec) { rec = S.novoContato($app, empresaId, { nome: nome, tel: tel, negocio: negocio, canal: "WhatsApp", origem: aud ? "Auditoria gratuita" : "Site" }); novo = true }
   const d = S.chegou(rec, linhas.join("\n"))
-  if (!d.negocio && negocio) { d.negocio = negocio; rec.set("dados", d) }
+  if (!d.negocio && negocio) d.negocio = negocio
+  if (aud) {
+    const mail = S.limpa(b.email, 120).toLowerCase()
+    if (!d.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) d.email = mail
+    const ig = S.limpa(String(b.instagram || "").replace(/^@/, ""), 60)
+    if (!d.usuario && /^[A-Za-z0-9._]{2,30}$/.test(ig)) d.usuario = ig
+    if (!d.site && b.site) d.site = S.limpa(b.site, 120)
+    if (!d.cidade && b.cidade) d.cidade = S.limpa(b.cidade, 80)
+    d.etiquetas = Array.from(new Set([].concat(d.etiquetas || [], ["Auditoria gratuita"])))
+    d.tipo = d.tipo || "Lead"
+    if (b.modo === "feita_por_nos") d.etapa = d.etapa === "Novo contato" || !d.etapa ? "Qualificado" : d.etapa
+    // retorno no próximo dia útil
+    if (!d.followup) { const t = new Date(Date.now() - 3 * 3600000 + 86400000); while (t.getUTCDay() === 0 || t.getUTCDay() === 6) t.setUTCDate(t.getUTCDate() + 1); d.followup = t.toISOString().slice(0, 10) }
+  }
+  rec.set("dados", d)
   $app.save(rec)
-  S.avisaEquipe($app, empresaId, (novo ? "Novo lead pelo site: " : "Pedido pelo site de novo: ") + nome + (negocio ? " (" + negocio + ")" : "") + ", " + tel + ".", rec.getInt("local_id"))
+  S.avisaEquipe($app, empresaId, (aud ? (b.modo === "feita_por_nos" ? "Pediu auditoria gratuita: " : "Fez o teste de presença digital (nota " + (parseInt(b.nota, 10) || 0) + "): ") : novo ? "Novo lead pelo site: " : "Pedido pelo site de novo: ") + nome + (negocio ? " (" + negocio + ")" : "") + ", " + tel + ".", rec.getInt("local_id"))
   return e.json(200, { ok: true })
 })
 

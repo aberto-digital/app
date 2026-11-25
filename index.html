@@ -620,6 +620,9 @@
     .principal{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
     .rolou .topo,.rolou-conv .topo{transform:translateY(-100%)}
     .rolou .principal,.rolou-conv .principal{transform:translateY(-60px);margin-bottom:-60px}
+    /* enquanto o dedo rola: segue a rolagem sem animação */
+    .arrasta .topo{transition:none;transform:translateY(calc(var(--barra,0) * -100%))}
+    .arrasta .principal{transition:none;transform:translateY(calc(var(--barra,0) * -60px));margin-bottom:calc(var(--barra,0) * -60px)}
     .trilho{position:relative;z-index:46}
     .compor{padding:10px 12px}
     .inbox{grid-template-columns:minmax(0,1fr)}
@@ -963,10 +966,10 @@
       '<div class="fio" id="fio">' + (IA_CHAT.length ? html : intro + html) + '</div>' +
       '<div class="compor"><form class="linha" id="fIA"><textarea id="texto" rows="1" placeholder="' + (con ? 'Pergunte algo, ex.: quem eu preciso retornar hoje?' : 'Conecte a IA para perguntar') + '" aria-label="Pergunta para o assistente"' + (con ? '' : ' disabled') + '></textarea><button class="envia" aria-label="Enviar"' + (con ? '' : ' disabled') + '>' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); fimConversa(fio);
-    var appEl = $('#app'); appEl.classList.remove('rolou-conv');
+    var appEl = $('#app'); appEl.classList.remove('rolou-conv', 'arrasta');
     if (rolar) rolar.el = null;
     fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
-    $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv'); $('#inbox').classList.remove('mostra-conv'); };
+    $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv', 'arrasta'); $('#inbox').classList.remove('mostra-conv'); };
     function cfg(){ abaAt = 'ia'; vai('assistente'); }
     $('#iaCfg').onclick = cfg; var ic2 = $('#iaIrCfg'); if (ic2) ic2.onclick = cfg;
     fio.addEventListener('click', function(e){
@@ -1663,16 +1666,16 @@
         (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel"><span id="viaRot">Responder por</span><span class="via-seg" role="radiogroup" aria-labelledby="viaRot">' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</span></div>' : ''; })() +
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); if (posAnt != null){ fio.scrollTop = posAnt; fio.dataset.leu = '1'; } else fimConversa(fio);
-    var appEl = $('#app'); appEl.classList.remove('rolou-conv');
+    var appEl = $('#app'); appEl.classList.remove('rolou-conv', 'arrasta');
     if (rolar) rolar.el = null;
     fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
-    $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv'); $('#inbox').classList.remove('mostra-conv'); };
+    $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv', 'arrasta'); $('#inbox').classList.remove('mostra-conv'); };
     $('#verDet').onclick = function(){ appEl.classList.remove('rolou-conv', 'rolou'); $('#inbox').classList.add('mostra-det'); };
     var f = $('#finaliza'); if (f) f.onclick = function(){
       c.status = 'finalizado'; salva();
       aviso('Conversa com <b>' + esc(c.nome) + '</b> arquivada. Ela volta para a Entrada se o cliente escrever de novo.');
       // volta para a Entrada: no celular fecha a conversa; no computador abre a próxima da Entrada
-      convMovel = false; appEl.classList.remove('rolou-conv');
+      convMovel = false; appEl.classList.remove('rolou-conv', 'arrasta');
       $('#inbox').classList.remove('mostra-conv'); $('#inbox').classList.remove('mostra-det');
       aba = 'entrada';
       var p = filtrados()[0]; sel = p ? p.id : null;
@@ -1690,7 +1693,7 @@
       if (!confirm('Ignorar ' + c.nome + '?\n\nO app não avisa mais sobre mensagens deste contato, o atendimento automático e o Assistente de IA não respondem nem analisam a conversa. As mensagens continuam chegando e ficam em Arquivados.')) return;
       c.ignorado = true; c.naoLidas = 0; salva();
       aviso('<b>' + esc(c.nome) + '</b> ignorado. A conversa fica em Arquivados.');
-      convMovel = false; appEl.classList.remove('rolou-conv');
+      convMovel = false; appEl.classList.remove('rolou-conv', 'arrasta');
       $('#inbox').classList.remove('mostra-conv'); $('#inbox').classList.remove('mostra-det');
       aba = 'entrada'; var p = filtrados()[0]; sel = p ? p.id : null;
       desenhaLista(); desenhaConversa(); desenhaDetalhe(); desenhaNav();
@@ -1920,7 +1923,7 @@
       S.eventos = S.eventos.filter(function(e){ return e.contato !== c.id; });
       salva();
       sel = null; convMovel = false;
-      $('#app').classList.remove('rolou-conv');
+      $('#app').classList.remove('rolou-conv', 'arrasta');
       $('#inbox').classList.remove('mostra-det'); $('#inbox').classList.remove('mostra-conv');
       var p = filtrados()[0]; sel = p ? p.id : null;
       desenhaLista(); desenhaConversa(); desenhaDetalhe();
@@ -2307,7 +2310,7 @@
       versao().then(function(v){ checando = false; if (v && v !== marca){ var t = document.querySelector('textarea:focus'); if (!t || !t.value) location.reload(); } }).catch(function(){ checando = false; });
     });
   })();
-  var rolar = {el:null, y:0, soma:0, quadro:0};
+  var rolar = {el:null, y:0, off:0, quadro:0, fim:0};
   /* Leva a conversa até a última mensagem. Repete depois que a tela aparece (no celular ela abre escondida)
      e depois que fotos e áudios carregam, a menos que a pessoa já tenha subido para ler. */
   function fimConversa(fio){
@@ -2319,26 +2322,39 @@
     var marca = function(){ if (fio.scrollHeight - fio.clientHeight - fio.scrollTop > 120) fio.dataset.leu = '1'; };
     fio.addEventListener('touchmove', marca, {passive:true}); fio.addEventListener('wheel', marca, {passive:true});
   }
+  /* barra superior acompanha o dedo: durante a rolagem ela desliza na mesma medida (só transform);
+     quando a rolagem para, completa o movimento para mostrar ou esconder inteira */
+  var BARRA_H = 60;
   function barraRolagem(pane, classe, opc){
     if (!matchMedia('(max-width:760px)').matches) return;
     if (rolar.quadro) return;
     rolar.quadro = requestAnimationFrame(function(){
       rolar.quadro = 0;
       var app = $('#app'), y = pane.scrollTop, max = pane.scrollHeight - pane.clientHeight;
-      if (rolar.el !== pane){ rolar.el = pane; rolar.y = y; rolar.soma = 0; return; }
-      if (y < 0 || y > max) return;                          // elástico do iOS
+      if (rolar.el !== pane){ rolar.el = pane; rolar.y = y; return; }
+      if (y < 0 || y > max){ rolar.y = Math.max(0, Math.min(max, y)); return; }      // elástico do iOS
       var d = y - rolar.y; rolar.y = y;
       if (!d) return;
-      rolar.soma = (rolar.soma > 0) === (d > 0) ? rolar.soma + d : d;
-      var oculta = app.classList.contains(classe);
-      if (opc && opc.mostraNoFundo){                         // conversa: o fim é embaixo
-        var fundo = max - y;
-        if (!oculta && rolar.soma < -40 && fundo > 120) app.classList.add(classe);
-        else if (oculta && (fundo < 30 || rolar.soma > 60)) app.classList.remove(classe);
-        return;
+      var conv = opc && opc.mostraNoFundo;                                            // conversa: o fim é embaixo
+      if (!app.classList.contains('arrasta')){
+        rolar.off = app.classList.contains(classe) ? BARRA_H : 0;
+        app.classList.remove('rolou', 'rolou-conv');
+        app.classList.add('arrasta');
       }
-      if (!oculta && rolar.soma > 40 && y > 80 && max > 220) app.classList.add(classe);
-      else if (oculta && (rolar.soma < -40 || y < 20)) app.classList.remove(classe);
+      // lista: rolar para baixo esconde; conversa: rolar para cima (ler o passado) esconde
+      var off = rolar.off + (conv ? -d : d);
+      if (conv ? (max - y < 30) : (y < 20)) off = 0;                                  // no fim da conversa / topo da lista: sempre visível
+      if (!conv && max < 220) off = 0;
+      rolar.off = Math.max(0, Math.min(BARRA_H, off));
+      app.style.setProperty('--barra', (rolar.off / BARRA_H).toFixed(3));
+      clearTimeout(rolar.fim);
+      rolar.fim = setTimeout(function(){
+        var esconde = rolar.off > BARRA_H / 2;
+        app.classList.remove('arrasta');
+        app.style.removeProperty('--barra');
+        if (esconde) app.classList.add(classe);
+        rolar.off = esconde ? BARRA_H : 0;
+      }, 140);
     });
   }
 

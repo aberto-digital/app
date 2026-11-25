@@ -170,6 +170,8 @@
 
   .av{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#4A5568;background:#E2E6EC}
   html[data-tema="escuro"] .av{background:#2C3544;color:#C3CAD6}
+  .selo-c{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:5px;background:#E2E6EC;color:#4A5568;font-size:9px;font-weight:800;margin-right:6px;vertical-align:1px;flex:none}
+  html[data-tema="escuro"] .selo-c{background:#2C3544;color:#C3CAD6}
   .av>img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
   .av .sel{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;border:2px solid var(--branco);display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff;background:#6B7585;z-index:1}
 
@@ -841,7 +843,12 @@
     var k = CANAIS[c.canal] || {cor:'#5B6678', l:'?'};
     var foto = c.foto && window.Nuvem && Nuvem.urlFoto ? '<img src="' + esc(Nuvem.urlFoto(c.foto)) + '" alt="" loading="lazy" decoding="async" onerror="this.remove()">' : '';
     return '<span class="av">' + esc(iniciais(c.nome)) + foto +
-      (semSelo ? '' : '<span class="sel" title="' + esc(c.canal) + '">' + k.l + '</span>') + '</span>';
+      '</span>';
+  }
+  // selo do canal antes do nome (na lista), em vez de em cima da foto
+  function seloCanal(c){
+    var k = CANAIS[c.canal] || {l:'?'};
+    return '<span class="selo-c" title="' + esc(c.canal || '') + '" aria-label="' + esc(c.canal || '') + '">' + k.l + '</span>';
   }
   function chipCanal(c){ return '<span class="canal"><b style="background:' + (CANAIS[c] || {cor:'#5B6678'}).cor + '"></b>' + c + '</span>'; }
   function chipTipo(t){ return '<span class="chip ' + (t === 'Cliente' ? 'cliente' : 'lead') + '">' + t + '</span>'; }
@@ -1584,7 +1591,7 @@
     var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.de === 'sis' ? '• ' : '';
     var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
     return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
-      '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
+      '<span class="mid"><span class="l1"><span class="nome">' + seloCanal(c) + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
       '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
       '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + (c.ignorado ? '<span class="chip">Ignorado</span>' : chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c)) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
   }

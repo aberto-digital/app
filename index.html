@@ -168,8 +168,10 @@
   .canal{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--sec)}
   .canal b{width:9px;height:9px;border-radius:50%}
 
-  .av{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff}
-  .av .sel{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;border:2px solid var(--branco);display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff}
+  .av{position:relative;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#4A5568;background:#E2E6EC}
+  html[data-tema="escuro"] .av{background:#2C3544;color:#C3CAD6}
+  .av>img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+  .av .sel{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;border:2px solid var(--branco);display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff;background:#6B7585;z-index:1}
 
   /* ===== Mensagens ===== */
   .inbox{display:grid;grid-template-columns:360px 1fr 300px;grid-template-rows:minmax(0,1fr);height:100%}
@@ -731,7 +733,7 @@
 
 <script src="core/i18n.js?v=6"></script>
 <script src="core/dados.js?v=2"></script>
-<script src="core/nuvem.js?v=13"></script>
+<script src="core/nuvem.js?v=14"></script>
 <script>
 (function(){
   'use strict';
@@ -837,8 +839,9 @@
   function iniciais(nome){ var p = nome.trim().split(/\s+/); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
   function avatar(c, semSelo){
     var k = CANAIS[c.canal] || {cor:'#5B6678', l:'?'};
-    return '<span class="av" style="background:' + corAv(c.nome) + '">' + esc(iniciais(c.nome)) +
-      (semSelo ? '' : '<span class="sel" style="background:' + k.cor + '" title="' + c.canal + '">' + k.l + '</span>') + '</span>';
+    var foto = c.foto && window.Nuvem && Nuvem.urlFoto ? '<img src="' + esc(Nuvem.urlFoto(c.foto)) + '" alt="" loading="lazy" decoding="async" onerror="this.remove()">' : '';
+    return '<span class="av">' + esc(iniciais(c.nome)) + foto +
+      (semSelo ? '' : '<span class="sel" title="' + esc(c.canal) + '">' + k.l + '</span>') + '</span>';
   }
   function chipCanal(c){ return '<span class="canal"><b style="background:' + (CANAIS[c] || {cor:'#5B6678'}).cor + '"></b>' + c + '</span>'; }
   function chipTipo(t){ return '<span class="chip ' + (t === 'Cliente' ? 'cliente' : 'lead') + '">' + t + '</span>'; }

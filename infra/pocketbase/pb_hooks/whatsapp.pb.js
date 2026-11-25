@@ -109,6 +109,7 @@ onRecordUpdateRequest((e) => {
   if (velho.wa && !novo.wa) novo.wa = velho.wa
   if (velho.social && !novo.social) novo.social = velho.social
   if (velho.usuario && !novo.usuario) novo.usuario = velho.usuario
+  if (velho.foto && novo.foto !== velho.foto) novo.foto = velho.foto   // a foto só o servidor troca
   const vb = velho.bot, nb = novo.bot
   if (vb && (!nb || (vb.ate || 0) > (nb.ate || 0) || (vb.ultimoMenu || 0) > (nb.ultimoMenu || 0))) novo.bot = Object.assign({}, nb || {}, vb)
   // o app tinha uma cópia antiga: mantém o que a IA preencheu no card

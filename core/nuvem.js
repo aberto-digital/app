@@ -445,6 +445,7 @@
       return api('POST', '/api/collections/arquivos/records', f);
     },
     apagaArquivo: function (id) { return api('DELETE', '/api/collections/arquivos/records/' + id); },
+    urlFoto: function (p) { return BASE + '/api/files/' + p + '?thumb=96x96'; },
     urlArquivo: function (r) { return BASE + '/api/files/arquivos/' + r.id + '/' + encodeURIComponent(r.arquivo); },
     api: api };
 })();

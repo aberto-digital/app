@@ -141,9 +141,15 @@ function ultimaDoCliente(d) {
   return ms.length ? ms[ms.length - 1] : null
 }
 
+// Texto de uma mensagem para a IA ler: áudio transcrito vira a fala transcrita.
+function textoMsg(m) {
+  if (m && m.transcricao) return "[áudio transcrito] " + m.transcricao
+  return String((m && m.txt) || "")
+}
+
 function conversa(d, n) {
   return (d.msgs || []).filter((m) => m.de !== "sis").slice(-(n || 20))
-    .map((m) => "[" + dataHoraBR(m.ts || 0) + "] " + quem(m.de) + ": " + String(m.txt || "").replace(/\s+/g, " ").slice(0, 400))
+    .map((m) => "[" + dataHoraBR(m.ts || 0) + "] " + quem(m.de) + ": " + textoMsg(m).replace(/\s+/g, " ").slice(0, 600))
     .join("\n")
 }
 
@@ -158,7 +164,7 @@ function linhaContato(d) {
     d.ficha && d.ficha.proxima ? "próxima manutenção " + dataCurta(d.ficha.proxima) + (d.ficha.metodo ? " (" + d.ficha.metodo + ")" : "") : "",
     "conversa " + ({ entrada: "aguardando a equipe", esperando: "aguardando o cliente", finalizado: "finalizada", prospeccao: "lead em prospecção, ainda sem conversa" }[d.status] || d.status || "-"),
   ]
-  if (u) partes.push("última msg " + dataHoraBR(u.ts || 0) + " de " + quem(u.de) + ": \"" + String(u.txt || "").replace(/\s+/g, " ").slice(0, 120) + "\"")
+  if (u) partes.push("última msg " + dataHoraBR(u.ts || 0) + " de " + quem(u.de) + ": \"" + textoMsg(u).replace(/\s+/g, " ").slice(0, 120) + "\"")
   if (d.ia && d.ia.resumo) partes.push("resumo: " + d.ia.resumo)
   if (d.ia && d.ia.atencao) partes.push("ATENÇÃO: " + (d.ia.motivo || "precisa de resposta"))
   return partes.filter(Boolean).join(" | ")
@@ -294,7 +300,7 @@ function alertaSemResposta(app, empresaId) {
     if (agora - (u.ts || 0) < 3 * 3600000 || agora - (u.ts || 0) > 3 * 86400000) return
     if (d.ia && d.ia.alertado === u.ts) return
     const horas = Math.round((agora - u.ts) / 3600000)
-    postaChat(app, empresaId, "ia", "aviso", (d.nome || "Um contato") + " mandou mensagem há " + horas + " horas e ninguém respondeu: \"" + String(u.txt || "").replace(/\s+/g, " ").slice(0, 140) + "\"", "", r.getInt("local_id"))
+    postaChat(app, empresaId, "ia", "aviso", (d.nome || "Um contato") + " mandou mensagem há " + horas + " horas e ninguém respondeu: \"" + textoMsg(u).replace(/\s+/g, " ").slice(0, 140) + "\"", "", r.getInt("local_id"))
     const atual = app.findRecordById("contatos", r.id), dd = lerDados(atual)
     dd.ia = Object.assign({}, dd.ia || {}, { alertado: u.ts })
     atual.set("dados", dd); app.save(atual)

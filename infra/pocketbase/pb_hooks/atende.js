@@ -46,6 +46,20 @@ function decide(app, empresaId, rec, canalNome) {
   if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return quieta(app, rec, "A conversa está com a equipe (modo humano) até " + new Date(d.bot.ate - 3 * 3600000).toISOString().slice(11, 16) + ".")
   if (d.iaPausa && agora < d.iaPausa) return quieta(app, rec, "A IA está pausada nesta conversa.")
   if (d.ignorado) return null // contato ignorado: a IA não responde
+  // Áudio do cliente ainda sem resposta: transcreve antes de responder, para a IA saber o que foi dito.
+  // Grava a transcrição no próprio rec (quem chama salva a resposta nele depois).
+  const pendentes = []
+  for (let i = msgs.length - 1; i >= 0 && msgs[i].de === "cli"; i--) if (msgs[i].audio && !msgs[i].transcricao) pendentes.unshift(msgs[i])
+  if (pendentes.length) {
+    const T = require(`${__hooks}/transcreve.js`)
+    let falhou = ""
+    pendentes.slice(-3).forEach((m) => {
+      try { m.transcricao = T.transcrever(app, empresaId, m) }
+      catch (e) { falhou = String(e.message || e); app.logger().warn("atende: áudio não transcrito", "erro", falhou) }
+    })
+    rec.set("dados", d); app.save(rec)
+    if (falhou && pendentes.some((m) => !m.transcricao)) return quieta(app, rec, "O cliente mandou áudio e a transcrição falhou (" + falhou.slice(0, 120) + "). A IA espera para não responder sem saber o que foi dito.", true)
+  }
   const ctx = IA.contextoEmpresa(app, empresaId)
   const tom = { "Formal": "formal e educado", "Animado": "animado e caloroso" }[at.tom] || "próximo e direto"
   const curto = canalNome === "E-mail" ? "até 6 frases, em parágrafos curtos, com saudação e despedida" : "curto (até 3 frases)"
@@ -58,6 +72,7 @@ function decide(app, empresaId, rec, canalNome) {
     at.agendar ? "Pode sugerir marcar um horário; a equipe confirma o horário exato." : "",
     at.horario ? "Horário de atendimento da equipe: " + limpa(at.horario, 300) : "",
     "Seja assertivo: responda primeiro exatamente o que foi perguntado, com os dados das informações abaixo (preço, prazo, como funciona). Depois faça no máximo UMA pergunta que avance a venda (ex.: qual o negócio, o que já tem hoje, quando quer começar).",
+    "Mensagens marcadas como [áudio transcrito] são áudios do cliente já transcritos: responda ao que ele falou, como se tivesse ouvido. Nunca diga que não consegue ouvir áudio.",
     "Não repita saudação nem apresentação se a conversa já começou. Não use frases vazias como 'Como podemos ajudar?' depois que o cliente já disse o que quer.",
     "Só diga que é o assistente virtual se for a primeira resposta da conversa ou se perguntarem; a equipe acompanha a conversa.",
     at.humano === false ? "" : "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa. Mesmo assim, responda na mesma mensagem tudo o que as informações abaixo permitem.",

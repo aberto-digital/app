@@ -1850,18 +1850,29 @@
     geraPdfDoc(tipo, c).then(function(arq){
       if (btn) btn.textContent = 'Enviando…';
       var link = Nuvem.urlArquivo(arq), via = viaDe(c);
-      if (via === 'ig') return enviaSoLink(cid, textoDoc(tipo, c) + '\n' + link); // Instagram: só a mensagem com o link, sem anexo
+      if (via === 'ig') return poeNaCaixa(cid, textoDoc(tipo, c) + '\n' + link); // Instagram: texto e link vão para a caixa de mensagem; o Julio revisa e envia
       return enviaArquivo(cid, arq, textoDoc(tipo, c) + (via === 'em' ? '' : '\n' + link));
     }).catch(function(err){ aviso(esc(err.message)); }).then(function(){ if (btn){ btn.disabled = false; btn.textContent = 'Enviar'; } });
+  }
+  /* Coloca o texto na caixa de mensagem da conversa aberta, sem enviar. */
+  function poeNaCaixa(cid, texto){
+    var ta = sel === cid ? $('#texto') : null;
+    if (!ta){ aviso('Abra a conversa para ver a mensagem com o link.'); return Promise.resolve(); }
+    ta.value = ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n\n' + texto : texto;
+    ta.dispatchEvent(new Event('input'));
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    aviso('PDF pronto. Revise a mensagem com o link e toque em enviar.');
+    return Promise.resolve();
   }
   function modalArquivos(cid){
     var c = contato(cid), M = $('#modal'); if (!c) return;
     var pode = !!viaDe(c), ag = ehAgencia(), temA = ag && pode && !!c.auditoria, temP = ag && pode && !!c.proposta && !BELEZA;
+    var docSub = viaDe(c) === 'ig' ? 'Gera o PDF e põe o link na mensagem' : 'Gera o PDF e envia com link';
     M.innerHTML = '<form method="dialog" id="fArq" class="arq-modal">' +
       '<div class="arq-cab"><div><h3>Enviar arquivo</h3><small>para ' + esc(c.nome) + '</small></div><button class="arq-x" value="cancelar" formnovalidate aria-label="Fechar" autofocus>✕</button></div>' +
       ((temA || temP) && !BELEZA ? '<div class="arq-rap">' +
-        (temA ? '<button type="button" class="arq-doc" data-doc="auditoria"><span class="ic">📊</span><span><b>Auditoria</b><small>Gera o PDF e envia com link</small></span></button>' : '') +
-        (temP ? '<button type="button" class="arq-doc" data-doc="proposta"><span class="ic">📄</span><span><b>Proposta</b><small>Gera o PDF e envia com link</small></span></button>' : '') + '</div>' : '') +
+        (temA ? '<button type="button" class="arq-doc" data-doc="auditoria"><span class="ic">📊</span><span><b>Auditoria</b><small>' + docSub + '</small></span></button>' : '') +
+        (temP ? '<button type="button" class="arq-doc" data-doc="proposta"><span class="ic">📄</span><span><b>Proposta</b><small>' + docSub + '</small></span></button>' : '') + '</div>' : '') +
       '<div class="arq-tit">Biblioteca</div><div id="arqLista" class="arq-lista"><div class="arq-vazio">Carregando…</div></div>' +
       '<label class="arq-sobe">⬆️ Adicionar arquivo à biblioteca<input type="file" id="arqNovo" hidden accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.mp4,.mp3,.ogg"></label>' +
       (pode ? '<input id="arqTxt" class="arq-txt" autocomplete="off" placeholder="Mensagem junto com o arquivo (opcional)">' : '<p class="arq-aviso">Conecte o WhatsApp, o Instagram, o Messenger ou o e-mail em Canais para enviar arquivos a este contato. A biblioteca já pode ser montada.</p>') +
@@ -1884,7 +1895,7 @@
     };
     M.onclick = function(e){
       var d = e.target.closest('[data-doc]'), en = e.target.closest('[data-env]'), del = e.target.closest('[data-del]');
-      if (d){ M.close(); enviaDoc(d.getAttribute('data-doc'), cid); return; }
+      if (d){ M.close(); aviso('Gerando o PDF…'); enviaDoc(d.getAttribute('data-doc'), cid); return; }
       if (en){ var a = (M._L || []).filter(function(x){ return x.id === en.getAttribute('data-env'); })[0]; if (!a) return; var t = $('#arqTxt').value.trim(); M.close(); enviaArquivo(cid, a, t); return; }
       if (del){ if (!confirm('Apagar este arquivo da biblioteca? Links já enviados deixam de abrir.')) return; Nuvem.apagaArquivo(del.getAttribute('data-del')).then(lista).catch(function(err){ aviso(esc(err.message)); }); }
     };

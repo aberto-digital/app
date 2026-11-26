@@ -272,6 +272,9 @@
   .digitando{align-self:flex-end;font-size:12.5px;color:#8A5B00;background:#FFF8E6;border:1px dashed #F5D98F;padding:6px 11px;border-radius:12px}
   .compor{background:var(--branco);border-top:1px solid var(--linha);padding:12px 16px}
   .compor .linha{display:flex;gap:10px;align-items:flex-end}
+  .compor .anexo-pend{display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:7px 8px 7px 12px;border:1px solid var(--linha);border-radius:12px;background:var(--branco);font-size:13px;font-weight:600}
+  .compor .anexo-pend a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit;text-decoration:none}
+  .compor .anexo-pend button{flex:none;width:26px;height:26px;border-radius:50%;border:0;background:var(--papel,#f6f7fa);color:inherit;cursor:pointer;font-size:12px}
   .compor .clip{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--linha);background:var(--branco);font-size:18px;cursor:pointer;line-height:1}
   .compor .clip:hover{background:var(--fundo,#f3f5f9)}
   .msg a.anexo-msg{display:inline-block;margin-top:4px;padding:6px 10px;border-radius:8px;background:rgba(47,111,237,.1);color:inherit;text-decoration:none;font-weight:600}
@@ -1067,6 +1070,7 @@
   if (atual === 'chatbot'){ atual = 'assistente'; abaAt = 'chatbot'; }
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
   var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '';
+  var anexoPend = null; // {cid, arq}: PDF gerado esperando o Julio enviar pela caixa de mensagem (WhatsApp e e-mail)
 
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.ignorado ? 0 : (c.naoLidas || 0)); }, 0); }
   function desenhaNav(){
@@ -1671,6 +1675,7 @@
       '<div class="fio" id="fio">' + html + iaQuietaHtml(c) + '</div>' +
       '<div class="compor">' +
         (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel"><span id="viaRot">Responder por</span><span class="via-seg" role="radiogroup" aria-labelledby="viaRot">' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</span></div>' : ''; })() +
+        (anexoPend && anexoPend.cid === c.id ? '<div class="anexo-pend" id="anexoPend"><a href="' + esc(Nuvem.urlArquivo(anexoPend.arq)) + '" target="_blank" rel="noopener">📎 ' + esc(anexoPend.arq.nome) + '</a><button type="button" id="anexoTira" aria-label="Tirar o anexo">✕</button></div>' : '') +
         '<form class="linha" id="fEnvia">' + ((window.Nuvem && Nuvem.logado()) ? '<button type="button" class="clip" id="anexar" aria-label="Enviar arquivo" title="Enviar arquivo">📎</button>' : '') + '<textarea id="texto" rows="1" placeholder="Escreva uma mensagem" aria-label="Mensagem"></textarea><button class="envia" aria-label="Enviar">' + ic('enviar') + '</button></form></div>';
     var fio = $('#fio'); if (posAnt != null){ fio.scrollTop = posAnt; fio.dataset.leu = '1'; } else fimConversa(fio);
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
@@ -1711,6 +1716,7 @@
     ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
     ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#fEnvia').requestSubmit(); } });
     var cl = $('#anexar'); if (cl) cl.onclick = function(){ modalArquivos(c.id); };
+    var tira = $('#anexoTira'); if (tira) tira.onclick = function(){ anexoPend = null; var p = $('#anexoPend'); if (p) p.remove(); ta.focus(); };
     fio.onclick = function(ev){
       var tb = ev.target.closest('[data-transc]'); if (!tb) return;
       var wa = tb.getAttribute('data-transc'), cid = c.id;
@@ -1736,8 +1742,15 @@
     phVia();
     box.querySelectorAll('.via-sel [data-via]').forEach(function(b){ b.onclick = function(){ c.via = b.getAttribute('data-via'); salva(); box.querySelectorAll('.via-sel [data-via]').forEach(function(x){ x.setAttribute('aria-checked', x === b); }); phVia(); $('#texto').focus(); }; });
     $('#fEnvia').addEventListener('submit', function(e){
-      e.preventDefault(); var t = ta.value.trim(); if (!t) return;
+      e.preventDefault(); var t = ta.value.trim();
       var via = viaDe(c);
+      // PDF da auditoria/proposta esperando na caixa: vai como anexo junto com o texto (WhatsApp e e-mail)
+      if (anexoPend && anexoPend.cid === c.id && (via === 'wa' || via === 'em')){
+        var arq = anexoPend.arq; anexoPend = null; ta.value = '';
+        enviaArquivo(c.id, arq, t);
+        return;
+      }
+      if (!t) return;
       if (via === 'wal'){
         window.open('https://wa.me/' + foneWa(c.tel) + '?text=' + encodeURIComponent(t), '_blank', 'noopener');
         c.msgs.push({de:'eq', txt:t, ts:agoraMs(), fora:'WhatsApp'}); c.status = 'esperando'; salva(); ta.value = '';
@@ -1850,13 +1863,21 @@
     geraPdfDoc(tipo, c).then(function(arq){
       if (btn) btn.textContent = 'Enviando…';
       var link = Nuvem.urlArquivo(arq), via = viaDe(c);
-      if (via === 'ig') return poeNaCaixa(cid, textoDoc(tipo, c) + '\n' + link); // Instagram: texto e link vão para a caixa de mensagem; o Julio revisa e envia
-      return enviaArquivo(cid, arq, textoDoc(tipo, c) + (via === 'em' ? '' : '\n' + link));
+      // Em todos os canais o texto vai para a caixa de mensagem e o Julio revisa e envia.
+      // Instagram: só o link. WhatsApp: o PDF fica anexado e vai com o texto e o link. E-mail: o PDF fica anexado e vai com o texto.
+      var anexa = via === 'wa' || via === 'em';
+      return poeNaCaixa(cid, textoDoc(tipo, c) + (via === 'em' ? '' : '\n' + link), anexa ? arq : null);
     }).catch(function(err){ aviso(esc(err.message)); }).then(function(){ if (btn){ btn.disabled = false; btn.textContent = 'Enviar'; } });
   }
-  /* Coloca o texto na caixa de mensagem da conversa aberta, sem enviar. */
-  function poeNaCaixa(cid, texto){
-    var ta = sel === cid ? $('#texto') : null;
+  /* Coloca o texto na caixa de mensagem da conversa aberta, sem enviar. Com arq, o PDF fica anexado à mensagem. */
+  function poeNaCaixa(cid, texto, arq){
+    if (sel !== cid){ aviso('Abra a conversa para ver a mensagem com o link.'); return Promise.resolve(); }
+    if (arq){
+      var ant = $('#texto'), rasc = ant ? ant.value : '';
+      anexoPend = {cid:cid, arq:arq}; desenhaConversa();
+      if (rasc && $('#texto')) $('#texto').value = rasc;
+    }
+    var ta = $('#texto');
     if (!ta){ aviso('Abra a conversa para ver a mensagem com o link.'); return Promise.resolve(); }
     ta.value = ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n\n' + texto : texto;
     ta.dispatchEvent(new Event('input'));
@@ -1867,7 +1888,7 @@
   function modalArquivos(cid){
     var c = contato(cid), M = $('#modal'); if (!c) return;
     var pode = !!viaDe(c), ag = ehAgencia(), temA = ag && pode && !!c.auditoria, temP = ag && pode && !!c.proposta && !BELEZA;
-    var docSub = viaDe(c) === 'ig' ? 'Gera o PDF e põe o link na mensagem' : 'Gera o PDF e envia com link';
+    var docSub = 'Gera o PDF e põe na mensagem para você revisar';
     M.innerHTML = '<form method="dialog" id="fArq" class="arq-modal">' +
       '<div class="arq-cab"><div><h3>Enviar arquivo</h3><small>para ' + esc(c.nome) + '</small></div><button class="arq-x" value="cancelar" formnovalidate aria-label="Fechar" autofocus>✕</button></div>' +
       ((temA || temP) && !BELEZA ? '<div class="arq-rap">' +

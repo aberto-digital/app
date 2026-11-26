@@ -1828,13 +1828,16 @@
       fr.src = tipo + '/?c=' + c.id + '&pdf=1&t=' + Date.now(); // sem cache: sempre a versão nova do gerador
       document.body.appendChild(fr);
     }).then(function(blob){
-      var nome = (tipo === 'auditoria' ? 'Auditoria ' : 'Proposta ') + (c.negocio || c.nome || 'cliente') + '.pdf';
+      var ing = tipo === 'auditoria' && c.auditoria && c.auditoria.lang === 'en';
+      var nome = (tipo === 'auditoria' ? (ing ? 'Digital presence audit - ' : 'Auditoria ') : 'Proposta ') + (c.negocio || c.nome || (ing ? 'client' : 'cliente')) + '.pdf';
       nome = nome.replace(/[\\/:*?"<>|]+/g, '-');
       return Nuvem.sobeArquivo(new File([blob], nome, {type:'application/pdf'}), nome, tipo, c.id);
     });
   }
   function textoDoc(tipo, c){
     var pn = (c.nome || '').split(' ')[0];
+    if (tipo === 'auditoria' && c.auditoria && c.auditoria.lang === 'en')
+      return 'Hi' + (pn ? ' ' + pn : '') + '! Here is the digital presence audit for ' + (c.negocio || 'your business') + ', with your score and what is costing you customers. Let me know if you have any questions.';
     return tipo === 'auditoria'
       ? 'Oi' + (pn ? ', ' + pn : '') + '! Segue a auditoria da presença digital ' + (c.negocio ? 'da ' + c.negocio : 'do seu negócio') + ', com a nota e o que está fazendo você perder clientes. Qualquer dúvida é só chamar.'
       : 'Oi' + (pn ? ', ' + pn : '') + '! Segue a proposta' + (c.proposta && c.proposta.numero ? ' ' + c.proposta.numero : '') + '. Se fizer sentido, já deixo tudo pronto para começarmos.';

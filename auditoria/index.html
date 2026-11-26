@@ -294,8 +294,127 @@
     ]}
   ];
 
+  /* ===================================================================
+     VERSÃO EM INGLÊS (clientes dos EUA). Mesmos ids e pesos da versão em
+     português, para a nota e a recomendação funcionarem igual.
+     O WhatsApp vira SMS (mensagem de texto), agendamento online e DM.
+     qf: a pergunta em português que aparece no formulário (para o Julio).
+     q: a pergunta em inglês que vai no relatório. ops: [rótulo PT, valor, rótulo EN].
+     =================================================================== */
+  var SIM_EN = [['Sim',1,'Yes'],['Parcial',.5,'Partly'],['Não',0,'No']];
+  var AREAS_EN = [
+    {id:'enc', nome:'Getting found', nf:'Ser encontrado', peso:30, itens:[
+      {id:'g_perfil', sol:'Start', qf:'Tem perfil no Google (Maps)?', q:'Has a Google Business Profile (Maps)?', peso:25, tipo:'op', ops:[['Sim, verificado',1,'Yes, verified'],['Sim, sem verificar',.5,'Yes, not verified'],['Não tem',0,'No']],
+        perda:'People searching on Google or Maps can\'t find the business', acao:'Create and verify the Google Business Profile'},
+      {id:'g_busca', sol:'Start', qf:'Aparece nos 3 primeiros do Maps buscando "[ramo] in [cidade]"?', q:'Shows up in the Maps top 3 for "[ramo] in [cidade]"?', peso:20, tipo:'op', ops:[['Top 3',1,'Top 3'],['Até o 10º',.5,'Top 10'],['Não aparece',0,'Not listed']],
+        perda:'Customers find competitors first', acao:'Optimize the profile category, services and keywords'},
+      {id:'g_fotos', sol:'Start', qf:'Quantas fotos tem no perfil do Google?', q:'Photos on the Google profile', peso:15, tipo:'num', ph:'nº de fotos', nota:function(n){ return n >= 10 ? 1 : n >= 1 ? .5 : 0; },
+        perda:'Without photos the profile looks abandoned and gets fewer clicks', acao:'Add at least 10 good photos of the place and the work'},
+      {id:'g_categoria', sol:'Start', qf:'Categoria e serviços estão corretos?', q:'Are the category and services correct?', peso:10, tipo:'op', ops:SIM_EN,
+        perda:'Google doesn\'t show the business for the right searches', acao:'Fix the primary category and list every service'},
+      {id:'g_horario', sol:'Start', qf:'Horário e telefone estão atualizados?', q:'Are hours and phone number up to date?', peso:10, tipo:'op', ops:SIM_EN,
+        perda:'Customers show up when it\'s closed or call the wrong number', acao:'Update hours, holidays and phone number'},
+      {id:'site', sol:'Start', qf:'Tem site próprio?', q:'Has its own website?', peso:10, tipo:'op', ops:[['Sim',1,'Yes'],['Só link de rede social',.5,'Social media link only'],['Não',0,'No']],
+        perda:'There\'s no official page to check services and prices', acao:'1-page website with Call, Text and Book buttons'},
+      {id:'site_mob', sol:'Start', qf:'O site abre bem no celular e tem cadeado (HTTPS)?', q:'Does the site work well on phones and use HTTPS?', peso:5, tipo:'op', ops:[['Sim',1,'Yes'],['Mais ou menos',.5,'Somewhat'],['Não / sem site',0,'No / no site']],
+        perda:'The site is slow or looks unsafe on a phone, and visitors leave', acao:'Fast, mobile-friendly and secure website'},
+      {id:'g_posts', sol:'Gestão mensal do perfil no Google', qf:'Publicou novidades no Google nos últimos 30 dias?', q:'Posted updates on Google in the last 30 days?', peso:5, tipo:'op', ops:[['Sim',1,'Yes'],['Não',0,'No']],
+        perda:'The profile looks inactive next to competitors', acao:'Post offers and updates on Google every month'}
+    ]},
+    {id:'conf', nome:'Trust and reputation', nf:'Confiança e reputação', peso:25, itens:[
+      {id:'nota', sol:'Pós-venda que pede avaliação', qf:'Nota média no Google', q:'Average Google rating', peso:30, tipo:'num', ph:'ex.: 4.6', passo:'0.1', nota:function(n){ return !n ? 0 : n >= 4.7 ? 1 : n >= 4.3 ? .7 : n >= 4 ? .4 : .1; },
+        perda:'A low rating, or none, makes customers doubt the service', acao:'Ask happy customers for a review after every job'},
+      {id:'aval', sol:'Pós-venda que pede avaliação', qf:'Quantas avaliações no Google?', q:'Number of Google reviews', peso:25, tipo:'num', ph:'nº de avaliações', nota:function(n){ return n >= 50 ? 1 : n >= 20 ? .7 : n >= 5 ? .4 : n >= 1 ? .15 : 0; },
+        perda:'Few reviews make the business look small or too new', acao:'Review campaign with a direct link'},
+      {id:'resp', sol:'Respostas às avaliações do Google', qf:'Responde às avaliações?', q:'Replies to reviews?', peso:20, tipo:'op', ops:[['Todas',1,'All'],['Algumas',.5,'Some'],['Nenhuma',0,'None']],
+        perda:'Unanswered reviews, especially bad ones, push customers away', acao:'Reply to every review, with AI help'},
+      {id:'recente', sol:'Pós-venda que pede avaliação', qf:'Recebeu avaliação nos últimos 3 meses?', q:'Got a review in the last 3 months?', peso:10, tipo:'op', ops:[['Sim',1,'Yes'],['Não',0,'No']],
+        perda:'Old reviews make customers wonder if the service is still good', acao:'Ask for a review after every visit'},
+      {id:'visual', sol:'Presença', qf:'Logo e cores são profissionais e iguais em todo lugar?', q:'Are the logo and colors professional and consistent everywhere?', peso:15, tipo:'op', ops:SIM_EN,
+        perda:'An amateur or inconsistent look lowers trust', acao:'Create a visual identity and apply it to every channel'}
+    ]},
+    {id:'atend', nome:'Customer response', nf:'Atendimento', peso:25, itens:[
+      {id:'tempo', sol:'Presença', qf:'Teste: quanto tempo levou para responder (SMS, DM ou formulário)?', q:'Test: how long did it take to reply to a message (text, DM or web form)?', peso:35, tipo:'op', ops:[['Até 15 min',1,'Within 15 min'],['Até 2 horas',.6,'Within 2 hours'],['Mais de 2 horas',.2,'Over 2 hours'],['Não respondeu',0,'No reply']],
+        perda:'Customers who wait book with whoever answered first', acao:'Instant auto-reply, 24/7'},
+      {id:'wa_bus', sol:'Presença', qf:'Dá para mandar SMS para o número da empresa?', q:'Can customers text the business number?', peso:15, tipo:'op', ops:[['Sim',1,'Yes'],['Só ligação',.3,'Calls only'],['Não',0,'No']],
+        perda:'Many customers prefer to text and won\'t call', acao:'Text-enabled business number with auto-reply'},
+      {id:'catalogo', sol:'Presença', qf:'Serviços e preços estão fáceis de ver (site, Google, Instagram)?', q:'Are services and prices easy to see (site, Google, Instagram)?', peso:15, tipo:'op', ops:SIM_EN,
+        perda:'Customers have to ask about everything and give up halfway', acao:'Service list with prices on the site and Google'},
+      {id:'agenda', sol:'Agendamento online', qf:'Dá para agendar ou pedir online (botão Book now)?', q:'Can customers book or order online (Book now button)?', peso:15, tipo:'op', ops:[['Sim',1,'Yes'],['Só por SMS ou DM',.5,'Only by text or DM'],['Não',0,'No']],
+        perda:'People who decide after hours can\'t book and forget', acao:'Online booking with automatic reminders'},
+      {id:'saudacao', sol:'Presença', qf:'Tem resposta automática fora do horário (SMS e DM)?', q:'Is there an after-hours auto-reply for texts and DMs?', peso:10, tipo:'op', ops:SIM_EN,
+        perda:'After hours, customers get no answer at all', acao:'Automatic greeting and away messages'},
+      {id:'link_wa', sol:'Start', qf:'Ligar, mandar SMS e DM estão fáceis de achar (Google, site, Instagram)?', q:'Are call, text and DM options easy to find (Google, site, Instagram)?', peso:10, tipo:'op', ops:SIM_EN,
+        perda:'Customers can\'t figure out how to reach the business', acao:'Call, Text and DM buttons on every channel'}
+    ]},
+    {id:'redes', nome:'Social media', nf:'Redes sociais', peso:20, itens:[
+      {id:'ig', sol:'Instagram profissional', qf:'Tem Instagram profissional?', q:'Has a business Instagram account?', peso:20, tipo:'op', ops:[['Sim',1,'Yes'],['Pessoal',.5,'Personal account'],['Não',0,'No']],
+        perda:'Many customers check Instagram before buying and find nothing', acao:'Create or switch to a business account'},
+      {id:'ultimo', sol:'Calendário mensal de conteúdo', qf:'Quando foi a última postagem?', q:'Last post', peso:30, tipo:'op', ops:[['Até 7 dias',1,'Within 7 days'],['Até 30 dias',.6,'Within 30 days'],['Mais de 30 dias',.2,'Over 30 days'],['Nunca postou',0,'Never posted']],
+        perda:'An inactive profile makes it look like the business closed', acao:'Monthly content calendar'},
+      {id:'bio', sol:'Instagram profissional', qf:'A bio diz o que faz, a cidade e tem link de contato ou agendamento?', q:'Does the bio say what you do, the city, and have a contact or booking link?', peso:20, tipo:'op', ops:SIM_EN,
+        perda:'Visitors don\'t understand what the business does or how to reach it', acao:'Rewrite the bio with a booking or contact link'},
+      {id:'qualidade', sol:'Fotos e vídeos curtos com IA', qf:'Fotos e vídeos têm boa qualidade?', q:'Are photos and videos good quality?', peso:20, tipo:'op', ops:SIM_EN,
+        perda:'Weak images make the work and the price look worse', acao:'Photos and short videos edited with AI'},
+      {id:'seg', sol:'Calendário mensal de conteúdo', qf:'Quantos seguidores?', q:'Followers', peso:10, tipo:'num', ph:'nº de seguidores', nota:function(n){ return n >= 1000 ? 1 : n >= 300 ? .6 : n >= 1 ? .3 : 0; },
+        perda:'Small reach: few people in the area know the business', acao:'Frequent local content to gain followers in the area'}
+    ]}
+  ];
+
+  /* Tabela em US$ (aprovada pelo Julio em 26/11/2026). A chave é o nome do produto no catálogo em português. */
+  var PRODUTOS_USD = {
+    'Start':{nome:'Start', setup:590, mensal:59, prazo:7},
+    'Presença':{nome:'Presence', setup:1290, mensal:129, prazo:15},
+    'Completo':{nome:'Complete', setup:2900, mensal:349, prazo:30},
+    'Chatbot de menu (triagem)':{nome:'Auto-reply for texts and DMs', setup:400, mensal:149, ds:'Answers common questions instantly and separates real leads from browsers'},
+    'Gestão mensal do perfil no Google':{nome:'Monthly Google profile management', setup:0, mensal:149, ds:'4 posts a month, new photos, holiday hours and review replies'},
+    'Respostas às avaliações do Google':{nome:'Google review replies', setup:0, mensal:79, ds:'AI drafts the reply, we review and post it within 48h'},
+    'Pós-venda que pede avaliação':{nome:'Review request kit', setup:150, mensal:0, ds:'Text template, QR code and counter card with a direct review link'},
+    'Instagram profissional':{nome:'Business Instagram setup', setup:250, mensal:0, ds:'Business account, bio with city and booking link, organized highlights and 9 starter posts'},
+    'Calendário mensal de conteúdo':{nome:'Monthly content calendar', setup:0, mensal:390, ds:'12 ready-to-post graphics with captions every month'},
+    'Fotos e vídeos curtos com IA':{nome:'Photos and short videos with AI', setup:290, mensal:0, ds:'1-hour on-site session: 10 edited photos and 3 short videos'},
+    'Agendamento online':{nome:'Online booking', setup:250, mensal:0, ds:'Booking link on the site, Google and Instagram with automatic reminders'},
+    'Cardápio ou catálogo com QR Code':{nome:'Menu or catalog with QR code', setup:350, mensal:0, ds:'Menu or catalog page and a printed QR code for the counter and tables'}
+  };
+
+  /* Textos do relatório nos dois idiomas. */
+  var TX = {
+    pt:{semDados:'Sem dados', boa:'Boa presença', atencao:'Precisa de atenção', critica:'Situação crítica', de100:'de 100', notaGeral:'Nota geral',
+      preencha:'Preencha os itens ao lado para gerar a nota.',
+      r70:' tem uma boa base digital. Ainda há ajustes que trazem mais clientes.', r40:' aparece na internet, mas perde clientes em pontos importantes da jornada.',
+      r0:' está praticamente invisível ou passa pouca confiança na internet. Muitos clientes escolhem o concorrente antes mesmo de chegar até ela.',
+      vazioPerdas:'Os pontos fracos aparecem aqui conforme você preenche.', nenhum:'Nenhum ponto fraco encontrado nos itens avaliados.',
+      ponto:'Ponto fraco', solucao:'Nossa solução', pacote:'Pacote ', item:'Item avaliado', resultado:'Resultado', naoAval:'Não avaliado',
+      compT:'Comparação com a concorrência', avalG:' avaliações no Google', recomendado:'Plano recomendado: Pacote ', incluso:'O que está incluído', resolve:'O que resolve no seu negócio',
+      total:'Total do Pacote ', implantacao:'Implantação ', unico:' (pagamento único)', pronto:', pronto em ', dias:' dias úteis', mensalidade:'. Mensalidade:',
+      mes:'/mês', fid:'fidelidade de ', meses:' meses', off:'% off', semFid:'sem fidelidade', pagUnico:'pagamento único', unicoCurto:' único', sobConsulta:'Sob consulta', inclusoV:'Incluso',
+      modOpc:'Módulos opcionais <small>(contrate junto ou depois)</small>', modRec:'Módulos recomendados', produto:'Produto', solucaoC:'Solução', preco:'Preço', totMod:'Total dos módulos',
+      tituloRel:'Auditoria de presença digital', para:'Para: ', perdendo1:'O que ', perdendo2:' está perdendo hoje', detalhes:'Detalhes da auditoria',
+      rodape:'abertodigital · Julio Romanelli · WhatsApp (11) 99123-3627 · abertodigital.com', feita1:'Avaliação feita em ', feita2:' com base no que é visível publicamente.', empresa:'Empresa', arquivo:'Auditoria '},
+    en:{semDados:'No data', boa:'Strong presence', atencao:'Needs attention', critica:'Critical', de100:'out of 100', notaGeral:'Overall score',
+      preencha:'Fill in the items to generate the score.',
+      r70:' has a solid digital foundation. A few fixes can still bring in more customers.', r40:' shows up online, but is losing customers at key points of the journey.',
+      r0:' is nearly invisible online or doesn\'t inspire much trust. Many customers pick a competitor before they ever reach you.',
+      vazioPerdas:'Weak points show up here as you fill in the form.', nenhum:'No weak points found in the items checked.',
+      ponto:'Weak point', solucao:'Our fix', pacote:'', item:'Item checked', resultado:'Result', naoAval:'Not checked',
+      compT:'How you compare with the competition', avalG:' Google reviews', recomendado:'Recommended plan: ', incluso:'What\'s included', resolve:'What it fixes for your business',
+      total:'Total for ', implantacao:'Setup ', unico:' (one-time)', pronto:', ready in ', dias:' business days', mensalidade:'. Monthly:',
+      mes:'/mo', fid:'', meses:'-month plan', off:'% off', semFid:'month to month', pagUnico:'one-time', unicoCurto:' one-time', sobConsulta:'On request', inclusoV:'Included',
+      modOpc:'Optional add-ons <small>(now or later)</small>', modRec:'Recommended add-ons', produto:'Product', solucaoC:'What it does', preco:'Price', totMod:'Add-ons total',
+      tituloRel:'Digital presence audit', para:'For: ', perdendo1:'What ', perdendo2:' is missing out on today', detalhes:'Audit details',
+      rodape:'abertodigital · Julio Romanelli · contato@abertodigital.com · abertodigital.com', feita1:'Assessment made on ', feita2:' based on publicly visible information.', empresa:'Business', arquivo:'Digital presence audit - '}
+  };
+  function en(){ return A.lang === 'en'; }
+  function tx(k){ return TX[en() ? 'en' : 'pt'][k]; }
+  function areas(){ return en() ? AREAS_EN : AREAS; }
+  function nomeProd(n){ return en() && PRODUTOS_USD[n] ? PRODUTOS_USD[n].nome : n; }
+  function dataRel(s){ if (!s) return ''; var p = s.split('-'); return en() ? p[1] + '/' + p[2] + '/' + p[0] : dataBR(s); }
+  function numRel(v){ return en() ? String(v) : String(v).replace('.', ','); }
+  function rotulo(o){ return en() && o[2] ? o[2] : o[0]; }
+  function pergunta(it, form){ return ((en() && form && it.qf) ? it.qf : it.q).replace('[ramo]', A.ramo || (en() ? 'trade' : 'ramo')).replace('[cidade]', (A.cidade || (en() ? 'city' : 'cidade')).split('/')[0]); }
+
   /* ---------- estado ---------- */
-  function vazio(){ return {cid:null, empresa:'', ramo:'', cidade:'Arujá/SP', resp:'', data:hojeISO(), msgs:'', conc:'', concNota:'', concAval:'', r:{}}; }
+  function vazio(){ return {cid:null, lang:'pt', empresa:'', ramo:'', cidade:'Arujá/SP', resp:'', data:hojeISO(), msgs:'', conc:'', concNota:'', concAval:'', r:{}}; }
   var A = vazio();
   /* Carrega a auditoria salva no contato, ou prepara uma nova com os dados dele. */
   function deContato(id){
@@ -314,19 +433,19 @@
     return v;
   }
   function calcula(){
-    var total = 0, pesoUsado = 0, areas = AREAS.map(function(ar){
+    var total = 0, pesoUsado = 0, lista = areas().map(function(ar){
       var s = 0, p = 0, resp = 0;
       ar.itens.forEach(function(it){ var v = valor(it); if (v !== null){ s += v * it.peso; p += it.peso; resp++; } });
       var nota = p ? Math.round(s / p * 100) : null;
       if (nota !== null){ total += nota * ar.peso; pesoUsado += ar.peso; }
       return {id:ar.id, nome:ar.nome, nota:nota, resp:resp, n:ar.itens.length};
     });
-    return {areas:areas, geral:pesoUsado ? Math.round(total / pesoUsado) : null};
+    return {areas:lista, geral:pesoUsado ? Math.round(total / pesoUsado) : null};
   }
-  function nivel(n){ return n === null ? {t:'Sem dados', c:'var(--muted)'} : n >= 70 ? {t:'Boa presença', c:'var(--bom)'} : n >= 40 ? {t:'Precisa de atenção', c:'var(--medio)'} : {t:'Situação crítica', c:'var(--ruim)'}; }
+  function nivel(n){ return n === null ? {t:tx('semDados'), c:'var(--muted)'} : n >= 70 ? {t:tx('boa'), c:'var(--bom)'} : n >= 40 ? {t:tx('atencao'), c:'var(--medio)'} : {t:tx('critica'), c:'var(--ruim)'}; }
   function perdas(){
     var L = [];
-    AREAS.forEach(function(ar){ ar.itens.forEach(function(it){
+    areas().forEach(function(ar){ ar.itens.forEach(function(it){
       var v = valor(it); if (v !== null && v < 1) L.push({it:it, ar:ar, v:v, impacto:(1 - v) * it.peso * ar.peso});
     }); });
     return L.sort(function(a, b){ return b.impacto - a.impacto; });
@@ -349,12 +468,13 @@
   /* ---------- formulário ---------- */
   function desenhaForm(){
     var cab = '<div class="bloco"><h2>Empresa</h2><p class="dica">Os dados aparecem no relatório. O ramo e a cidade montam a busca do teste no Maps.</p><div class="campos">' +
-      campo('empresa', 'Nome da empresa', 'text', 'cheio') + campo('ramo', 'Ramo', 'text', '', 'ex.: oficina mecânica') + campo('cidade', 'Cidade', 'text') +
+      '<div class="campo cheio"><label for="f_lang">Idioma do relatório</label><select id="f_lang" data-lang><option value="pt"' + (en() ? '' : ' selected') + '>Português · preços em R$ (Brasil)</option><option value="en"' + (en() ? ' selected' : '') + '>Inglês · preços em US$ (EUA, sem WhatsApp)</option></select></div>' +
+      campo('empresa', 'Nome da empresa', 'text', 'cheio') + campo('ramo', en() ? 'Ramo (em inglês, vai na busca)' : 'Ramo', 'text', '', en() ? 'ex.: auto repair' : 'ex.: oficina mecânica') + campo('cidade', 'Cidade', 'text', '', en() ? 'ex.: Orlando, FL' : '') +
       campo('resp', 'Responsável', 'text') + campo('data', 'Data da auditoria', 'date') +
       campo('msgs', 'Mensagens por dia (aprox.)', 'number', '', 'opcional') + '</div></div>';
-    var corpo = AREAS.map(function(ar){
-      return '<div class="bloco" data-area="' + ar.id + '"><h2>' + ar.nome + ' <small id="nf_' + ar.id + '"></small></h2>' + ar.itens.map(function(it){
-        var q = esc(it.q.replace('[ramo]', A.ramo || 'ramo').replace('[cidade]', (A.cidade || 'cidade').split('/')[0]));
+    var corpo = areas().map(function(ar){
+      return '<div class="bloco" data-area="' + ar.id + '"><h2>' + (ar.nf || ar.nome) + ' <small id="nf_' + ar.id + '"></small></h2>' + ar.itens.map(function(it){
+        var q = esc(pergunta(it, true));
         if (it.tipo === 'num') return '<div class="crit"><div class="q">' + q + '</div><input type="number" min="0" step="' + (it.passo || '1') + '" inputmode="decimal" data-num="' + it.id + '" placeholder="' + it.ph + '" value="' + esc(A.r[it.id] == null ? '' : A.r[it.id]) + '"></div>';
         return '<div class="crit"><div class="q">' + q + '</div><div class="ops">' + it.ops.map(function(o, i){
           var cls = o[1] >= 1 ? 'v1' : o[1] > 0 ? 'v2' : 'v3';
@@ -363,7 +483,7 @@
       }).join('') + '</div>';
     }).join('');
     var conc = '<div class="bloco"><h2>Concorrente principal <small>opcional</small></h2><p class="dica">Aparece no relatório como comparação.</p><div class="campos">' +
-      campo('conc', 'Nome do concorrente', 'text', 'cheio') + campo('concNota', 'Nota no Google', 'number', '', 'ex.: 4,8') + campo('concAval', 'Nº de avaliações', 'number') + '</div></div>';
+      campo('conc', 'Nome do concorrente', 'text', 'cheio') + campo('concNota', 'Nota no Google', 'number', '', en() ? 'ex.: 4.8' : 'ex.: 4,8') + campo('concAval', 'Nº de avaliações', 'number') + '</div></div>';
     $('#form').innerHTML = cab + corpo + conc;
   }
   function campo(k, rot, tipo, cls, ph){
@@ -376,15 +496,24 @@
     b.parentNode.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', A.r[id] === parseFloat(x.getAttribute('data-v'))); });
     desenhaRel();
   });
+  $('#form').addEventListener('change', function(e){
+    if (!e.target.hasAttribute('data-lang')) return;
+    A.lang = e.target.value === 'en' ? 'en' : 'pt';
+    if (en() && A.cidade === 'Arujá/SP') A.cidade = '';
+    document.documentElement.lang = en() ? 'en' : 'pt-BR';
+    desenhaForm(); desenhaRel();
+  });
   $('#form').addEventListener('input', function(e){
     var t = e.target;
+    if (t.hasAttribute('data-lang')) return;
     if (t.hasAttribute('data-k')){ A[t.getAttribute('data-k')] = t.value; if (t.getAttribute('data-k') === 'ramo' || t.getAttribute('data-k') === 'cidade') atualizaBusca(); }
     if (t.hasAttribute('data-num')) A.r[t.getAttribute('data-num')] = t.value === '' ? undefined : t.value;
     desenhaRel();
   });
   function atualizaBusca(){
     var q = document.querySelector('[data-it="g_busca"]'); if (!q) return;
-    q.closest('.crit').querySelector('.q').textContent = 'Aparece nos 3 primeiros do Maps buscando "' + (A.ramo || 'ramo') + ' em ' + (A.cidade || 'cidade').split('/')[0] + '"?';
+    var it = areas()[0].itens.filter(function(x){ return x.id === 'g_busca'; })[0];
+    q.closest('.crit').querySelector('.q').textContent = pergunta(it, true);
   }
 
   /* ---------- relatório ---------- */
@@ -395,79 +524,99 @@
     var arcoFundo = 'M' + p0[0] + ' ' + p0[1] + ' A' + r + ' ' + r + ' 0 0 1 ' + p1[0] + ' ' + p1[1];
     var arco = 'M' + p0[0] + ' ' + p0[1] + ' A' + r + ' ' + r + ' 0 0 1 ' + pf[0].toFixed(2) + ' ' + pf[1].toFixed(2);
     var marcas = [40, 70].map(function(m){ var a = pt(m / 100), b = [cx + (r - 18) * Math.cos(Math.PI * (1 - m / 100)), cy - (r - 18) * Math.sin(Math.PI * (1 - m / 100))]; return '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '" stroke="#fff" stroke-width="3"/>'; }).join('');
-    return '<svg viewBox="0 0 220 125" role="img" aria-label="Nota geral ' + (n === null ? 'sem dados' : n + ' de 100') + '">' +
+    return '<svg viewBox="0 0 220 125" role="img" aria-label="' + tx('notaGeral') + ' ' + (n === null ? tx('semDados') : n + ' ' + tx('de100')) + '">' +
       '<path d="' + arcoFundo + '" fill="none" style="stroke:var(--fundo-arco,#EDF0F5)" stroke-width="18" stroke-linecap="round"/>' +
       (n ? '<path d="' + arco + '" fill="none" stroke="' + nv.c + '" stroke-width="18" stroke-linecap="round"/>' : '') + marcas +
       '<text x="110" y="92" text-anchor="middle" font-family="Archivo,system-ui" font-weight="800" font-size="46" style="fill:var(--ink)">' + (n === null ? '–' : n) + '</text>' +
-      '<text x="110" y="112" text-anchor="middle" font-size="11" style="fill:var(--sec)">de 100</text></svg><div class="nivel" style="color:' + nv.c + '">' + nv.t + '</div>';
+      '<text x="110" y="112" text-anchor="middle" font-size="11" style="fill:var(--sec)">' + tx('de100') + '</text></svg><div class="nivel" style="color:' + nv.c + '">' + nv.t + '</div>';
   }
   function desenhaRel(){
-    var c = calcula(), L = perdas(), emp = A.empresa || 'Empresa', rec = recomenda(L);
+    var c = calcula(), L = perdas(), emp = A.empresa || tx('empresa'), rec = recomenda(L);
     c.areas.forEach(function(a){ var el = $('#nf_' + a.id); if (el) el.textContent = a.nota === null ? a.resp + '/' + a.n : a.nota + '/100'; });
     $('#mobScore').textContent = c.geral === null ? '' : '(' + c.geral + ')';
-    var resumo = c.geral === null ? 'Preencha os itens ao lado para gerar a nota.' :
-      c.geral >= 70 ? emp + ' tem uma boa base digital. Ainda há ajustes que trazem mais clientes.' :
-      c.geral >= 40 ? emp + ' aparece na internet, mas perde clientes em pontos importantes da jornada.' :
-      emp + ' está praticamente invisível ou passa pouca confiança na internet. Muitos clientes escolhem o concorrente antes mesmo de chegar até ela.';
+    var resumo = c.geral === null ? tx('preencha') : emp + tx(c.geral >= 70 ? 'r70' : c.geral >= 40 ? 'r40' : 'r0');
     var pil = c.areas.map(function(a){ var nv = nivel(a.nota); return '<div class="p"><div class="l"><span>' + a.nome + '</span><b style="color:' + nv.c + '">' + (a.nota === null ? '–' : a.nota) + '</b></div><div class="trilho-b"><i style="width:' + (a.nota || 0) + '%;background:' + nv.c + '"></i></div></div>'; }).join('');
-    var perdasHtml = !L.length ? (c.geral === null ? '<p class="vazio-rel">Os pontos fracos aparecem aqui conforme você preenche.</p>' : '<div class="ok-tudo">Nenhum ponto fraco encontrado nos itens avaliados.</div>') :
-      '<ul class="perdas"><li class="cab" aria-hidden="true"><span>Ponto fraco</span><span>Nossa solução</span></li>' + L.slice(0, 6).map(function(p){ var solNome = Core.ORDEM_PACOTES.indexOf(p.it.sol) >= 0 ? 'Pacote ' + (rec.pacote || p.it.sol) : p.it.sol; return '<li class="' + (p.v >= .5 ? 'media' : '') + '"><i></i><div><b>' + esc(p.it.perda) + '</b><span>' + p.ar.nome + ': ' + esc(p.it.q.replace(/\?$/, '').replace('[ramo]', A.ramo || 'ramo').replace('[cidade]', (A.cidade || '').split('/')[0])) + '</span></div><div class="sol"><b>' + esc(p.it.acao) + '</b>' + (solNome !== p.it.acao ? '<span>' + esc(solNome) + '</span>' : '') + '</div></li>'; }).join('') + '</ul>';
-    var tab = '<table><thead><tr><th></th><th>Item avaliado</th><th>Resultado</th></tr></thead><tbody>' + AREAS.map(function(ar){
+    var perdasHtml = !L.length ? (c.geral === null ? '<p class="vazio-rel">' + tx('vazioPerdas') + '</p>' : '<div class="ok-tudo">' + tx('nenhum') + '</div>') :
+      '<ul class="perdas"><li class="cab" aria-hidden="true"><span>' + tx('ponto') + '</span><span>' + tx('solucao') + '</span></li>' + L.slice(0, 6).map(function(p){ var solNome = Core.ORDEM_PACOTES.indexOf(p.it.sol) >= 0 ? tx('pacote') + nomeProd(rec.pacote || p.it.sol) + (en() ? ' plan' : '') : nomeProd(p.it.sol); return '<li class="' + (p.v >= .5 ? 'media' : '') + '"><i></i><div><b>' + esc(p.it.perda) + '</b><span>' + p.ar.nome + ': ' + esc(pergunta(p.it).replace(/\?$/, '')) + '</span></div><div class="sol"><b>' + esc(p.it.acao) + '</b>' + (solNome !== p.it.acao ? '<span>' + esc(solNome) + '</span>' : '') + '</div></li>'; }).join('') + '</ul>';
+    var tab = '<table><thead><tr><th></th><th>' + tx('item') + '</th><th>' + tx('resultado') + '</th></tr></thead><tbody>' + areas().map(function(ar){
       return '<tr class="area-t"><td colspan="3">' + ar.nome + '</td></tr>' + ar.itens.map(function(it){
         var v = valor(it), raw = A.r[it.id], res = '';
-        if (raw === undefined || raw === null || raw === '') res = 'Não avaliado';
-        else if (it.tipo === 'num') res = String(raw).replace('.', ',');
-        else { var o = it.ops.filter(function(x){ return x[1] === raw; })[0]; res = o ? o[0] : ''; }
+        if (raw === undefined || raw === null || raw === '') res = tx('naoAval');
+        else if (it.tipo === 'num') res = numRel(raw);
+        else { var o = it.ops.filter(function(x){ return x[1] === raw; })[0]; res = o ? rotulo(o) : ''; }
         var cls = v === null ? 'vx' : v >= 1 ? 'v1' : v > 0 ? 'v2' : 'v3', sym = v === null ? '–' : v >= 1 ? '✓' : v > 0 ? '!' : '✕';
-        return '<tr><td class="st ' + cls + '">' + sym + '</td><td>' + esc(it.q.replace('[ramo]', A.ramo || 'ramo').replace('[cidade]', (A.cidade || '').split('/')[0])) + '</td><td>' + esc(res) + '</td></tr>';
+        return '<tr><td class="st ' + cls + '">' + sym + '</td><td>' + esc(pergunta(it)) + '</td><td>' + esc(res) + '</td></tr>';
       }).join('');
     }).join('') + '</tbody></table>';
     var comp = '';
     if (A.conc){
-      var minhaNota = A.r.nota ? String(A.r.nota).replace('.', ',') : '–', minhasAval = A.r.aval || '0';
-      comp = '<h3>Comparação com a concorrência</h3><div class="comp"><div class="c"><div class="r">' + esc(emp) + '</div><div class="n">' + minhaNota + ' ★</div><div class="r">' + esc(minhasAval) + ' avaliações no Google</div></div>' +
-        '<div class="c"><div class="r">' + esc(A.conc) + '</div><div class="n">' + (A.concNota ? String(A.concNota).replace('.', ',') : '–') + ' ★</div><div class="r">' + esc(A.concAval || '0') + ' avaliações no Google</div></div></div>';
+      var minhaNota = A.r.nota ? numRel(A.r.nota) : '–', minhasAval = A.r.aval || '0';
+      comp = '<h3>' + tx('compT') + '</h3><div class="comp"><div class="c"><div class="r">' + esc(emp) + '</div><div class="n">' + minhaNota + ' ★</div><div class="r">' + esc(minhasAval) + tx('avalG') + '</div></div>' +
+        '<div class="c"><div class="r">' + esc(A.conc) + '</div><div class="n">' + (A.concNota ? numRel(A.concNota) : '–') + ' ★</div><div class="r">' + esc(A.concAval || '0') + tx('avalG') + '</div></div></div>';
     }
-    function preco(nome){ var p = rec.produtos.filter(function(x){ return x.nome === nome; })[0]; if (!p) return ''; return p.setup == null ? 'valor sob consulta' : Core.brl(p.setup) + (p.mensal ? ' + ' + Core.brl(p.mensal) + '/mês' : ''); }
-    function ds(nome){ var p = rec.produtos.filter(function(x){ return x.nome === nome; })[0]; return p ? p.ds : ''; }
     /* Itens de cada pacote, iguais à tabela do site (abertodigital.com/#pacotes).
-       p = a partir de qual pacote entra (0 Start, 1 Presença, 2 Completo); ids = itens da auditoria que ele resolve. */
-    var ITENS_PAC = [
-      {g:'Ser encontrado', t:'Perfil no Google otimizado e verificado', p:0, ids:['enc','g_busca','g_fotos','g_categoria','g_horario'], b:'Aparecer quando procuram o seu serviço na cidade'},
-      {g:'Ser encontrado', t:'Site de 1 página com botão de WhatsApp', p:0, ids:['site','site_mob','link_wa'], b:'Um endereço próprio que leva o cliente direto para a conversa'},
-      {g:'Ser encontrado', t:'Domínio no 1º ano, hospedagem e 1 alteração por mês', p:0, ids:[], b:'Site no ar e atualizado, sem custo extra'},
-      {g:'Ser escolhido', t:'Logo e identidade visual', p:1, ids:['visual'], b:'Visual profissional e igual em todos os canais'},
-      {g:'Ser escolhido', t:'Relatório mensal do Google', p:1, ids:[], b:'Quantas pessoas viram, ligaram e pediram rota'},
-      {g:'Ser escolhido', t:'1º mês de acompanhamento com reunião', p:1, ids:[], b:'Ajustes junto com você no primeiro mês'},
-      {g:'Atender rápido', t:'WhatsApp Business com catálogo e respostas rápidas', p:1, ids:['wa_bus','catalogo','saudacao'], b:'Cliente vê preços e serviços sem precisar perguntar'},
-      {g:'Atender rápido', t:'AbertoCore: conversas e clientes num só lugar', p:1, ids:[], b:'Nenhuma conversa esquecida', usu:['até 2 usuários','usuários ilimitados']},
-      {g:'Atender rápido', t:'Chatbot de menu com botões', p:1, ids:['atend'], b:'Responde as dúvidas comuns na hora'},
-      {g:'Atender rápido', t:'IA que atende sozinha 24h, qualifica e agenda', p:2, ids:['atend'], b:'Atendimento a qualquer hora, sem você parar o trabalho'},
-      {g:'Atender rápido', t:'Instagram, Facebook e e-mail na mesma caixa', p:2, ids:[], b:'Todas as mensagens num só lugar'},
-      {g:'Vender de novo', t:'Funil e agenda com lembrete de retorno', p:1, ids:[], b:'Lembra você de chamar o cliente de volta'},
-      {g:'Vender de novo', t:'Assistente de IA interno e resumo do dia', p:1, ids:[], b:'Resumo do que precisa de atenção no dia'},
-      {g:'Vender de novo', t:'Agendamento online', p:2, ids:['agenda'], b:'Cliente marca sozinho, com lembrete automático'},
-      {g:'Vender de novo', t:'E-mail com o seu domínio', p:2, ids:[], b:'E-mail profissional com o nome da empresa'},
-      {g:'Vender de novo', t:'Painel de resultados e ajustes sob medida', p:2, ids:[], b:'Números do negócio e melhorias contínuas'}
+       p = a partir de qual pacote entra (0 Start, 1 Presença, 2 Completo); ids = itens da auditoria que ele resolve.
+       Em inglês (EUA) o WhatsApp vira número com SMS, botões de ligar, mandar SMS e agendar, e DM. */
+    var ITENS_PAC = en() ? [
+      {t:'Optimized and verified Google Business Profile', p:0, ids:['enc','g_perfil','g_busca','g_fotos','g_categoria','g_horario'], b:'Show up when people search for your service in town'},
+      {t:'1-page website with Call, Text and Book buttons', p:0, ids:['site','site_mob','link_wa'], b:'Your own address that takes customers straight to you'},
+      {t:'Domain (1st year), hosting and 1 update per month', p:0, ids:[], b:'Site online and up to date at no extra cost'},
+      {t:'Logo and visual identity', p:1, ids:['visual'], b:'A professional look, the same on every channel'},
+      {t:'Monthly Google report', p:1, ids:[], b:'How many people saw you, called and asked for directions'},
+      {t:'1st month of follow-up with a meeting', p:1, ids:[], b:'We fine-tune everything with you in the first month'},
+      {t:'Text-enabled business number with quick replies and service list', p:1, ids:['wa_bus','catalogo','saudacao'], b:'Customers see services and prices without having to ask'},
+      {t:'AbertoCore: every conversation and customer in one place', p:1, ids:[], b:'No conversation slips through the cracks', usu:['up to 2 users','unlimited users']},
+      {k:'menu', t:'Auto-reply menu for DMs', p:1, ids:['atend'], b:'Answers common questions instantly'},
+      {t:'AI that answers 24/7, qualifies leads and books', p:2, ids:['atend'], b:'Customers get answers any time, without you stopping work'},
+      {t:'Instagram, Facebook and email in one inbox', p:2, ids:[], b:'Every message in one place'},
+      {t:'Pipeline and follow-up reminders', p:1, ids:[], b:'Reminds you to reach back out to customers'},
+      {t:'Internal AI assistant and daily summary', p:1, ids:[], b:'A summary of what needs your attention today'},
+      {t:'Online booking', p:2, ids:['agenda'], b:'Customers book on their own, with automatic reminders'},
+      {t:'Email on your own domain', p:2, ids:[], b:'Professional email with the business name'},
+      {t:'Results dashboard and custom tweaks', p:2, ids:[], b:'Business numbers and continuous improvements'}
+    ] : [
+      {t:'Perfil no Google otimizado e verificado', p:0, ids:['enc','g_busca','g_fotos','g_categoria','g_horario'], b:'Aparecer quando procuram o seu serviço na cidade'},
+      {t:'Site de 1 página com botão de WhatsApp', p:0, ids:['site','site_mob','link_wa'], b:'Um endereço próprio que leva o cliente direto para a conversa'},
+      {t:'Domínio no 1º ano, hospedagem e 1 alteração por mês', p:0, ids:[], b:'Site no ar e atualizado, sem custo extra'},
+      {t:'Logo e identidade visual', p:1, ids:['visual'], b:'Visual profissional e igual em todos os canais'},
+      {t:'Relatório mensal do Google', p:1, ids:[], b:'Quantas pessoas viram, ligaram e pediram rota'},
+      {t:'1º mês de acompanhamento com reunião', p:1, ids:[], b:'Ajustes junto com você no primeiro mês'},
+      {t:'WhatsApp Business com catálogo e respostas rápidas', p:1, ids:['wa_bus','catalogo','saudacao'], b:'Cliente vê preços e serviços sem precisar perguntar'},
+      {t:'AbertoCore: conversas e clientes num só lugar', p:1, ids:[], b:'Nenhuma conversa esquecida', usu:['até 2 usuários','usuários ilimitados']},
+      {k:'menu', t:'Chatbot de menu com botões', p:1, ids:['atend'], b:'Responde as dúvidas comuns na hora'},
+      {t:'IA que atende sozinha 24h, qualifica e agenda', p:2, ids:['atend'], b:'Atendimento a qualquer hora, sem você parar o trabalho'},
+      {t:'Instagram, Facebook e e-mail na mesma caixa', p:2, ids:[], b:'Todas as mensagens num só lugar'},
+      {t:'Funil e agenda com lembrete de retorno', p:1, ids:[], b:'Lembra você de chamar o cliente de volta'},
+      {t:'Assistente de IA interno e resumo do dia', p:1, ids:[], b:'Resumo do que precisa de atenção no dia'},
+      {t:'Agendamento online', p:2, ids:['agenda'], b:'Cliente marca sozinho, com lembrete automático'},
+      {t:'E-mail com o seu domínio', p:2, ids:[], b:'E-mail profissional com o nome da empresa'},
+      {t:'Painel de resultados e ajustes sob medida', p:2, ids:[], b:'Números do negócio e melhorias contínuas'}
     ];
-    function prod(nome){ return rec.produtos.filter(function(x){ return x.nome === nome; })[0] || null; }
-    function brl(v){ return Core.brl(v).replace(/^R\$ /, function(){ return 'R$\u00a0'; }); }
+    /* Produto com preço: em inglês vem da tabela em US$, em português do catálogo do CRM. */
+    function prod(nome){
+      if (en()) return PRODUTOS_USD[nome] || null;
+      return rec.produtos.filter(function(x){ return x.nome === nome; })[0] || null;
+    }
+    function brl(v){
+      if (en()) return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2});
+      return Core.brl(v).replace(/^R\$ /, function(){ return 'R$ '; });
+    }
     function precoHtml(p){
       if (!p) return '';
-      if (p.setup == null) return 'Sob consulta';
+      if (p.setup == null) return tx('sobConsulta');
       var t = [];
-      if (p.setup) t.push(brl(p.setup) + (p.mensal ? '' : '<small>pagamento único</small>'));
-      if (p.mensal) t.push(brl(p.mensal) + '/mês');
-      return t.join(' + ') || 'Incluso';
+      if (p.setup) t.push(brl(p.setup) + (p.mensal ? '' : '<small>' + tx('pagUnico') + '</small>'));
+      if (p.mensal) t.push(brl(p.mensal) + tx('mes'));
+      return t.join(' + ') || tx('inclusoV');
     }
     /* o que a auditoria apontou, agrupado pela solução */
     var acoesDe = {}, usados = {};
     L.forEach(function(p){ (acoesDe[p.it.id] = p.it); });
     var plano = '';
     if (c.geral !== null && L.length){
-      var nv = Core.ORDEM_PACOTES.indexOf(rec.pacote), pk = prod(rec.pacote);
+      var nv = Core.ORDEM_PACOTES.indexOf(rec.pacote), pk = prod(rec.pacote), nomePac = esc(nomeProd(rec.pacote));
       if (rec.pacote && pk){
-        var itens = ITENS_PAC.filter(function(i){ return i.p <= nv && !(nv === 2 && i.t === 'Chatbot de menu com botões'); });
+        var itens = ITENS_PAC.filter(function(i){ return i.p <= nv && !(nv === 2 && i.k === 'menu'); });
         var corpoPac = itens.map(function(i){
           var achou = i.ids.filter(function(id){ return acoesDe[id] && !usados[id]; });
           achou.forEach(function(id){ usados[id] = 1; });
@@ -477,10 +626,10 @@
         }).join('');
         var linhasFid = Core.PLANOS.slice().reverse().map(function(pl){
           var m = Core.mensalPlano(pk.mensal, pl.nome);
-          return '<div class="fid' + (pl.meses === 12 ? ' melhor' : '') + '"><b>' + brl(m) + '/mês</b><span>' + (pl.meses ? 'fidelidade de ' + pl.meses + ' meses (' + Math.round(pl.desconto * 100) + '% off)' : 'sem fidelidade') + '</span></div>';
+          return '<div class="fid' + (pl.meses === 12 ? ' melhor' : '') + '"><b>' + brl(m) + tx('mes') + '</b><span>' + (pl.meses ? tx('fid') + pl.meses + tx('meses') + ' (' + Math.round(pl.desconto * 100) + tx('off') + ')' : tx('semFid')) + '</span></div>';
         }).join('');
-        plano += '<h3>Plano recomendado: Pacote ' + esc(rec.pacote) + '</h3><table class="tp"><thead><tr><th>O que está incluído</th><th>O que resolve no seu negócio</th></tr></thead><tbody>' + corpoPac + '</tbody>' +
-          '<tbody class="tp-foot"><tr><td colspan="2" class="tp-tot"><div class="tot-l"><b>Total do Pacote ' + esc(rec.pacote) + '</b><span>Implantação <b>' + brl(pk.setup) + '</b> (pagamento único)' + (pk.prazo ? ', pronto em ' + pk.prazo + ' dias úteis' : '') + '. Mensalidade:</span></div><div class="tot-f">' + linhasFid + '</div></td></tr></tbody></table>';
+        plano += '<h3>' + tx('recomendado') + nomePac + (en() ? ' plan' : '') + '</h3><table class="tp"><thead><tr><th>' + tx('incluso') + '</th><th>' + tx('resolve') + '</th></tr></thead><tbody>' + corpoPac + '</tbody>' +
+          '<tbody class="tp-foot"><tr><td colspan="2" class="tp-tot"><div class="tot-l"><b>' + tx('total') + (en() ? 'the ' + nomePac + ' plan' : nomePac) + '</b><span>' + tx('implantacao') + '<b>' + brl(pk.setup) + '</b>' + tx('unico') + (pk.prazo ? tx('pronto') + pk.prazo + tx('dias') : '') + tx('mensalidade') + '</span></div><div class="tot-f">' + linhasFid + '</div></td></tr></tbody></table>';
       }
       if (rec.modulos.length){
         var sSetup = 0, sMes = 0;
@@ -488,21 +637,23 @@
           var p = prod(m) || {};
           sSetup += p.setup || 0; sMes += p.mensal || 0;
           var ac = L.filter(function(x){ return x.it.sol === m; }).map(function(x){ return x.it.acao; }).filter(function(v, i, a){ return a.indexOf(v) === i && v !== m; });
-          return '<tr><td class="tp-it"><b>' + esc(m) + '</b></td><td>' + (ac.length ? '<span class="aud">' + ac.map(esc).join('; ') + '</span>' : '<span class="ben">' + esc(p.ds || '') + '</span>') + '</td><td class="tp-pm">' + precoHtml(p) + '</td></tr>';
+          return '<tr><td class="tp-it"><b>' + esc(nomeProd(m)) + '</b></td><td>' + (ac.length ? '<span class="aud">' + ac.map(esc).join('; ') + '</span>' : '<span class="ben">' + esc(p.ds || '') + '</span>') + '</td><td class="tp-pm">' + precoHtml(p) + '</td></tr>';
         }).join('');
-        var totMod = (sSetup ? brl(sSetup) + (sMes ? ' único' : '<small>pagamento único</small>') : '') + (sSetup && sMes ? ' + ' : '') + (sMes ? brl(sMes) + '/mês' : '');
-        plano += '<h3>' + (rec.pacote ? 'Módulos opcionais <small>(contrate junto ou depois)</small>' : 'Módulos recomendados') + '</h3>' +
-          '<table class="tp mod"><thead><tr><th>Produto</th><th>Solução</th><th class="tp-pr-h">Preço</th></tr></thead><tbody>' + corpoMod + '</tbody>' +
-          (rec.modulos.length > 1 ? '<tbody class="tp-foot"><tr><td colspan="2" class="tp-tot"><div class="tot-l"><b>Total dos módulos</b></div></td><td class="tp-pm tot">' + totMod + '</td></tr></tbody>' : '') + '</table>';
+        var totMod = (sSetup ? brl(sSetup) + (sMes ? tx('unicoCurto') : '<small>' + tx('pagUnico') + '</small>') : '') + (sSetup && sMes ? ' + ' : '') + (sMes ? brl(sMes) + tx('mes') : '');
+        plano += '<h3>' + (rec.pacote ? tx('modOpc') : tx('modRec')) + '</h3>' +
+          '<table class="tp mod"><thead><tr><th>' + tx('produto') + '</th><th>' + tx('solucaoC') + '</th><th class="tp-pr-h">' + tx('preco') + '</th></tr></thead><tbody>' + corpoMod + '</tbody>' +
+          (rec.modulos.length > 1 ? '<tbody class="tp-foot"><tr><td colspan="2" class="tp-tot"><div class="tot-l"><b>' + tx('totMod') + '</b></div></td><td class="tp-pm tot">' + totMod + '</td></tr></tbody>' : '') + '</table>';
       }
     }
+    document.documentElement.lang = en() ? 'en' : 'pt-BR';
+    document.title = en() ? 'Digital presence audit' + (A.empresa ? ' - ' + A.empresa : '') : 'Auditoria de presença digital | abertodigital';
     $('#rel').innerHTML = '<div class="rel-cab"><div class="logo"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span>aberto<b>digital</b></span></div>' +
-        '<div class="meta">Auditoria de presença digital<br>' + dataBR(A.data) + (A.resp ? '<br>Para: ' + esc(A.resp) : '') + '</div></div>' +
+        '<div class="meta">' + tx('tituloRel') + '<br>' + dataRel(A.data) + (A.resp ? '<br>' + tx('para') + esc(A.resp) : '') + '</div></div>' +
       '<h1>' + esc(emp) + '</h1><div class="sub">' + esc([A.ramo, A.cidade].filter(Boolean).join(', ')) + '</div>' +
       '<div class="topo-rel"><div class="gauge">' + gauge(c.geral) + '</div><div class="pilares">' + pil + '</div></div>' + '<p class="resumo-rel">' + esc(resumo) + '</p>' +
-      '<h3>O que ' + esc(emp) + ' está perdendo hoje</h3>' + perdasHtml + comp + (plano ? '<div class="plano-pag">' + plano + '</div>' : '') +
-      '<h3>Detalhes da auditoria</h3>' + tab +
-      '<div class="rodape"><span>abertodigital · Julio Romanelli · WhatsApp (11) 99123-3627 · abertodigital.com</span><span>Avaliação feita em ' + dataBR(A.data) + ' com base no que é visível publicamente.</span></div>';
+      '<h3>' + tx('perdendo1') + esc(emp) + tx('perdendo2') + '</h3>' + perdasHtml + comp + (plano ? '<div class="plano-pag">' + plano + '</div>' : '') +
+      '<h3>' + tx('detalhes') + '</h3>' + tab +
+      '<div class="rodape"><span>' + tx('rodape') + '</span><span>' + tx('feita1') + dataRel(A.data) + tx('feita2') + '</span></div>';
   }
 
   /* ---------- contato, salvar, imprimir ---------- */
@@ -547,7 +698,7 @@
   $('#irProposta').onclick = function(e){ if (!salvar()) e.preventDefault(); };
   $('#irBriefing').onclick = function(e){ if (!salvar()) e.preventDefault(); };
   $('#imprimir').onclick = function(){
-    var t = document.title; document.title = 'Auditoria ' + (A.empresa || 'empresa') + ' ' + dataBR(A.data).replace(/\//g, '-');
+    var t = document.title; document.title = tx('arquivo') + (A.empresa || tx('empresa')) + ' ' + dataRel(A.data).replace(/\//g, '-');
     window.print(); setTimeout(function(){ document.title = t; }, 500);
   };
   document.querySelector('.abas-mob').onclick = function(e){

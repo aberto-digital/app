@@ -336,8 +336,8 @@
     {id:'atend', nome:'Customer response', nf:'Atendimento', peso:25, itens:[
       {id:'tempo', sol:'Presença', qf:'Teste: quanto tempo levou para responder (SMS, DM ou formulário)?', q:'Test: how long did it take to reply to a message (text, DM or web form)?', peso:35, tipo:'op', ops:[['Até 15 min',1,'Within 15 min'],['Até 2 horas',.6,'Within 2 hours'],['Mais de 2 horas',.2,'Over 2 hours'],['Não respondeu',0,'No reply']],
         perda:'Customers who wait book with whoever answered first', acao:'Instant auto-reply, 24/7'},
-      {id:'wa_bus', sol:'Presença', qf:'Dá para mandar SMS para o número da empresa?', q:'Can customers text the business number?', peso:15, tipo:'op', ops:[['Sim',1,'Yes'],['Só ligação',.3,'Calls only'],['Não',0,'No']],
-        perda:'Many customers prefer to text and won\'t call', acao:'Text-enabled business number with auto-reply'},
+      {id:'wa_bus', sol:'SMS (EUA)', qf:'Dá para mandar SMS para o número da empresa?', q:'Can customers text the business number?', peso:15, tipo:'op', ops:[['Sim',1,'Yes'],['Só ligação',.3,'Calls only'],['Não',0,'No']],
+        perda:'Many customers prefer to text and won\'t call', acao:'Customers text your business number and you reply from one inbox'},
       {id:'catalogo', sol:'Presença', qf:'Serviços e preços estão fáceis de ver (site, Google, Instagram)?', q:'Are services and prices easy to see (site, Google, Instagram)?', peso:15, tipo:'op', ops:SIM_EN,
         perda:'Customers have to ask about everything and give up halfway', acao:'Service list with prices on the site and Google'},
       {id:'agenda', sol:'Agendamento online', qf:'Dá para agendar ou pedir online (botão Book now)?', q:'Can customers book or order online (Book now button)?', peso:15, tipo:'op', ops:[['Sim',1,'Yes'],['Só por SMS ou DM',.5,'Only by text or DM'],['Não',0,'No']],
@@ -374,7 +374,9 @@
     'Calendário mensal de conteúdo':{nome:'Monthly content calendar', setup:0, mensal:390, ds:'12 ready-to-post graphics with captions every month'},
     'Fotos e vídeos curtos com IA':{nome:'Photos and short videos with AI', setup:290, mensal:0, ds:'1-hour on-site session: 10 edited photos and 3 short videos'},
     'Agendamento online':{nome:'Online booking', setup:250, mensal:0, ds:'Booking link on the site, Google and Instagram with automatic reminders'},
-    'Cardápio ou catálogo com QR Code':{nome:'Menu or catalog with QR code', setup:350, mensal:0, ds:'Menu or catalog page and a printed QR code for the counter and tables'}
+    'Cardápio ou catálogo com QR Code':{nome:'Menu or catalog with QR code', setup:350, mensal:0, ds:'Menu or catalog page and a printed QR code for the counter and tables'},
+    /* SMS: módulo opcional, implantação individual por cliente (docs/sms-eua.md). Aprovado pelo Julio em 26/11/2026. */
+    'SMS (EUA)':{nome:'Text messaging (SMS inbox)', setup:390, mensal:49, ds:'Text-enabled business number, carrier registration and replies from the AbertoCore inbox. Up to 1,000 texts a month'}
   };
 
   /* Textos do relatório nos dois idiomas. */
@@ -564,7 +566,7 @@
       {t:'Logo and visual identity', p:1, ids:['visual'], b:'A professional look, the same on every channel'},
       {t:'Monthly Google report', p:1, ids:[], b:'How many people saw you, called and asked for directions'},
       {t:'1st month of follow-up with a meeting', p:1, ids:[], b:'We fine-tune everything with you in the first month'},
-      {t:'Text-enabled business number with quick replies and service list', p:1, ids:['wa_bus','catalogo','saudacao'], b:'Customers see services and prices without having to ask'},
+      {t:'Quick replies, service list and after-hours auto-reply on DMs', p:1, ids:['catalogo','saudacao'], b:'Customers see services and prices without having to ask'},
       {t:'AbertoCore: every conversation and customer in one place', p:1, ids:[], b:'No conversation slips through the cracks', usu:['up to 2 users','unlimited users']},
       {k:'menu', t:'Auto-reply menu for DMs', p:1, ids:['atend'], b:'Answers common questions instantly'},
       {t:'AI that answers 24/7, qualifies leads and books', p:2, ids:['atend'], b:'Customers get answers any time, without you stopping work'},

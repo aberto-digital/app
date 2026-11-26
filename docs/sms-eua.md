@@ -87,14 +87,16 @@ O site da empresa a gente faz no pacote, então as páginas de privacidade e ter
 
 Custo inicial: ~US$ 61 (marca US$ 46 + campanha US$ 15).
 
-## 6. Preço sugerido para o cliente (aguardando aprovação do Julio)
+## 6. Preço para o cliente (aprovado pelo Julio em 26/11/2026)
 
 Módulo **"SMS inbox (text messaging)"**:
 
 - **Implantação: US$ 390** (cadastro da marca e da campanha, número, páginas de privacidade e termos, botão Text us no site e no Google, ligação no AbertoCore)
 - **Mensalidade: US$ 49/mês**, com até 1.000 SMS por mês. Acima disso, cobrança pelo custo.
 
-Margem estimada: ~US$ 30/mês por cliente depois dos custos. Quando aprovado, incluir o módulo na tabela em US$ da auditoria (`PRODUTOS_USD` em `auditoria/index.html`).
+Margem estimada: ~US$ 30/mês por cliente depois dos custos.
+
+Já está na tabela em US$ da auditoria em inglês (`'SMS (EUA)'` em `PRODUTOS_USD`, `auditoria/index.html`). Quando a resposta para "Can customers text the business number?" não é "Yes", a auditoria recomenda o módulo como opcional. Ele não entra em nenhum pacote: é sempre contratado à parte.
 
 ## 7. Como implementar no AbertoCore (quando o primeiro cliente fechar)
 

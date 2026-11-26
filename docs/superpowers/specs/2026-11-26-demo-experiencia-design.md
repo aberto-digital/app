@@ -18,7 +18,7 @@ Uso: o Julio manda o link para o lead (junto com a auditoria ou numa conversa) e
 
 **Não objetivos (agora)**
 - Itens reais de cada cliente (cardápio, preços dele). Decidido: só nome, logo e cores.
-- Pagamento real, envio real de mensagens, gravação no servidor.
+- Pagamento real e envio real de mensagens. Nada do visitante é gravado no servidor (a IA da demo é chamada pelo servidor, mas sem gravar a conversa).
 - Usar o AbertoCore de verdade: decidido **vitrine separada**.
 
 **Anti-objetivos (seria fracasso mesmo funcionando)**
@@ -53,7 +53,7 @@ Uso: o Julio manda o link para o lead (junto com a auditoria ou numa conversa) e
    - idioma PT ou EN (EN para leads dos EUA, preços em US$);
    - botões **Abrir**, **Copiar link** e **Pôr na mensagem** (vai para a caixa de mensagem, como o envio de documentos).
 2. O link abre o **site modelo** em `app.abertodigital.com/experiencia/`, com a marca do lead. Uma faixa fina no topo diz "Demonstração · nenhum pedido é real".
-3. O visitante navega e envia (pedido, agendamento ou orçamento). Nenhum dado sai do navegador.
+3. O visitante navega, conversa com a IA no chat se quiser e envia (pedido, agendamento ou orçamento), passando pelo checkout. Só as mensagens do chat vão ao servidor, para a IA responder; nada é gravado.
 4. Tela de transição curta ("Agora veja do lado da sua empresa →") e abre a **vitrine do AbertoCore** com o item recém-chegado em destaque, notificação e som discreto.
 5. Na vitrine, o dono navega por 3 ou 4 telas: caixa de entrada (com a mensagem automática de confirmação já enviada ao cliente), o card no funil, a agenda (agendamento) ou a tela do pedido/orçamento, e o resumo do dia. Botão "Voltar ao site e fazer outro" e um CTA final "Quero isso no meu negócio" que abre o WhatsApp da abertodigital com texto pronto.
 
@@ -101,15 +101,29 @@ Layout que imita o app (barra lateral no computador, barra inferior no celular),
 - **O que o AbertoCore ainda não tem (decisão do Julio, 26/11): mostrar como sob medida.** A tela de Pedidos com etapas, o resumo de faturamento do dia e o "Gerar proposta" nas contas de clientes aparecem completos na vitrine, cada um com o selo **"Sob medida"** (em inglês, "Custom build"). Consequência combinada: se um cliente fechar contando com uma dessas telas, ela precisa ser construída no AbertoCore antes da entrega. Tudo que já existe no app aparece sem selo.
 - **Pacote mostrado (decisão do construtor):** a vitrine mostra o pacote **Completo** (a experiência inteira). O que só existe no Completo leva um selo discreto "Pacote Completo"; o resto vale também para o Presença.
 
+## 9a. Atendimento com IA de verdade e checkout (pedido do Julio, 26/11)
+
+A experiência tem que mostrar tudo funcionando 100%, inclusive a conversa com a IA.
+
+- **Chat no site modelo:** botão de conversa (como o "Chat do site" do AbertoCore). O visitante escreve e a **IA responde de verdade**, como atendente do negócio do lead: tira dúvidas do cardápio/serviços, horários, entrega, e leva para o pedido, o agendamento ou o orçamento. A conversa aparece igual na vitrine, na caixa de entrada do dono, marcada como atendida pela IA (selo "Pacote Completo").
+- **Como a IA roda:** rota pública nova no servidor, `POST /api/experiencia/ia`, que chama o Gemini com a chave da abertodigital (fica só na VPS). Não grava nada.
+  - Entrada: nicho, nome, cidade, idioma, lista de itens do nicho (no máximo 40 itens, textos curtos) e as últimas 12 mensagens (até 500 caracteres cada).
+  - Instrução fixa no servidor: atendente desse negócio, responde curto, usa só os itens e preços recebidos, não inventa, e lembra que é uma demonstração se perguntarem por entrega ou pagamento real.
+  - Proteções: até 30 mensagens por hora por IP e 20 por conversa, resposta de no máximo 300 tokens, modelo flash-lite. Se passar do limite ou a IA falhar, o chat responde com uma mensagem pronta do nicho e convida a seguir pelo site.
+  - Custo estimado: frações de centavo por conversa; entra no relatório de custos da IA como "experiência".
+- **Checkout completo, sem dado de cartão:** depois do carrinho, tela de pagamento com as opções **Pix** (QR code e "copia e cola" de exemplo, botão "Já paguei") e **Cartão** (campos visíveis mas desativados, com aviso "na demonstração não pedimos dados do cartão", botão "Pagar"), além de **Pagar na entrega**. Qualquer opção finaliza o pedido como pago ou a pagar, e isso aparece na vitrine. Pagamento online real é marcado "Sob medida".
+- Agendamento e Orçamento ganham o mesmo chat com IA; o agendamento pode ter "sinal via Pix" de exemplo no fim.
+
 ## 10. Partes no código
 
 - `experiencia/index.html` (site modelo, escolhe o modelo por `m`), `experiencia/painel.html` (vitrine), `experiencia/nichos.js` (conteúdo), `experiencia/experiencia.css`, `experiencia/img/`.
 - `index.html` do app: botão "Link de experiência" no contato (conta da agência), janela de geração do link, extração da cor da logo (canvas; se a imagem não permitir leitura, usa a cor padrão do nicho).
 - `noindex` nas páginas da demo; `robots.txt` bloqueando `/experiencia/`.
+- Servidor: `infra/pocketbase/pb_hooks/experiencia.pb.js` (rota pública da IA com limite por IP), reaproveitando `ia.js` para chamar o Gemini e registrar o custo.
 
 ## 11. Ordem de entrega
 
-1. Pedido (site + vitrine) com 2 nichos (pizzaria, hamburgueria), testado no celular.
+1. Pedido (site + checkout + chat com IA + vitrine) com 2 nichos (pizzaria, hamburgueria), testado no celular.
 2. Botão "Link de experiência" no AbertoCore.
 3. Agendamento e Orçamento.
 4. Demais nichos e versão em inglês.

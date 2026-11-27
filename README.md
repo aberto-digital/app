@@ -155,6 +155,7 @@ Modelo: Mega Hair Marcela (nov/2026). Um AbertoCore só, com várias empresas: c
 
 | Data | Mudança |
 | --- | --- |
+| 27 nov 2026 | Janela de sugestões de juntar: continua aberta depois de cada junção, fica larga no computador, mostra os dados de cada contato e permite selecionar vários pares e juntar de uma vez |
 | 27 nov 2026 | Largura da lista e do painel do contato ajustável arrastando a borda (salva no navegador, duplo clique volta ao padrão). Abordagem enviada pelo Instagram sem resposta fica na Prospecção; a sugestão de juntar acha o lead pelo @ ou pelo nome da empresa citado na mensagem, e o juntar leva o lead, as ligações e o @ |
 | 27 nov 2026 | Ligação na aba Prospecção: botão Ligar, roteiro, resultados e ordem de contato da lista, sem mudar o funil |
 | 19 nov 2026 | Deploy automático da VPS pelo GitHub Actions; checklist de cliente novo (modelo Mega Hair Marcela) |

@@ -2259,6 +2259,12 @@
       desenhaLista(); desenhaConversa(); desenhaDetalhe(); desenhaNav();
       if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
     };
+    // devolve à Prospecção um contato que foi para a Entrada (ex.: mensagem de teste enviada pelo WhatsApp)
+    ACOES.prospeccao = function(){
+      c.status = 'prospeccao'; c.prospeccao = true; salva(); aba = 'prospeccao'; sel = c.id;
+      desenhaLista(); desenhaConversa(); desenhaDetalhe(); desenhaNav(); vaiParaAba(aba, false);
+      aviso('<b>' + esc(c.nome) + '</b> voltou para a Prospecção.');
+    };
     ACOES.reabrir = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); desenhaDetalhe(); aviso('Conversa com <b>' + esc(c.nome) + '</b> de volta na Entrada.'); };
     ligaSwipe(box);
     var ta = $('#texto');
@@ -2963,6 +2969,7 @@
       '<div class="det-acoes">' +
         '<button class="btn peq" type="button" id="dIgnora" title="' + (c.ignorado ? 'Voltar a receber avisos deste contato' : 'Sem avisos e sem resposta automática para este contato') + '">' + (c.ignorado ? 'Parar de ignorar' : ic('x') + 'Ignorar') + '</button>' +
         (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" type="button" id="dArquiva">' + ic('arquivo') + 'Arquivar</button>' : '<button class="btn peq" type="button" id="dReabre">Desarquivar</button>') +
+        (!c.ignorado && stDe(c) !== 'prospeccao' ? '<button class="btn peq" type="button" id="dProsp" title="Tira da Entrada e leva para a aba Prospecção">Voltar à Prospecção</button>' : '') +
       '</div>' +
       blocoLigacao(c) +
       '<div class="campo"><span class="rot">Classificação</span><div class="seg" id="segTipo">' +
@@ -2991,7 +2998,7 @@
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
     ligaLigacao(c);
-    [['#dIgnora', 'ignorar'], ['#dArquiva', 'arquivar'], ['#dReabre', 'reabrir']].forEach(function(x){ var b = $(x[0]); if (b) b.onclick = function(){ if (sel === c.id && ACOES[x[1]]) ACOES[x[1]](); }; });
+    [['#dIgnora', 'ignorar'], ['#dArquiva', 'arquivar'], ['#dReabre', 'reabrir'], ['#dProsp', 'prospeccao']].forEach(function(x){ var b = $(x[0]); if (b) b.onclick = function(){ if (sel === c.id && ACOES[x[1]]) ACOES[x[1]](); }; });
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });
     box.insertAdjacentHTML('beforeend', '<button class="btn det-juntar" id="dJunta" type="button">Juntar com outro contato</button><button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
     custoIA(c.id);
@@ -3619,8 +3626,11 @@
       if (bL) bL.onclick = juntaLote;
       M.querySelectorAll('[data-nao]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-nao')];
         // fica gravado nos dois contatos (vai para o servidor e vale para a equipe toda)
-        p.manter.naoJuntar = (p.manter.naoJuntar || []).concat([p.outro.id]); p.outro.naoJuntar = (p.outro.naoJuntar || []).concat([p.manter.id]);
-        salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); desenhaSug(); desenhaLista(); }; });
+        // busca os contatos de novo pelo id: uma atualização em segundo plano pode ter trocado os objetos
+        // desde que a janela abriu, e gravar nos antigos perderia o "não é a mesma" no primeiro toque
+        var ma = contato(p.manter.id), ou = contato(p.outro.id);
+        if (ma && ou){ ma.naoJuntar = (ma.naoJuntar || []).concat([ou.id]); ou.naoJuntar = (ou.naoJuntar || []).concat([ma.id]); }
+        salva(); desenhaSug(); desenhaLista(); }; }); // salva() já agenda o envio ao servidor
       atualizaBarra();
     }
     desenhaSug(); M.returnValue = ''; if (!M.open) M.showModal();

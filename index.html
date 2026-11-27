@@ -2120,7 +2120,7 @@
     fechaPopCx();
     sel = id; var c = contato(id);
     if (c.naoLidas){ c.naoLidas = 0; salva(); desenhaNav(); }
-    if (stDe(c) !== aba){ aba = stDe(c); vaiParaAba(aba, false); }
+    if (abaDe(c) !== aba){ aba = abaDe(c); vaiParaAba(aba, false); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     convMovel = true; var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
     var f = $('#fio'); if (f){ delete f.dataset.leu; fimConversa(f); }
@@ -2211,13 +2211,13 @@
     ACOES.arquivar = function(){
       c.status = 'finalizado'; salva();
       aviso('Conversa com <b>' + esc(c.nome) + '</b> arquivada. Ela volta para a Entrada se o cliente escrever de novo.');
-      // volta para a Entrada: no celular fecha a conversa; no computador abre a próxima da Entrada
+      // fica na aba em que você estava: no celular fecha a conversa; no computador abre a próxima da mesma aba
       convMovel = false; appEl.classList.remove('rolou-conv');
       $('#inbox').classList.remove('mostra-conv'); $('#inbox').classList.remove('mostra-det');
-      aba = 'entrada';
+      if (aba === 'finalizado') aba = 'entrada'; // arquivar já na aba Arquivados não faz sentido: volta à Entrada
       var p = filtrados()[0]; sel = p ? p.id : null;
       desenhaLista(); desenhaConversa(); desenhaDetalhe();
-      if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
+      vaiParaAba(aba, false);
     };
     ACOES.ignorar = function(){
       if (c.ignorado){
@@ -2296,7 +2296,7 @@
       var m = {de:'eq', txt:t, ts:agoraMs()};
       if (via){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
       c.msgs.push(m); c.status = stEnvio(c);
-      S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; salva(); aba = 'entrada';
+      S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; salva(); aba = abaDe(c); vaiParaAba(aba, false);
       desenhaLista(); desenhaConversa();
       if (via){
         var cid = c.id;
@@ -2339,7 +2339,7 @@
     var c = contato(cid); if (!c) return Promise.resolve();
     var m = {de:'eq', txt:texto, ts:agoraMs(), pend:true};
     m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7);
-    c.msgs.push(m); c.status = stEnvio(c); salva(); aba = 'entrada';
+    c.msgs.push(m); c.status = stEnvio(c); salva(); aba = abaDe(c); vaiParaAba(aba, false);
     if (sel === cid){ desenhaLista(); desenhaConversa(); }
     return Nuvem.enviarSocial(cid, texto, m.k, 'ig').then(function(){ aviso('Link enviado pelo Instagram.'); }).catch(function(err){
       var cc = contato(cid); if (!cc) return;
@@ -2352,7 +2352,7 @@
     var c = contato(cid); if (!c) return Promise.resolve();
     var m = {de:'eq', txt:(texto ? texto + '\n' : '') + '📎 ' + arq.nome, anexo:{nome:arq.nome, url:Nuvem.urlArquivo(arq)}, ts:agoraMs(), pend:true};
     m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7);
-    c.msgs.push(m); c.status = stEnvio(c); salva(); aba = 'entrada';
+    c.msgs.push(m); c.status = stEnvio(c); salva(); aba = abaDe(c); vaiParaAba(aba, false);
     if (sel === cid){ desenhaLista(); desenhaConversa(); }
     return Nuvem.enviarArquivo(cid, arq.id, texto, m.k).then(function(){ aviso('<b>' + esc(arq.nome) + '</b> enviado.'); }).catch(function(err){
       var cc = contato(cid); if (!cc) return;
@@ -3457,6 +3457,8 @@
   var PAL_GEN = /^(pizzaria|restaurante|lanchonete|hamburgueria|padaria|confeitaria|doceria|studio|estudio|salao|clinica|loja|oficina|mecanica|auto|centro|espaco|casa|buffet|escola|instituto|oficial|aruja|sp|de|da|do|das|dos|e|the|and|a|o|ltda|me|mei|calcados|roupas|moda|doces|paes|bolos|esquadrias|vidracaria|vidros|aluminio|materiais|construcao|deposito|fotografia|terapias|cursos|burguer|burger|pizza|cookies|beauty|hair|pets|pet|eletrica|chaveiro|residencial|odontologia|estetica|podologia|tattoo|kids)$/;
   function temResposta(c){ return (c.msgs || []).some(function(m){ return m.de === 'cli'; }); }
   /* Contato que só recebeu a nossa abordagem (nenhuma resposta ainda) fica na Prospecção, não na Entrada. */
+  // aba em que a lista mostra o contato (espelha filtrados): ignorado fica em Arquivados, esperando fica na Entrada
+  function abaDe(c){ if (c.ignorado) return 'finalizado'; var st = stDe(c); return st === 'esperando' ? 'entrada' : st; }
   function stDe(c){ return c.status === 'esperando' && c.prospeccao && !temResposta(c) ? 'prospeccao' : c.status; }
   function stEnvio(c){ return (c.status === 'prospeccao' || c.prospeccao) && !temResposta(c) ? 'prospeccao' : 'esperando'; }
   function normTxt(t){ return ' ' + String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'`´]/g, '').replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }

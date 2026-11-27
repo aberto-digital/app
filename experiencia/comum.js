@@ -34,7 +34,35 @@
       '<a class="btn" href="' + esc(href) + '">' + esc(botao) + '</a></div>';
   }
 
-  var Comum = { esc: esc, qrFalso: qrFalso, PIX_EX: PIX_EX, folha: folha, transicao: transicao };
+
+  // casca visual dos modelos Agendamento e Orçamento: capa, navegação e status "Aberto"
+  // (o modelo Pedido monta a sua própria em pedido.js)
+  function casca(doc, win, modelo, en, emojis) {
+    doc.body.setAttribute('data-m', modelo);
+    var rot = en ? [['Home', 'Services', 'Reviews', 'Profile']] : [['Início', 'Serviços', 'Avaliações', 'Perfil']];
+    var nav = doc.createElement('nav'); nav.className = 'nav-p'; nav.setAttribute('aria-label', 'Principal');
+    nav.innerHTML = [['inicio', '🏠'], ['servicos', '🧰'], ['aval', '⭐'], ['perfil', '👤']].map(function (x, i) {
+      return '<button type="button" data-nav="' + x[0] + '"' + (i === 0 ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + x[1] + '</span><b>' + rot[0][i] + '</b></button>';
+    }).join('');
+    var topo = doc.querySelector('.topo'); topo.parentNode.insertBefore(nav, topo);
+    var capa = doc.createElement('div'); capa.className = 'capa'; capa.setAttribute('aria-hidden', 'true');
+    capa.innerHTML = emojis.concat(emojis).slice(0, 14).map(function (e) { return '<span>' + e + '</span>'; }).join('');
+    topo.insertBefore(capa, topo.firstChild);
+    var sub = doc.getElementById('sub');
+    if (sub) sub.innerHTML = '<span class="aberto">● ' + (en ? 'Open' : 'Aberto') + '</span> · ' + esc(sub.textContent);
+    function rola(el, d) { if (el) win.scrollTo({ top: el.getBoundingClientRect().top + win.scrollY - (d || 80), behavior: 'smooth' }); }
+    nav.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-nav]'); if (!b) return; var n = b.getAttribute('data-nav');
+      nav.querySelectorAll('[data-nav]').forEach(function (x) { if (x === b) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current'); });
+      if (n === 'inicio') win.scrollTo({ top: 0, behavior: 'smooth' });
+      if (n === 'servicos') rola(doc.getElementById('cat0'), 120);
+      if (n === 'aval') rola(doc.querySelector('.avaliacoes'), 80);
+      if (n === 'perfil') rola(doc.querySelector('.info-loja'), 80);
+    });
+    return nav;
+  }
+
+  var Comum = {casca: casca,  esc: esc, qrFalso: qrFalso, PIX_EX: PIX_EX, folha: folha, transicao: transicao };
   if (typeof module !== 'undefined' && module.exports) module.exports = Comum;
   else raiz.Comum = Comum;
 })(typeof window !== 'undefined' ? window : this);

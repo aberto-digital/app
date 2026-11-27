@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="../experiencia/pedido.css?v=4">
 <style>
   [data-m] .barra-carrinho{bottom:calc(12px + env(safe-area-inset-bottom))}
+  .capa.sem-tom::after{display:none}
   .vis img{width:100%;height:100%;object-fit:cover}
   .sem-foto{display:grid;place-items:center;font-size:44px;width:100%;height:100%}
   .carregando,.erro-pag{max-width:560px;margin:40px auto;padding:0 18px;text-align:center;color:var(--sec)}
@@ -78,6 +79,7 @@
     if (m.fundo) doc.body.style.background = m.fundo;
     doc.querySelector('meta[name=theme-color]').content = cor;
     if (m.logo) doc.getElementById('fav').href = m.logo;
+    if (m.capa){ capaImg = m.capa; }
     var s = doc.getElementById('sub');
     if (j.site){ s.innerHTML = '<a href="' + esc(/^https?:/.test(j.site) ? j.site : 'https://' + j.site) + '" style="color:inherit">← Voltar para o site</a>'; }
   }
@@ -87,7 +89,7 @@
   }
 
   if (tokCancel) return cancelar();
-  var info = null, est = {servico:null, data:null, hora:null}, folha = null;
+  var capaImg = '', info = null, est = {servico:null, data:null, hora:null}, folha = null;
   achaSlug().then(function(){
     if (!slug) throw new Error('Link incompleto. Peça o link de agendamento para a empresa.');
     return api('GET', '/api/agenda/' + encodeURIComponent(slug));
@@ -96,6 +98,13 @@
   function monta(){
     var S = info.servicos, tipos = [];
     S.forEach(function(s){ var t = s.tipo || 'Serviços'; if (tipos.indexOf(t) < 0) tipos.push(t); });
+    var tp = doc.querySelector('.topo'), fotos = [];
+    S.forEach(function(x){ if (x.foto && fotos.indexOf(x.foto) < 0) fotos.push(x.foto); });
+    if (capaImg || fotos.length >= 3){
+      var cv = doc.createElement('div'); cv.className = capaImg ? 'capa fotos sem-tom' : 'capa fotos'; cv.setAttribute('aria-hidden', 'true');
+      cv.innerHTML = capaImg ? '<img alt="" src="' + esc(capaImg) + '">' : fotos.slice(0, 5).map(function(u){ return '<img alt="" decoding="async" src="' + esc(u) + '">'; }).join('');
+      tp.insertBefore(cv, tp.firstChild);
+    }
     doc.getElementById('titulo').textContent = info.titulo || 'Agende seu horário';
     doc.getElementById('chamada').textContent = 'Escolha o serviço, o dia e o horário livres. Confirmação na hora.';
     main.innerHTML = '<div class="menu">' + (tipos.length > 1 ? '<div class="ferr"><nav class="abas">' + tipos.map(function(t, i){ return '<button data-cat="' + i + '" aria-selected="' + (i === 0) + '">' + esc(t) + '</button>'; }).join('') + '</nav></div>' : '') +

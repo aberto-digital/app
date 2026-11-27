@@ -12,10 +12,17 @@
         en: { titulo: 'Hot pizza at your door', chamada: 'Slow-fermented dough, wood-fired oven and fast delivery.', tipo: 'Pizzeria', prazo: '40 to 50 min' },
       },
       categorias: [
-        { nome: { pt: 'Pizzas', en: 'Pizzas' }, itens: [
+        { nome: { pt: 'Pizzas', en: 'Pizzas' }, grupos: [
+          { id: 'tam', rot: { pt: 'Qual o tamanho da sua fome?', en: 'How hungry are you?' }, obrig: true, max: 1, op: [
+            { id: 'media', nome: { pt: 'Média', en: 'Medium' }, ds: { pt: '6 fatias', en: '6 slices' }, preco: 0, precoUsd: 0 },
+            { id: 'grande', nome: { pt: 'Grande', en: 'Large' }, ds: { pt: '8 fatias', en: '8 slices' }, preco: 12, precoUsd: 4 } ] },
+          { id: 'extra', rot: { pt: 'Que tal turbinar sua pizza?', en: 'Want to level it up?' }, max: 3, op: [
+            { id: 'borda', nome: { pt: 'Borda recheada', en: 'Stuffed crust' }, preco: 8, precoUsd: 3 },
+            { id: 'bacon', nome: { pt: 'Bacon extra', en: 'Extra bacon' }, preco: 6, precoUsd: 2 },
+            { id: 'queijo', nome: { pt: 'Queijo extra', en: 'Extra cheese' }, preco: 5, precoUsd: 2 } ] } ], itens: [
           { id: 'mussarela', img: '🍕', nome: { pt: 'Mussarela', en: 'Mozzarella' }, ds: { pt: 'Mussarela, tomate e orégano', en: 'Mozzarella, tomato and oregano' }, preco: 44.9, precoUsd: 16.9 },
-          { id: 'calabresa', img: '🍕', nome: { pt: 'Calabresa', en: 'Pepperoni' }, ds: { pt: 'Calabresa fatiada e cebola', en: 'Pepperoni and onion' }, preco: 49.9, precoUsd: 18.9 },
-          { id: 'margherita', img: '🍅', nome: { pt: 'Margherita', en: 'Margherita' }, ds: { pt: 'Mussarela de búfala, tomate e manjericão', en: 'Buffalo mozzarella, tomato and basil' }, preco: 54.9, precoUsd: 19.9 },
+          { id: 'calabresa', etq: { pt: 'Mais pedido', en: 'Best seller' }, img: '🍕', nome: { pt: 'Calabresa', en: 'Pepperoni' }, ds: { pt: 'Calabresa fatiada e cebola', en: 'Pepperoni and onion' }, preco: 49.9, precoUsd: 18.9 },
+          { id: 'margherita', etq: { pt: 'Recomendado', en: 'Recommended' }, img: '🍅', nome: { pt: 'Margherita', en: 'Margherita' }, ds: { pt: 'Mussarela de búfala, tomate e manjericão', en: 'Buffalo mozzarella, tomato and basil' }, preco: 54.9, precoUsd: 19.9 },
           { id: 'portuguesa', img: '🥚', nome: { pt: 'Portuguesa', en: 'Ham & egg' }, ds: { pt: 'Presunto, ovo, cebola e azeitona', en: 'Ham, egg, onion and olives' }, preco: 52.9, precoUsd: 19.5 },
           { id: 'frango', img: '🍗', nome: { pt: 'Frango com catupiry', en: 'Chicken & cream cheese' }, ds: { pt: 'Frango desfiado e catupiry', en: 'Shredded chicken and cream cheese' }, preco: 54.9, precoUsd: 19.9 },
         ] },
@@ -40,10 +47,17 @@
         en: { titulo: 'Smash burgers done right', chamada: 'Brioche bun, house blend and crispy fries.', tipo: 'Burger joint', prazo: '30 to 40 min' },
       },
       categorias: [
-        { nome: { pt: 'Lanches', en: 'Burgers' }, itens: [
-          { id: 'classico', img: '🍔', nome: { pt: 'Smash clássico', en: 'Classic smash' }, ds: { pt: 'Blend 90 g, queijo e molho da casa', en: '3 oz patty, cheese and house sauce' }, preco: 29.9, precoUsd: 9.9 },
+        { nome: { pt: 'Lanches', en: 'Burgers' }, grupos: [
+          { id: 'tam', rot: { pt: 'Qual o tamanho da sua fome?', en: 'How hungry are you?' }, obrig: true, max: 1, op: [
+            { id: 'simples', nome: { pt: 'Simples', en: 'Single' }, ds: { pt: 'Um smash de 90 g', en: 'One 3 oz smash' }, preco: 0, precoUsd: 0 },
+            { id: 'duplo', nome: { pt: 'Duplo', en: 'Double' }, ds: { pt: 'Dois smashs de 90 g', en: 'Two 3 oz smashes' }, preco: 11, precoUsd: 3.5 } ] },
+          { id: 'extra', rot: { pt: 'Que tal turbinar seu burger?', en: 'Want to level it up?' }, max: 10, op: [
+            { id: 'ovo', nome: { pt: 'Ovo', en: 'Egg' }, preco: 4, precoUsd: 1.5 },
+            { id: 'bacon', nome: { pt: 'Bacon', en: 'Bacon' }, preco: 6, precoUsd: 2 },
+            { id: 'cheddar', nome: { pt: 'Cheddar extra', en: 'Extra cheddar' }, preco: 5, precoUsd: 1.5 } ] } ], itens: [
+          { id: 'classico', etq: { pt: 'Mais pedido', en: 'Best seller' }, img: '🍔', nome: { pt: 'Smash clássico', en: 'Classic smash' }, ds: { pt: 'Blend 90 g, queijo e molho da casa', en: '3 oz patty, cheese and house sauce' }, preco: 29.9, precoUsd: 9.9 },
           { id: 'duplo', img: '🍔', nome: { pt: 'Smash duplo', en: 'Double smash' }, ds: { pt: '2 blends, cheddar e cebola caramelizada', en: '2 patties, cheddar and caramelized onion' }, preco: 36.9, precoUsd: 12.9 },
-          { id: 'bacon', img: '🥓', nome: { pt: 'Bacon burger', en: 'Bacon burger' }, ds: { pt: 'Blend, bacon crocante e barbecue', en: 'Patty, crispy bacon and BBQ' }, preco: 38.9, precoUsd: 13.5 },
+          { id: 'bacon', etq: { pt: 'Recomendado', en: 'Recommended' }, img: '🥓', nome: { pt: 'Bacon burger', en: 'Bacon burger' }, ds: { pt: 'Blend, bacon crocante e barbecue', en: 'Patty, crispy bacon and BBQ' }, preco: 38.9, precoUsd: 13.5 },
           { id: 'frango', img: '🍗', nome: { pt: 'Chicken crispy', en: 'Crispy chicken' }, ds: { pt: 'Frango empanado e maionese verde', en: 'Fried chicken and herb mayo' }, preco: 32.9, precoUsd: 11.5 },
         ] },
         { nome: { pt: 'Acompanhamentos', en: 'Sides' }, itens: [

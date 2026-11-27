@@ -22,7 +22,7 @@ function junta(app, empresaId, a) {
     const f = p.agenda || {}
     if (f.dominio) ag.dominio = f.dominio
     if (f.slug) ag.slug = f.slug
-    if (f.marca && typeof f.marca === "object") ag.marca = f.marca
+    if (f.marca && typeof f.marca === "object") ag.marca = Object.assign({}, f.marca, ag.marca || {})
   } catch (e) {}
   return ag
 }
@@ -63,6 +63,7 @@ function marcaPublica(ag) {
   return {
     topo: cor(m.topo), cor: cor(m.cor), fundo: cor(m.fundo),
     fonte: FONTES.indexOf(m.fonte) >= 0 ? m.fonte : "moderna",
+    capa: /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(String(m.capa || "")) && String(m.capa).length < 400000 ? m.capa : "",
     logo: /^data:image\/(png|jpeg|webp|svg\+xml);base64,/.test(logo) && logo.length < 400000 ? logo : /^https:\/\//.test(logo) ? logo.slice(0, 500) : "",
   }
 }

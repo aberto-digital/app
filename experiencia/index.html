@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="experiencia.css?v=1">
+<link rel="stylesheet" href="experiencia.css?v=2">
 </head>
 <body>
 <div class="faixa-demo" id="faixa">Demonstração · <b>nenhum pedido é real</b></div>
@@ -27,10 +27,13 @@
 
 <main id="conteudo"></main>
 
-<script src="nichos.js?v=1"></script>
-<script src="marca.js?v=1"></script>
+<script src="nichos.js?v=2"></script>
+<script src="marca.js?v=2"></script>
+<script src="comum.js?v=1"></script>
 <script src="pedido.js?v=1"></script>
-<script src="chat.js?v=1"></script>
+<script src="agendamento.js?v=1"></script>
+<script src="orcamento.js?v=1"></script>
+<script src="chat.js?v=2"></script>
 <script>
 (function(){
   'use strict';
@@ -38,14 +41,20 @@
   window.EXP = { cfg: cfg, nicho: N, t: T };
   Marca.aplica(cfg);
   document.title = cfg.nome + ' · ' + (cfg.l === 'en' ? 'Demo' : 'Demonstração');
-  if (cfg.l === 'en') document.getElementById('faixa').innerHTML = 'Demo · <b>no order is real</b>';
+  var oque = { pedido: ['nenhum pedido é real', 'no order is real'], agendamento: ['nenhum agendamento é real', 'no booking is real'], orcamento: ['nenhum orçamento é real', 'no quote is real'] }[cfg.m];
+  document.getElementById('faixa').innerHTML = (cfg.l === 'en' ? 'Demo · <b>' + oque[1] : 'Demonstração · <b>' + oque[0]) + '</b>';
   document.getElementById('sub').textContent = T.tipo + (cfg.cidade ? ' · ' + cfg.cidade : '');
   document.getElementById('titulo').textContent = T.titulo;
   document.getElementById('chamada').textContent = T.chamada;
-  document.getElementById('selos').innerHTML = (cfg.l === 'en'
-    ? ['⭐ 4.9 on Google', '🛵 ' + T.prazo, '💳 Pix, card or cash']
-    : ['⭐ 4,9 no Google', '🛵 ' + T.prazo, '💳 Pix, cartão ou dinheiro']).map(function(s){ return '<span>' + s + '</span>'; }).join('');
+  var selos = {
+    pedido: cfg.l === 'en' ? ['⭐ 4.9 on Google', '🛵 ' + T.prazo, '💳 Pix, card or cash'] : ['⭐ 4,9 no Google', '🛵 ' + T.prazo, '💳 Pix, cartão ou dinheiro'],
+    agendamento: cfg.l === 'en' ? ['⭐ 4.9 on Google', '📅 Book online 24/7', '⏰ Automatic reminder'] : ['⭐ 4,9 no Google', '📅 Agenda online 24h', '⏰ Lembrete automático'],
+    orcamento: cfg.l === 'en' ? ['⭐ 4.9 on Google', '📝 Free quote', '⚡ Answer the same day'] : ['⭐ 4,9 no Google', '📝 Orçamento sem compromisso', '⚡ Resposta no mesmo dia'],
+  }[cfg.m];
+  document.getElementById('selos').innerHTML = selos.map(function(s){ return '<span>' + s + '</span>'; }).join('');
   if (cfg.m === 'pedido') Pedido.monta(document, window);
+  else if (cfg.m === 'agendamento') Agendamento.monta(document, window);
+  else Orcamento.monta(document, window);
   Chat.monta(document, window);
 })();
 </script>

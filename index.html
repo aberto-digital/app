@@ -905,7 +905,7 @@
 <script src="core/dados.js?v=2"></script>
 <script src="core/nuvem.js?v=15"></script>
 <script src="core/audio.js?v=1"></script>
-<script src="experiencia/link.js?v=1"></script>
+<script src="experiencia/link.js?v=2"></script>
 <script>
 (function(){
   'use strict';
@@ -2709,6 +2709,8 @@
   /* ---------- Link de experiência: demo com a marca do lead (experiencia/) ---------- */
   function modalExperiencia(cid){
     var c = contato(cid), M = $('#modal'), L = window.LinkExperiencia; if (!c || !L) return;
+    function nicho(n){ return L.NICHOS.filter(function(x){ return x.n === n; })[0] || L.NICHOS[0]; }
+    function corNicho(n){ return nicho(n).cor; }
     var e = c.empresa || {}, sug = L.nichoDoRamo(e.ramo || (c.auditoria && c.auditoria.ramo) || c.negocio || '');
     var logo = c.foto && window.Nuvem && Nuvem.urlFoto ? Nuvem.urlFoto(c.foto).replace(/\?thumb=.*$/, '') : '';
     var d = { m: sug.m, n: sug.n, nome: (c.negocio || c.nome || '').slice(0, 40), logo: logo, cor: '', cidade: (e.cidade || c.cidade || '').split('/')[0].trim(), l: c.auditoria && c.auditoria.lang === 'en' ? 'en' : 'pt' };
@@ -2716,21 +2718,27 @@
     function url(){ return L.monta(base, d); }
     M.innerHTML = '<form method="dialog" class="arq-modal" id="fExp">' +
       '<div class="arq-cab"><div><h3>Link de experiência</h3><small>para ' + esc(c.nome) + '</small></div><button class="arq-x" value="cancelar" formnovalidate aria-label="Fechar">✕</button></div>' +
-      '<div class="campo"><label for="xN">Modelo</label><select id="xN"><option value="pizzaria"' + (d.n === 'pizzaria' ? ' selected' : '') + '>Pedido · Pizzaria</option><option value="hamburgueria"' + (d.n === 'hamburgueria' ? ' selected' : '') + '>Pedido · Hamburgueria</option></select>' +
-        (sug.exato ? '' : '<small style="color:var(--sec)">O ramo dele ainda não tem modelo próprio. Agendamento e Orçamento chegam na próxima fase.</small>') + '</div>' +
+      '<div class="campo"><label for="xN">Modelo</label><select id="xN">' + [['pedido','Pedido'],['agendamento','Agendamento'],['orcamento','Orçamento']].map(function(g){
+          return '<optgroup label="' + g[1] + '">' + L.NICHOS.filter(function(x){ return x.m === g[0]; }).map(function(x){ return '<option value="' + x.n + '"' + (x.n === d.n ? ' selected' : '') + '>' + esc(x.rotulo) + '</option>'; }).join('') + '</optgroup>';
+        }).join('') + '</select>' +
+        (sug.exato ? '' : '<small style="color:var(--sec)">O ramo dele não tem modelo próprio: sugeri o mais parecido. Confira antes de enviar.</small>') + '</div>' +
       '<div class="campo"><label for="xNome">Nome no site</label><input id="xNome" maxlength="40" value="' + esc(d.nome) + '"></div>' +
-      '<div class="duas"><div class="campo"><label for="xCor">Cor</label><input id="xCor" type="color" value="' + (d.n === 'hamburgueria' ? '#e67e22' : '#c0392b') + '"></div>' +
+      '<div class="duas"><div class="campo"><label for="xCor">Cor</label><input id="xCor" type="color" value="' + corNicho(d.n).toLowerCase() + '"></div>' +
       '<div class="campo"><label for="xL">Idioma</label><select id="xL"><option value="pt"' + (d.l === 'pt' ? ' selected' : '') + '>Português (R$)</option><option value="en"' + (d.l === 'en' ? ' selected' : '') + '>Inglês (US$)</option></select></div></div>' +
       '<p style="font-size:12.5px;color:var(--sec);margin:4px 0 10px">' + (logo ? 'Logo: foto do perfil do contato. ' : 'Sem foto no contato: o site mostra as iniciais. ') + (d.cidade ? 'Cidade: ' + esc(d.cidade) + '.' : '') + '</p>' +
       '<div class="duas"><button type="button" class="btn" id="xAbrir">Abrir</button><button type="button" class="btn" id="xCopiar">Copiar link</button></div>' +
       (viaDe(c) ? '<button type="button" class="btn pri" id="xMsg" style="width:100%;justify-content:center;margin-top:8px">Pôr na mensagem</button>' : '') +
       '</form>';
-    function le(){ d.n = $('#xN').value; d.nome = $('#xNome').value.trim(); d.cor = $('#xCor').value.toUpperCase(); d.l = $('#xL').value; }
+    function le(){ d.n = $('#xN').value; d.m = nicho(d.n).m; d.nome = $('#xNome').value.trim(); d.cor = $('#xCor').value.toUpperCase(); d.l = $('#xL').value; }
+    // cor: a da logo quando der para ler; senão a do nicho escolhido (troca junto com o modelo)
+    var corLogo = '', corMexida = false;
+    $('#xN').onchange = function(){ if (!corLogo && !corMexida) $('#xCor').value = corNicho($('#xN').value).toLowerCase(); };
+    $('#xCor').oninput = function(){ corMexida = true; };
     $('#xAbrir').onclick = function(){ le(); window.open(url(), '_blank', 'noopener'); };
     $('#xCopiar').onclick = function(){ le(); var l = url(); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
-    var xm = $('#xMsg'); if (xm) xm.onclick = function(){ le(); M.close(); poeNaCaixa(cid, L.texto(c.nome, url(), d.l)); };
+    var xm = $('#xMsg'); if (xm) xm.onclick = function(){ le(); M.close(); poeNaCaixa(cid, L.texto(c.nome, url(), d.l, d.m)); };
     M.returnValue = ''; M.showModal();
-    L.corDaImagem(logo).then(function(cor){ if (cor && $('#xCor')) $('#xCor').value = cor.toLowerCase(); });
+    L.corDaImagem(logo).then(function(cor){ if (cor && $('#xCor') && !corMexida) { corLogo = cor; $('#xCor').value = cor.toLowerCase(); } });
   }
   /* ---------- Ficha de mega hair: método, última aplicação e próxima manutenção ---------- */
   function intervalo(f){ return +f.intervalo || METODOS[f.metodo] || 60; }

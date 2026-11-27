@@ -1,5 +1,5 @@
 /* AbertoCore · Link de experiência: chat do site com a IA de verdade.
-   Manda o cardápio do nicho e as últimas mensagens para POST /api/experiencia/ia.
+   Manda o catálogo do nicho e as últimas mensagens para POST /api/experiencia/ia.
    Sem rede ou com erro, responde com a mensagem pronta do nicho. A conversa fica no
    sessionStorage (abertocore-experiencia-chat) para aparecer na vitrine. */
 (function (raiz) {
@@ -8,13 +8,24 @@
   var API = 'https://api.abertodigital.com/api/experiencia/ia';
   var CHAVE = 'abertocore-experiencia-chat';
   var PRONTA = {
-    pt: 'Oi! Agora estou com muitas mensagens. Você pode montar seu pedido pelo cardápio aqui no site: é só tocar no + dos itens.',
-    en: "Hi! I'm handling a lot of messages right now. You can build your order from the menu on this page: just tap the + on the items.",
+    pedido: {
+      pt: 'Oi! Agora estou com muitas mensagens. Você pode montar seu pedido pelo cardápio aqui no site: é só tocar no + dos itens.',
+      en: "Hi! I'm handling a lot of messages right now. You can build your order from the menu on this page: just tap the + on the items.",
+    },
+    agendamento: {
+      pt: 'Oi! Agora estou com muitas mensagens. Você pode escolher o serviço e o horário aqui no site: toque em Agendar.',
+      en: "Hi! I'm handling a lot of messages right now. You can pick the service and the time on this page: tap Book.",
+    },
+    orcamento: {
+      pt: 'Oi! Agora estou com muitas mensagens. Você pode pedir seu orçamento aqui no site: escolha o serviço e mande as fotos.',
+      en: "Hi! I'm handling a lot of messages right now. You can request your quote on this page: pick the service and send photos.",
+    },
   };
+  function pronta(cfg) { return (PRONTA[cfg.m] || PRONTA.pedido)[cfg.l === 'en' ? 'en' : 'pt']; }
 
   function corpo(cfg, msgs) {
     var l = cfg.l, itens = [];
-    NICHOS[cfg.n].categorias.forEach(function (c) { c.itens.forEach(function (i) { itens.push({ cat: c.nome[l], nome: i.nome[l], preco: l === 'en' ? i.precoUsd : i.preco }); }); });
+    NICHOS[cfg.n].categorias.forEach(function (c) { c.itens.forEach(function (i) { itens.push({ cat: c.nome[l], nome: i.nome[l], preco: l === 'en' ? (i.precoUsd != null ? i.precoUsd : i.deUsd) : (i.preco != null ? i.preco : i.de) }); }); });
     return { n: cfg.n, nome: cfg.nome, cidade: cfg.cidade, l: l, itens: itens, msgs: msgs.map(function (m) { return { de: m.de, txt: m.txt }; }) };
   }
 
@@ -23,8 +34,8 @@
     return Promise.resolve().then(function () {
       return f(url || API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo(cfg, msgs)) });
     }).then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) { return (j && j.texto) || PRONTA[cfg.l]; })
-      .catch(function () { return PRONTA[cfg.l]; });
+      .then(function (j) { return (j && j.texto) || pronta(cfg); })
+      .catch(function () { return pronta(cfg); });
   }
 
   // ---------------- navegador ----------------
@@ -36,7 +47,9 @@
   function monta(doc, win) {
     var cfg = win.EXP.cfg, en = cfg.l === 'en';
     try { hist = JSON.parse(win.sessionStorage.getItem(CHAVE) || '[]') || []; } catch (e) { hist = []; }
-    var saud = en ? 'Hi! I am the virtual assistant of ' + cfg.nome + '. How can I help you today?' : 'Oi! Sou o atendente virtual da ' + cfg.nome + '. Posso te ajudar a escolher?';
+    var saud = en
+      ? 'Hi! I am the virtual assistant of ' + cfg.nome + '. ' + ({ agendamento: 'Want help choosing a service or a time?', orcamento: 'Tell me what you need and I will help with your quote.' }[cfg.m] || 'How can I help you today?')
+      : 'Oi! Sou o atendente virtual da ' + cfg.nome + '. ' + ({ agendamento: 'Quer ajuda para escolher o serviço ou um horário?', orcamento: 'Me conta do que você precisa que eu te ajudo com o orçamento.' }[cfg.m] || 'Posso te ajudar a escolher?');
     if (!hist.length) hist.push({ de: 'ia', txt: saud, ts: Date.now() });
     var bolha = doc.createElement('button'); bolha.className = 'bolha-chat sem-carrinho'; bolha.type = 'button'; bolha.setAttribute('aria-label', en ? 'Chat' : 'Conversar'); bolha.textContent = '💬';
     var painel = doc.createElement('section'); painel.className = 'chat oculto'; painel.setAttribute('aria-label', 'Chat');

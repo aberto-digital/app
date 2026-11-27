@@ -63,6 +63,8 @@ t('iniciais: até 2 letras, maiúsculas, ignorando palavras curtas', () => {
 t('preço formatado por idioma', () => {
   assert.strictEqual(Marca.preco(49.9, 'pt'), 'R$ 49,90')
   assert.strictEqual(Marca.preco(12.5, 'en'), '$12.50')
+  assert.strictEqual(Marca.preco(1350, 'pt'), 'R$ 1.350,00')
+  assert.strictEqual(Marca.preco(15000, 'en'), '$15,000.00')
 })
 
 t('cor do texto escolhe o maior contraste (laranja e verde médios usam texto escuro)', () => {

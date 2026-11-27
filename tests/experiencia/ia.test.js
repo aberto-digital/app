@@ -94,13 +94,37 @@ t('nome do negócio só aceita letras, números e pontuação simples', () => {
   assert.ok(!/\n\nSYSTEM/.test(m.sistema) && !/[{}]/.test(m.sistema.split('\n')[0]))
 })
 
-t('cardápio do servidor é igual ao do site (experiencia/nichos.js)', () => {
+t('catálogo do servidor é igual ao do site (experiencia/nichos.js), em todos os nichos', () => {
   const NICHOS = require('../../experiencia/nichos.js')
-  ;['pizzaria', 'hamburgueria'].forEach((n) => {
-    const site = NICHOS[n].categorias.flatMap((c) => c.itens.map((i) => i.nome.pt + '|' + i.preco + '|' + i.precoUsd)).sort()
-    const srv = X.MENU[n].map((i) => i.pt + '|' + i.preco + '|' + i.usd).sort()
-    assert.deepStrictEqual(srv, site)
+  assert.deepStrictEqual(Object.keys(X.CATALOGO).sort(), Object.keys(NICHOS).sort())
+  Object.keys(NICHOS).forEach((n) => {
+    const N = NICHOS[n], C = X.CATALOGO[n]
+    assert.strictEqual(C.m, N.modelo, n)
+    if (N.modelo === 'agendamento') { assert.strictEqual(C.abre, N.abre); assert.strictEqual(C.fecha, N.fecha) }
+    const chave = (i) => [i.pt, i.preco, i.usd, i.dur, i.de, i.ate, i.deUsd, i.ateUsd].join('|')
+    const site = N.categorias.flatMap((c) => c.itens.map((i) => chave({ pt: i.nome.pt, preco: i.preco, usd: i.precoUsd, dur: i.dur, de: i.de, ate: i.ate, deUsd: i.deUsd, ateUsd: i.ateUsd }))).sort()
+    assert.deepStrictEqual(C.itens.map(chave).sort(), site, n)
   })
+})
+
+t('agendamento: instrução com serviços, duração, preço e horário; leva a agendar pelo site', () => {
+  const m = X.monta({ n: 'barbearia', nome: 'Barbearia do Zé', l: 'pt', msgs: [{ de: 'cli', txt: 'tem horário?' }] })
+  assert.ok(/Corte/.test(m.sistema) && /min/.test(m.sistema) && /R\$ 45,00/.test(m.sistema))
+  assert.ok(/agend/i.test(m.sistema) && /9h/.test(m.sistema))
+  assert.ok(!/Calabresa/.test(m.sistema))
+})
+
+t('orçamento: faixas de referência, sem preço fechado; leva a pedir orçamento pelo site', () => {
+  const m = X.monta({ n: 'vidracaria', nome: 'Vidros', l: 'pt', msgs: [{ de: 'cli', txt: 'quanto um box?' }] })
+  assert.ok(/Box/.test(m.sistema) && /faixa/i.test(m.sistema) && /fotos/i.test(m.sistema))
+  const en = X.monta({ n: 'mecanica', nome: 'Auto', l: 'en', msgs: [{ de: 'cli', txt: 'brakes?' }] })
+  assert.ok(/\$\d/.test(en.sistema) && /quote/i.test(en.sistema))
+})
+
+t('resposta pronta acompanha o modelo do nicho', () => {
+  assert.ok(/hor[áa]rio/i.test(X.respostaPronta('estetica', 'pt')))
+  assert.ok(/orçamento/i.test(X.respostaPronta('reformas', 'pt')))
+  assert.ok(/quote/i.test(X.respostaPronta('mecanica', 'en')))
 })
 
 t('teto diário global: depois de 300 respostas no dia, todos recebem a resposta pronta', () => {

@@ -17,10 +17,31 @@ t('ramo de alimentação sem modelo próprio cai em pizzaria, marcado como aprox
   assert.deepStrictEqual(Link.nichoDoRamo('Alimentação – Restaurante'), { m: 'pedido', n: 'pizzaria', exato: false })
 })
 
-t('ramo de outro modelo (ainda não disponível) volta aproximado', () => {
-  const r = Link.nichoDoRamo('Serviços locais – Vidraçaria')
-  assert.strictEqual(r.exato, false)
+t('ramos de agendamento e de orçamento viram o nicho certo', () => {
+  const casos = {
+    'Beleza – Barbearia masculina': ['agendamento', 'barbearia'],
+    'Saúde/beleza – Cílios, sobrancelhas, make, unhas e estética': ['agendamento', 'estetica'],
+    'Beleza – Manicure': ['agendamento', 'estetica'],
+    'Saúde – Pilates clínico e fisioterapia': ['agendamento', 'pilates'],
+    'Serviços locais – Mecânica/Automotivo': ['orcamento', 'mecanica'],
+    'Automotivo – Lava rápido': ['orcamento', 'mecanica'],
+    'Serviços locais – Vidraçaria/Serralheria': ['orcamento', 'vidracaria'],
+    'Construção – Reformas e acabamento': ['orcamento', 'reformas'],
+    'Serviços locais – Eletricista': ['orcamento', 'reformas'],
+  }
+  Object.keys(casos).forEach((r) => assert.deepStrictEqual(Link.nichoDoRamo(r), { m: casos[r][0], n: casos[r][1], exato: true }, r))
+})
+
+t('ramo sem modelo próprio volta aproximado no modelo mais parecido', () => {
+  assert.strictEqual(Link.nichoDoRamo('Saúde – Nutrição').m, 'agendamento')
+  assert.strictEqual(Link.nichoDoRamo('Saúde – Nutrição').exato, false)
   assert.strictEqual(Link.nichoDoRamo('').exato, false)
+})
+
+t('lista de nichos para o seletor: todos os nichos, com modelo, rótulo e cor', () => {
+  const NICHOS = require('../../experiencia/nichos.js')
+  assert.deepStrictEqual(Link.NICHOS.map((x) => x.n).sort(), Object.keys(NICHOS).sort())
+  Link.NICHOS.forEach((x) => { assert.strictEqual(x.m, NICHOS[x.n].modelo); assert.strictEqual(x.cor, NICHOS[x.n].cor); assert.ok(x.rotulo) })
 })
 
 t('monta o link e ele é lido de volta igual pela página', () => {
@@ -38,6 +59,14 @@ t('texto da mensagem para o lead traz o link', () => {
   const s = Link.texto('Marcos Silva', 'https://x/experiencia/?m=pedido', 'pt')
   assert.ok(s.startsWith('Oi, Marcos!') && s.includes('https://x/experiencia/?m=pedido'))
   assert.ok(Link.texto('', 'L', 'en').startsWith('Hi!'))
+})
+
+t('texto muda com o modelo: agendamento e orçamento', () => {
+  assert.ok(/agend/i.test(Link.texto('Ana', 'U', 'pt', 'agendamento')) && Link.texto('Ana', 'U', 'pt', 'agendamento').includes('U'))
+  assert.ok(/orçamento/i.test(Link.texto('Ana', 'U', 'pt', 'orcamento')))
+  assert.ok(/booking|book/i.test(Link.texto('Ana', 'U', 'en', 'agendamento')))
+  assert.ok(/quote/i.test(Link.texto('Ana', 'U', 'en', 'orcamento')))
+  assert.ok(/pedido online/.test(Link.texto('Ana', 'U', 'pt')))
 })
 
 console.log(ok + ' testes ok')

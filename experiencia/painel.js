@@ -65,7 +65,8 @@
   }
 
   function linkWhats(cfg) {
-    var t = cfg.l === 'en' ? 'Hi! I tried the demo for ' + cfg.nome + ' and I want this for my business.' : 'Oi! Testei a demonstração da ' + cfg.nome + ' e quero isso no meu negócio.';
+    var oque = { agendamento: { pt: ' (agendamento online)', en: ' (online booking)' }, orcamento: { pt: ' (pedido de orçamento)', en: ' (quote requests)' } }[cfg.m];
+    var t = cfg.l === 'en' ? 'Hi! I tried the demo for ' + cfg.nome + (oque ? oque.en : '') + ' and I want this for my business.' : 'Oi! Testei a demonstração da ' + cfg.nome + (oque ? oque.pt : '') + ' e quero isso no meu negócio.';
     return 'https://wa.me/' + WHATS + '?text=' + encodeURIComponent(t);
   }
 
@@ -73,9 +74,61 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function hora(ts, l) { var d = new Date(ts || Date.now()); return d.toLocaleTimeString(l === 'en' ? 'en-US' : 'pt-BR', { hour: '2-digit', minute: '2-digit' }); }
 
+  // vitrine dos modelos Agendamento e Orçamento: casca comum (faixa, marca, abas, Mensagens,
+  // aviso e botões) e as telas do modelo (V = Agendamento.vitrine ou Orcamento.vitrine)
+  function montaModelo(doc, win, cfg, V) {
+    var l = cfg.l, en = l === 'en', armazem = win.sessionStorage;
+    var e = V.estado(armazem, cfg, Date.now()), aba = V.inicial, abertaConv = true;
+    var T = en ? { msgs: 'Messages', inbox: 'Inbox', site: 'Website', ai: 'AI assistant', auto: 'Sent automatically', complete: 'Complete plan', you: 'You · team',
+      back: '← Back to the site', want: 'I want this for my business', demo: 'Demo · nothing here is real', sample: 'Sample data' }
+      : { msgs: 'Mensagens', inbox: 'Caixa de entrada', site: 'Site', ai: 'Assistente de IA', auto: 'Enviada automaticamente', complete: 'Pacote Completo', you: 'Você · equipe',
+      back: '← Voltar ao site', want: 'Quero isso no meu negócio', demo: 'Demonstração · nada aqui é real', sample: 'Dados de exemplo' };
+    doc.title = cfg.nome + ' · AbertoCore';
+    var raizEl = doc.getElementById('painel');
+    function telaMensagens() {
+      var nome = e.destaque.cliente.nome;
+      var lista = [{ nome: nome, canal: T.site, txt: V.resumoLista(e), novo: true }].concat(NICHOS[cfg.n].exemplos.map(function (x) { return { nome: x.nome, canal: x.canal, txt: x.txt[l] }; }));
+      return '<div class="mensagens' + (abertaConv ? ' com-conv' : '') + '"><div class="lista"><h3>' + T.inbox + '</h3>' + lista.map(function (c, i) {
+        return '<button type="button" class="conv-it' + (i === 0 ? ' ativo' : '') + '" data-conv="' + i + '"><span class="av">' + esc(Marca.iniciais(c.nome)) + '</span><span class="tx"><b>' + esc(c.nome) + '</b><small>' + esc(c.canal) + ' · ' + esc(c.txt) + '</small></span>' + (c.novo ? '<span class="bolinha">1</span>' : '') + '</button>';
+      }).join('') + '</div>' +
+        '<div class="conversa"><div class="conv-cab"><button type="button" class="voltar-lista" aria-label="Voltar">‹</button><b>' + esc(nome) + '</b><small>' + T.site + '</small></div><div class="fio-p">' +
+        V.conversa(e).map(function (m) {
+          if (m.de === 'cli') return '<div class="mp cli">' + esc(m.txt) + '</div>';
+          if (m.de === 'eq') return '<div class="mp eq"><span class="quem">' + T.you + '</span>' + esc(m.txt) + '</div>';
+          return '<div class="mp ia' + (m.programado ? ' prog' : '') + '"><span class="quem">' + (m.programado ? '⏰ ' + esc(m.quando) : '✨ ' + T.ai + (m.auto ? ' · ' + T.auto : '')) + ' <span class="selo-sob">' + T.complete + '</span></span>' + esc(m.txt) + '</div>';
+        }).join('') + '</div></div></div>';
+    }
+    function desenha() {
+      var abas = [['mensagens', '💬 ' + T.msgs]].concat(V.abas(en));
+      raizEl.innerHTML =
+        '<div class="faixa-demo">' + T.demo + (e.real ? '' : ' · ' + T.sample) + '</div>' +
+        '<header class="barra-p"><div class="logo" data-logo></div><div><b data-nome></b><small>AbertoCore</small></div></header>' +
+        '<nav class="abas-p" role="tablist">' + abas.map(function (a) { return '<button type="button" role="tab" data-aba="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + '</button>'; }).join('') + '</nav>' +
+        '<main class="corpo-p">' + (aba === 'mensagens' ? telaMensagens() : V.tela(aba, e)) + '</main>' +
+        '<div class="acoes-p"><a class="btn sec" href="index.html' + esc(win.location.search) + '">' + T.back + '</a><a class="btn" target="_blank" rel="noopener" href="' + linkWhats(cfg) + '">' + T.want + '</a></div>';
+      Marca.aplica(cfg, doc);
+    }
+    function ir(a) { aba = a; abertaConv = true; desenha(); win.scrollTo(0, 0); }
+    raizEl.addEventListener('click', function (ev) {
+      var a = ev.target.closest('[data-aba]'), c = ev.target.closest('[data-conv]'), v = ev.target.closest('.voltar-lista');
+      if (a) return ir(a.getAttribute('data-aba'));
+      if (c && c.getAttribute('data-conv') === '0') { abertaConv = true; return desenha(); }
+      if (v) { abertaConv = false; return desenha(); }
+      if (V.clique(ev, e, armazem, ir)) desenha();
+    });
+    desenha();
+    var t = doc.createElement('div'); t.className = 'toast'; t.innerHTML = '🔔 ' + V.toast(e);
+    doc.body.appendChild(t);
+    setTimeout(function () { t.classList.add('vis'); }, 300);
+    setTimeout(function () { t.classList.remove('vis'); }, 5200);
+    try { if (e.real) { var ctx = new (win.AudioContext || win.webkitAudioContext)(), o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; g.gain.value = 0.05; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.15); } } catch (er) {}
+  }
+
   function monta(doc, win) {
     var cfg = Marca.ler(win.location.search), l = cfg.l, en = l === 'en';
     Marca.aplica(cfg, doc);
+    var V = cfg.m === 'agendamento' ? win.Agendamento && win.Agendamento.vitrine : cfg.m === 'orcamento' ? win.Orcamento && win.Orcamento.vitrine : null;
+    if (V) return montaModelo(doc, win, cfg, V);
     var e = estado(win.sessionStorage, cfg), aba = 'mensagens', abertaConv = true;
     var T = en ? {
       msgs: 'Messages', orders: 'Orders', today: 'Today', newOrder: 'New order', custom: 'Custom build', complete: 'Complete plan',

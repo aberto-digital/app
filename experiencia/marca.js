@@ -4,7 +4,7 @@
 (function (raiz) {
   var NICHOS = typeof module !== 'undefined' && module.exports ? require('./nichos.js') : raiz.NICHOS;
   var MODELOS = ['pedido', 'agendamento', 'orcamento'];
-  var PADRAO = { pedido: 'pizzaria' };
+  var PADRAO = { pedido: 'pizzaria', agendamento: 'estetica', orcamento: 'mecanica' };
 
   function limpo(v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u001F<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max); }
 
@@ -45,8 +45,9 @@
 
   function preco(v, l) {
     v = Number(v) || 0;
-    if (l === 'en') return '$' + v.toFixed(2);
-    return 'R$ ' + v.toFixed(2).replace('.', ',');
+    var p = v.toFixed(2).split('.'), mil = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, l === 'en' ? ',' : '.');
+    if (l === 'en') return '$' + mil + '.' + p[1];
+    return 'R$ ' + mil + ',' + p[1];
   }
 
   // aplica cor, nome e logo na página (só no navegador)

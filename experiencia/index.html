@@ -29,6 +29,8 @@
 
 <script src="nichos.js?v=1"></script>
 <script src="marca.js?v=1"></script>
+<script src="pedido.js?v=1"></script>
+<script src="chat.js?v=1"></script>
 <script>
 (function(){
   'use strict';
@@ -43,6 +45,8 @@
   document.getElementById('selos').innerHTML = (cfg.l === 'en'
     ? ['⭐ 4.9 on Google', '🛵 ' + T.prazo, '💳 Pix, card or cash']
     : ['⭐ 4,9 no Google', '🛵 ' + T.prazo, '💳 Pix, cartão ou dinheiro']).map(function(s){ return '<span>' + s + '</span>'; }).join('');
+  if (cfg.m === 'pedido') Pedido.monta(document, window);
+  Chat.monta(document, window);
 })();
 </script>
 </body>

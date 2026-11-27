@@ -64,6 +64,7 @@ routerAdd("POST", "/api/abertocore/ia/perguntar", (e) => {
   const I = require(`${__hooks}/ia.js`)
   const empresaId = e.auth.getString("empresa")
   const cfg = I.precisaCfg(empresaId)
+  if (!require(`${__hooks}/atende.js`).recursoLigado($app, empresaId, "assistente")) throw new BadRequestError("O Assistente interno está desligado em Atendimento automático.")
   const p = String((e.requestInfo().body || {}).pergunta || "").trim()
   if (!p) throw new BadRequestError("Escreva uma pergunta.")
   const hist = I.chatDaEmpresa($app, empresaId, 8).filter((m) => m.tipo === "pergunta" || m.tipo === "resposta")
@@ -114,6 +115,7 @@ routerAdd("POST", "/api/abertocore/ia/assistir", (e) => {
   const I = require(`${__hooks}/ia.js`)
   const empresaId = e.auth.getString("empresa")
   const cfg = I.precisaCfg(empresaId)
+  if (!require(`${__hooks}/atende.js`).recursoLigado($app, empresaId, "ajuda")) throw new BadRequestError("A ajuda da IA na caixa de mensagem está desligada em Atendimento automático.")
   const b = e.requestInfo().body || {}
   const localId = parseInt(b.contato, 10)
   const acao = String(b.acao || "")

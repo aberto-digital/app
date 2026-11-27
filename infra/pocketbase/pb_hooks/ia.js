@@ -316,7 +316,7 @@ function rodaCrm(app) {
   const cfgs = app.findRecordsByFilter("ia_config", "crm_auto = true && api_key != ''", "", 100, 0)
   let n = 0
   cfgs.forEach((cfg) => {
-    try { alertaSemResposta(app, cfg.getString("empresa")) } catch (e) { app.logger().warn("ia: alerta falhou", "erro", String(e)) }
+    try { if (require(`${__hooks}/atende.js`).recursoLigado(app, cfg.getString("empresa"), "alertas")) alertaSemResposta(app, cfg.getString("empresa")) } catch (e) { app.logger().warn("ia: alerta falhou", "erro", String(e)) }
     pendentesDeAnalise(app, cfg.getString("empresa"), 8).some((rec) => {
       try { analisaContato(app, cfg, rec); n++; return false }
       catch (e) {

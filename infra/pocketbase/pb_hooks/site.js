@@ -104,6 +104,7 @@ function respondeIA(app, canalRec, rec) {
   if (!canalRec.getBool("ia")) return false
   const IA = require(`${__hooks}/ia.js`)
   const empresaId = canalRec.getString("empresa")
+  if (!require(`${__hooks}/atende.js`).recursoLigado(app, empresaId, "site")) return false
   const cfg = IA.cfgDaEmpresa(app, empresaId)
   if (!cfg || !cfg.getString("api_key")) return false
   const d = W.lerDados(rec)

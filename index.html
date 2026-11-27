@@ -3653,6 +3653,16 @@
   var SUGESTOES_IA = ['Quem eu preciso retornar hoje?', 'Quais orçamentos estão parados há mais de 5 dias?', 'Quanto está em negociação agora?', 'Quem está esperando resposta da equipe?'];
   function iaLogado(){ return window.Nuvem && Nuvem.logado(); }
   function numBR(n){ return (n || 0).toLocaleString('pt-BR'); }
+  /* interruptores por recurso: ligados por padrão; só false desliga (o servidor segue a mesma regra) */
+  var RC = {
+    prospeccao:['Responder leads de prospecção','Continua a conversa quando o lead responde à nossa abordagem'],
+    site:['Atender no chat do site','Responde os visitantes do chat do site, 24 horas'],
+    transcrever:['Transcrever áudios','Entende áudios dos clientes antes de responder e libera o botão Transcrever'],
+    assistente:['Assistente interno','A conversa "Assistente AbertoCore" para perguntas da equipe'],
+    ajuda:['Ajuda na caixa de mensagem','Botões de sugerir resposta, resumir, reformular e deixar formal'],
+    alertas:['Avisar cliente sem resposta','Aviso quando o cliente espera mais de 3 horas (junto do CRM automático)']
+  };
+  function recOn(k){ return !S.ia || S.ia[k] !== false; }
   function vAssistente(){
     var A = S.ia, V = $('#vistaSub');
     var logado = iaLogado();
@@ -3664,6 +3674,9 @@
         '<div class="linha-ch"><div><div class="t">Atender clientes sozinha</div><div class="d">WhatsApp, Instagram e Facebook</div></div><button class="chave" role="switch" id="iaOn" aria-checked="' + A.ativo + '" aria-label="Atender clientes sozinha"></button></div>' +
         '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede uma pessoa, pede preço personalizado ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
         '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Agendar"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">' + RC['prospeccao'][0] + '</div><div class="d">' + RC['prospeccao'][1] + '</div></div><button class="chave" role="switch" data-rec="prospeccao" aria-checked="' + recOn('prospeccao') + '" aria-label="' + RC['prospeccao'][0] + '"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">' + RC['site'][0] + '</div><div class="d">' + RC['site'][1] + '</div></div><button class="chave" role="switch" data-rec="site" aria-checked="' + recOn('site') + '" aria-label="' + RC['site'][0] + '"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">' + RC['transcrever'][0] + '</div><div class="d">' + RC['transcrever'][1] + '</div></div><button class="chave" role="switch" data-rec="transcrever" aria-checked="' + recOn('transcrever') + '" aria-label="' + RC['transcrever'][0] + '"></button></div>' +
         '<div class="duas"><div class="campo"><label for="iaN">Nome do assistente</label><input id="iaN" value="' + esc(A.nome) + '"></div>' +
         '<div class="campo"><label for="iaT">Tom de voz</label><select id="iaT">' + ['Próximo e direto','Formal','Animado'].map(function(t){ return '<option' + (t === A.tom ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
         '<div class="campo"><label for="iaE">Esperar antes de responder</label><select id="iaE">' + [[0,'Responder na hora'],[5,'5 segundos'],[10,'10 segundos (recomendado)'],[15,'15 segundos'],[20,'20 segundos']].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === (A.espera == null ? 10 : +A.espera) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><div class="dica">Se o cliente manda várias mensagens seguidas, a IA espera esse tempo e responde uma vez só, lendo tudo. Evita respostas repetidas e parece mais natural.</div></div>' +
@@ -3675,11 +3688,15 @@
         '<p class="nota-bot">Não fala com o cliente. Lê as conversas, organiza o CRM, avisa o que precisa de atenção e responde às perguntas da equipe na conversa <b>Assistente AbertoCore</b>.</p>' +
         '<div class="linha-ch"><div><div class="t">Preencher o CRM sozinha</div><div class="d">A cada 10 minutos lê as conversas novas, escreve um resumo, anota valor e próximo retorno, completa os dados do contato e avança o card no funil (fechar ou perder fica com a equipe)</div></div><button class="chave" role="switch" id="iaCrm" aria-checked="false" aria-label="Preencher o CRM sozinha"' + (logado ? '' : ' disabled') + '></button></div>' +
         '<div class="linha-ch"><div><div class="t">Resumo do dia às 18h</div><div class="d">Chega no e-mail do dono: números do dia, quem precisa de você e o que tem amanhã</div></div><button class="chave" role="switch" id="iaRes" aria-checked="false" aria-label="Resumo do dia às 18h"' + (logado ? '' : ' disabled') + '></button></div>' +
+        '<div class="linha-ch"><div><div class="t">' + RC['assistente'][0] + '</div><div class="d">' + RC['assistente'][1] + '</div></div><button class="chave" role="switch" data-rec="assistente" aria-checked="' + recOn('assistente') + '" aria-label="' + RC['assistente'][0] + '"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">' + RC['ajuda'][0] + '</div><div class="d">' + RC['ajuda'][1] + '</div></div><button class="chave" role="switch" data-rec="ajuda" aria-checked="' + recOn('ajuda') + '" aria-label="' + RC['ajuda'][0] + '"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">' + RC['alertas'][0] + '</div><div class="d">' + RC['alertas'][1] + '</div></div><button class="chave" role="switch" data-rec="alertas" aria-checked="' + recOn('alertas') + '" aria-label="' + RC['alertas'][0] + '"></button></div>' +
         '<div id="iaResumo"></div>' +
         '<div class="botoes-ia"><button class="btn" id="iaAbreChat">' + ic('msg') + 'Abrir a conversa com o assistente</button></div>' +
       '</section></div></div>';
 
     ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn') aviso('Atendimento com IA ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); }; });
+    V.querySelectorAll('[data-rec]').forEach(function(b){ b.onclick = function(){ var v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[b.getAttribute('data-rec')] = v; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso(esc(RC[b.getAttribute('data-rec')][0]) + ' ' + (v ? '<b>ligado</b>' : '<b>desligado</b>') + '.'); }; });
     $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.espera = +$('#iaE').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso('Configuração do assistente salva.'); };
 
     function desenhaCon(){

@@ -9,6 +9,11 @@ function lerDados(rec) {
 }
 function limpa(t, max) { return String(t == null ? "" : t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim().slice(0, max) }
 
+// Interruptores por recurso (configuracoes.dados.ia.<chave>): ligados por padrão; só "false" desliga.
+// Chaves: prospeccao, site, transcrever, assistente, ajuda, alertas.
+function liga(at, chave) { return !at || at[chave] !== false }
+function recursoLigado(app, empresaId, chave) { return liga(cfgAtendimento(app, empresaId), chave) }
+
 function cfgAtendimento(app, empresaId) {
   try {
     const c = lerDados(app.findFirstRecordByFilter("configuracoes", "empresa = {:e}", { e: empresaId }))
@@ -74,10 +79,12 @@ function decide(app, empresaId, rec, canalNome) {
   if (d.bot && d.bot.modo === "humano" && agora < (d.bot.ate || 0)) return quieta(app, rec, "A conversa está com a equipe (modo humano) até " + new Date(d.bot.ate - 3 * 3600000).toISOString().slice(11, 16) + ".")
   if (d.iaPausa && agora < d.iaPausa) return quieta(app, rec, "A IA está pausada nesta conversa.")
   if (d.ignorado) return null // contato ignorado: a IA não responde
+  if (d.prospeccao && !liga(at, "prospeccao")) return quieta(app, rec, "A IA não continua conversas de prospecção (desligado em Atendimento automático → Responder leads de prospecção).")
   // Áudio do cliente ainda sem resposta: transcreve antes de responder, para a IA saber o que foi dito.
   // Grava a transcrição no próprio rec (quem chama salva a resposta nele depois).
   const pendentes = []
   for (let i = msgs.length - 1; i >= 0 && msgs[i].de === "cli"; i--) if (msgs[i].audio && !msgs[i].transcricao) pendentes.unshift(msgs[i])
+  if (pendentes.length && !liga(at, "transcrever")) return quieta(app, rec, "O cliente mandou áudio e a transcrição de áudios está desligada. A equipe responde.")
   if (pendentes.length) {
     const T = require(`${__hooks}/transcreve.js`)
     let falhou = ""
@@ -154,4 +161,4 @@ function registra(app, rec, r, extra) {
   app.save(rec)
 }
 
-module.exports = { decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }
+module.exports = { liga, recursoLigado, decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }

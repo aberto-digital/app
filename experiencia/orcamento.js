@@ -211,11 +211,11 @@
       err: 'Preencha nome e telefone.', remove: 'Tirar',
     };
     var main = doc.getElementById('conteudo');
-    var emojis = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { emojis.push(i.img); }); });
-    Comum.casca(doc, win, 'orcamento', en, emojis);
+    var todos = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { todos.push(i); }); });
+    Comum.casca(doc, win, 'orcamento', en, todos);
     var html = '<section class="cat" id="cat0"><h2 style="margin-top:18px">' + tx.need + '</h2><div class="grade">' + N.categorias.map(function (c) {
       return c.itens.map(function (it) {
-        return '<button type="button" class="item" data-tipo="' + it.id + '"><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco"><small>' + tx.from + '</small> ' + Marca.preco(faixa(it, l).de, l) + '</div><span class="pilula">' + tx.ask + '</span></div><div class="ilu vis"><span aria-hidden="true">' + it.img + '</span></div></button>';
+        return '<button type="button" class="item" data-tipo="' + it.id + '"><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco"><small>' + tx.from + '</small> ' + Marca.preco(faixa(it, l).de, l) + '</div><span class="pilula">' + tx.ask + '</span></div><div class="ilu vis">' + Comum.visual(it) + '</div></button>';
       }).join('');
     }).join('') + '</div></section>';
     html += '<section class="avaliacoes"><h2>' + tx.reviews + '</h2>' + [

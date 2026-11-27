@@ -222,12 +222,12 @@
       onlinePay: 'Pagamento online', custom: 'Sob medida', full: 'Ocupado', pick: 'Escolha um horário para continuar.', err: 'Preencha nome e telefone.',
     };
     var main = doc.getElementById('conteudo');
-    var emojis = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { emojis.push(i.img); }); });
-    Comum.casca(doc, win, 'agendamento', en, emojis);
+    var todos = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { todos.push(i); }); });
+    Comum.casca(doc, win, 'agendamento', en, todos);
     var html = N.categorias.length > 1 ? '<div class="ferr"><nav class="abas" role="tablist">' + N.categorias.map(function (c, i) { return '<button role="tab" data-cat="' + i + '" aria-selected="' + (i === 0) + '">' + esc(c.nome[l]) + '</button>'; }).join('') + '</nav></div>' : '<div style="height:14px"></div>';
     html += N.categorias.map(function (c, i) {
       return '<section class="cat" id="cat' + i + '"><h2>' + esc(c.nome[l]) + '</h2><div class="grade">' + c.itens.map(function (it) {
-        return '<button type="button" class="item" data-serv="' + it.id + '"><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco">' + it.dur + ' min · ' + precoTxt(precoDe(it, l), l) + '</div><span class="pilula">' + tx.book + '</span></div><div class="ilu vis"><span aria-hidden="true">' + it.img + '</span></div></button>';
+        return '<button type="button" class="item" data-serv="' + it.id + '"><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco">' + it.dur + ' min · ' + precoTxt(precoDe(it, l), l) + '</div><span class="pilula">' + tx.book + '</span></div><div class="ilu vis">' + Comum.visual(it) + '</div></button>';
       }).join('') + '</div></section>';
     }).join('');
     html += '<section class="avaliacoes"><h2>' + tx.reviews + '</h2>' + [

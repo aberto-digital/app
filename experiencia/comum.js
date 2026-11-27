@@ -14,6 +14,16 @@
     }
     return s + '</svg>';
   }
+  // foto do item (arquivo local em fotos/ ou https) ou, sem foto, o emoji
+  function visual(it) { return it.foto && /^(fotos\/[\w.-]+|https:\/\/[^\s"'<>]+)$/.test(it.foto) ? '<img alt="" loading="lazy" decoding="async" src="' + esc(it.foto) + '">' : '<span aria-hidden="true">' + it.img + '</span>'; }
+  // conteúdo da capa: colagem das fotos do nicho (até 5) ou, sem fotos, emojis
+  function capaHtml(itens) {
+    var f = [], vistos = {};
+    itens.forEach(function (i) { if (i.foto && !vistos[i.foto]) { vistos[i.foto] = 1; f.push(i.foto); } });
+    if (f.length >= 3) return { cls: 'capa fotos', html: f.slice(0, 5).map(function (u) { return '<img alt="" decoding="async" src="' + esc(u) + '">'; }).join('') };
+    var e = itens.map(function (i) { return i.img; });
+    return { cls: 'capa', html: e.concat(e).slice(0, 14).map(function (x) { return '<span>' + x + '</span>'; }).join('') };
+  }
   var PIX_EX = '00020126580014BR.GOV.BCB.PIX-EXEMPLO-DEMONSTRACAO-ABERTODIGITAL5204000053039865802BR';
 
   // folha que sobe de baixo (mesmo estilo do carrinho do modelo Pedido)
@@ -37,7 +47,7 @@
 
   // casca visual dos modelos Agendamento e Orçamento: capa, navegação e status "Aberto"
   // (o modelo Pedido monta a sua própria em pedido.js)
-  function casca(doc, win, modelo, en, emojis) {
+  function casca(doc, win, modelo, en, itens) {
     doc.body.setAttribute('data-m', modelo);
     var rot = en ? [['Home', 'Services', 'Reviews', 'Profile']] : [['Início', 'Serviços', 'Avaliações', 'Perfil']];
     var nav = doc.createElement('nav'); nav.className = 'nav-p'; nav.setAttribute('aria-label', 'Principal');
@@ -46,7 +56,7 @@
     }).join('');
     var topo = doc.querySelector('.topo'); topo.parentNode.insertBefore(nav, topo);
     var capa = doc.createElement('div'); capa.className = 'capa'; capa.setAttribute('aria-hidden', 'true');
-    capa.innerHTML = emojis.concat(emojis).slice(0, 14).map(function (e) { return '<span>' + e + '</span>'; }).join('');
+    var ch = capaHtml(itens); capa.className = ch.cls; capa.innerHTML = ch.html;
     topo.insertBefore(capa, topo.firstChild);
     var sub = doc.getElementById('sub');
     if (sub) sub.innerHTML = '<span class="aberto">● ' + (en ? 'Open' : 'Aberto') + '</span> · ' + esc(sub.textContent);
@@ -62,7 +72,7 @@
     return nav;
   }
 
-  var Comum = {casca: casca,  esc: esc, qrFalso: qrFalso, PIX_EX: PIX_EX, folha: folha, transicao: transicao };
+  var Comum = {casca: casca, visual: visual, capaHtml: capaHtml,  esc: esc, qrFalso: qrFalso, PIX_EX: PIX_EX, folha: folha, transicao: transicao };
   if (typeof module !== 'undefined' && module.exports) module.exports = Comum;
   else raiz.Comum = Comum;
 })(typeof window !== 'undefined' ? window : this);

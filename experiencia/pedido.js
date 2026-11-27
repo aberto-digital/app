@@ -128,7 +128,7 @@
       remove: 'Tirar', more: 'Mais', less: 'Menos', close: 'Fechar', missing: 'Escolha as opções obrigatórias.',
     };
     function plus(v) { return '+ ' + Marca.preco(v, l); }
-    function visual(it) { return it.foto && /^https:\/\//.test(it.foto) ? '<img alt="" loading="lazy" src="' + esc(it.foto) + '">' : '<span aria-hidden="true">' + it.img + '</span>'; }
+    function visual(it) { return win.Comum.visual(it); }
     function etiqueta(it) { return it.etq ? '<span class="etq">' + esc(it.etq[l]) + '</span>' : ''; }
 
     // ---- navegação (barra superior no desktop, barra inferior no celular) ----
@@ -138,8 +138,8 @@
     }).join('');
     var topo = doc.querySelector('.topo'); topo.parentNode.insertBefore(nav, topo);
     var capa = doc.createElement('div'); capa.className = 'capa'; capa.setAttribute('aria-hidden', 'true');
-    var emojis = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { emojis.push(i.img); }); });
-    capa.innerHTML = emojis.concat(emojis).slice(0, 14).map(function (e) { return '<span>' + e + '</span>'; }).join('');
+    var todos = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { todos.push(i); }); });
+    var ch = win.Comum.capaHtml(todos); capa.className = ch.cls; capa.innerHTML = ch.html;
     topo.insertBefore(capa, topo.firstChild);
     var sub = doc.getElementById('sub');
     if (sub) sub.innerHTML = '<span class="aberto">● ' + tx.openNow + '</span> · ' + esc(sub.textContent);

@@ -73,15 +73,21 @@ function nomeEmpresa(app, empresaId) {
     return { nome: p.empresa || e.getString("nome"), whatsapp: p.whatsapp || "", site: p.site || "", responsavel: p.responsavel || "" }
   } catch (e) { return { nome: "", whatsapp: "", site: "", responsavel: "" } }
 }
+// foto do serviço: imagem pequena embutida ou https
+function fotoServico(f) {
+  f = String(f || "")
+  if (/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(f) && f.length <= 160000) return f
+  return /^https:\/\/[^\s"'<>]+$/.test(f) && f.length <= 500 ? f : ""
+}
 function servicos(app, empresaId, ag) {
   const L = app.findRecordsByFilter("produtos", "empresa = {:e}", "local_id", 0, 0, { e: empresaId })
   const out = []
   L.forEach((r) => {
     const d = W.lerDados(r)
     if (d.ativo === false || !d.agendavel) return
-    out.push({ id: r.getInt("local_id"), nome: d.nome || r.getString("nome"), dur: Math.max(10, parseInt(d.dur, 10) || ag.duracaoPadrao || 60), preco: d.setup == null ? null : d.setup, ds: String(d.ds || "").slice(0, 300) })
+    out.push({ id: r.getInt("local_id"), nome: d.nome || r.getString("nome"), dur: Math.max(10, parseInt(d.dur, 10) || ag.duracaoPadrao || 60), preco: d.setup == null ? null : d.setup, ds: String(d.ds || "").slice(0, 300), foto: fotoServico(d.foto) })
   })
-  if (!out.length) out.push({ id: 0, nome: ag.titulo || "Atendimento", dur: ag.duracaoPadrao || 60, preco: null, ds: "" })
+  if (!out.length) out.push({ id: 0, nome: ag.titulo || "Atendimento", dur: ag.duracaoPadrao || 60, preco: null, ds: "", foto: "" })
   return out
 }
 function min(h) { const p = String(h || "0:0").split(":"); return (+p[0] || 0) * 60 + (+p[1] || 0) }

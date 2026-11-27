@@ -73,8 +73,8 @@ function monta(b) {
   } else if (C.m === "orcamento") {
     titulo = en ? "Services (reference price range):" : "Serviços (faixa de preço de referência):"
     regras = en
-      ? ["The prices below are reference ranges only. Never give a closed price: the final quote depends on the details and photos.", "Do not invent services, prices, deadlines or promises.", "Guide the customer to request the quote on this page (tap Get a quote, answer the questions and send photos)."]
-      : ["Os valores abaixo são só uma faixa de referência. Nunca dê preço fechado: o valor final depende dos detalhes e das fotos.", "Não invente serviços, preços, prazos nem promessas.", "Leve o cliente a pedir o orçamento pelo próprio site (tocar em Pedir orçamento, responder as perguntas e mandar fotos)."]
+      ? ["The prices below are reference ranges only. Never give a closed price: the final quote depends on the details and photos.", "Do not invent services, prices, deadlines or promises.", "Guide the customer to request the quote on this page (tap Quote on the service, answer the questions and send photos)."]
+      : ["Os valores abaixo são só uma faixa de referência. Nunca dê preço fechado: o valor final depende dos detalhes e das fotos.", "Não invente serviços, preços, prazos nem promessas.", "Leve o cliente a pedir o orçamento pelo próprio site (tocar em Orçamento no serviço, responder as perguntas e mandar fotos)."]
   } else {
     titulo = en ? "Menu:" : "Cardápio:"
     regras = en

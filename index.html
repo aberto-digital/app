@@ -465,7 +465,8 @@
   .uso-trilho span{display:block;height:100%;background:var(--ceu);border-radius:5px}
   .uso-ia.quase .uso-trilho span{background:var(--ambar)}
   .uso-ia.cheio .uso-trilho span{background:var(--vermelho)}
-  .adm-uso{display:grid;grid-template-columns:1fr auto 110px auto;gap:8px 10px;align-items:center;font-size:13.5px;margin-top:10px}
+  .adm-uso{display:grid;grid-template-columns:1fr auto 100px auto;gap:8px 10px;align-items:center;font-size:13.5px;margin-top:10px}
+  .adm-bts{display:flex;gap:6px;flex-wrap:wrap}
   .adm-uso input{width:100%;border:1px solid var(--linha2);border-radius:8px;padding:6px 8px}
   @media (max-width:560px){.adm-uso{grid-template-columns:1fr auto}.adm-uso input{grid-column:1}}
   html[data-tema="escuro"] .cx-bt:hover,html[data-tema="escuro"] .cx-bt[aria-expanded="true"],html[data-tema="escuro"] .cx-pop button:hover,html[data-tema="escuro"] .cx-pop .rap-it[aria-selected="true"]{background:var(--sup2)}
@@ -934,7 +935,7 @@
 <div class="aviso" id="aviso" aria-live="polite"></div>
 
 <script src="core/i18n.js?v=6"></script>
-<script src="core/dados.js?v=2"></script>
+<script src="core/dados.js?v=3"></script>
 <script src="core/nuvem.js?v=15"></script>
 <script src="core/audio.js?v=1"></script>
 <script src="experiencia/link.js?v=2"></script>
@@ -2547,17 +2548,27 @@
   }
   function usoClientes(N, L){
     var sec = document.createElement('section'); sec.className = 'painel'; sec.id = 'admUso';
-    sec.innerHTML = '<h2>Uso de IA no mês</h2><p class="nota-bot">Ações de IA de cada cliente neste mês e a franquia. A IA não para quando passa da franquia: serve para cobrar o excedente. Deixe vazio para usar o padrão do plano; 0 = sem limite.</p><div id="admUsoL"><p class="nota-bot">Carregando…</p></div>';
+    sec.innerHTML = '<h2>Uso de IA no mês</h2><p class="nota-bot">Ações de IA de cada cliente neste mês. Padrão: Presença 600 e Completo 5.000; 0 = sem limite. Acima de 120% o atendimento automático pausa. Pacote extra vale só no mês: <b>+2.000 (R$ 39)</b> ou <b>+5.000 (R$ 89)</b>.</p><div id="admUsoL"><p class="nota-bot">Carregando…</p></div>';
     var alvo = $('.ajustes'); if (!alvo || $('#admUso')) return; alvo.appendChild(sec);
     N.req('GET', '/api/abertocore/admin/ia-uso').then(function(j){
       var U = j.empresas || {};
       $('#admUsoL').innerHTML = '<div class="adm-uso">' + L.map(function(e){
-        var u = U[e.id] || {uso:{chamadas:0}, franquia:0}, f = u.franquia, n = u.uso.chamadas || 0;
-        return '<b>' + esc(e.nome) + '</b><span class="num">' + n.toLocaleString('pt-BR') + (f ? ' / ' + f.toLocaleString('pt-BR') + (n >= f ? ' ⚠️' : '') : ' · sem limite') + '</span>' +
-          '<input type="number" min="0" step="100" data-fq="' + e.id + '" value="' + f + '" aria-label="Franquia de ' + esc(e.nome) + '">' +
-          '<button type="button" class="btn peq" data-fqs="' + e.id + '">Salvar</button>';
+        var u = U[e.id] || {uso:{chamadas:0}, franquia:0}, f = u.franquia, n = u.uso.chamadas || 0, det = u.det || {base:f, extra:0};
+        return '<b>' + esc(e.nome) + (u.pausada ? ' <span class="chip atraso">IA pausada</span>' : '') + '</b><span class="num">' + n.toLocaleString('pt-BR') + (f ? ' / ' + f.toLocaleString('pt-BR') + (det.extra ? ' <small>(+' + det.extra.toLocaleString('pt-BR') + ' extra)</small>' : '') + (n >= f ? ' ⚠️' : '') : ' · sem limite') + '</span>' +
+          '<input type="number" min="0" step="100" data-fq="' + e.id + '" value="' + det.base + '" aria-label="Franquia de ' + esc(e.nome) + '">' +
+          '<span class="adm-bts"><button type="button" class="btn peq" data-fqs="' + e.id + '">Salvar</button>' +
+          (det.base ? '<button type="button" class="btn peq" data-ext="' + e.id + '" data-n="2000" title="Pacote extra no mês: R$ 39">+2.000</button><button type="button" class="btn peq" data-ext="' + e.id + '" data-n="5000" title="Pacote extra no mês: R$ 89">+5.000</button>' : '') + '</span>';
       }).join('') + '</div>';
       $('#admUsoL').onclick = function(ev){
+        var x = ev.target.closest('[data-ext]');
+        if (x){
+          var nn = +x.getAttribute('data-n'), nome = (L.filter(function(e){ return e.id === x.getAttribute('data-ext'); })[0] || {}).nome;
+          if (!confirm('Somar ' + nn.toLocaleString('pt-BR') + ' ações de IA neste mês para ' + nome + '?\n\nCobrar ' + (nn === 2000 ? 'R$ 39' : 'R$ 89') + ' na próxima fatura.')) return;
+          x.disabled = true;
+          N.req('POST', '/api/abertocore/admin/ia-extra', {empresa:x.getAttribute('data-ext'), acoes:nn}).then(function(r){ aviso('Pacote somado: o mês agora tem ' + r.det.total.toLocaleString('pt-BR') + ' ações.' + (r.pausada ? '' : ' A IA de atendimento está liberada.')); var s2 = $('#admUso'); if (s2) s2.remove(); usoClientes(N, L); })
+            .catch(function(err){ aviso(esc(err.message)); x.disabled = false; });
+          return;
+        }
         var b = ev.target.closest('[data-fqs]'); if (!b) return;
         var id = b.getAttribute('data-fqs'), v = $('[data-fq="' + id + '"]').value;
         b.disabled = true;
@@ -2704,12 +2715,16 @@
     if (!iaSt || !iaSt.uso) return '';
     var u = iaSt.uso.chamadas || 0, f = iaSt.franquia || 0, p = f ? Math.min(100, Math.round(u / f * 100)) : 0;
     var est = !f ? '' : u >= f ? ' cheio' : p >= 80 ? ' quase' : '';
+    if (iaSt.pausada) est = ' cheio';
     return '<section class="painel uso-ia' + est + '"><div class="uso-l"><h2>' + icx('brilho') + 'Uso da IA em ' + MESES[new Date().getMonth()] + '</h2>' +
       '<b class="uso-n">' + u.toLocaleString('pt-BR') + (f ? ' <small>de ' + f.toLocaleString('pt-BR') + ' ações</small>' : ' <small>ações · sem limite</small>') + '</b></div>' +
       (f ? '<div class="uso-trilho" role="progressbar" aria-valuemin="0" aria-valuemax="' + f + '" aria-valuenow="' + u + '" aria-label="Uso da franquia de IA"><span style="width:' + p + '%"></span></div>' : '') +
-      '<p class="nota-bot">' + (f && u >= f ? '<b>Franquia do mês atingida.</b> A IA continua funcionando; fale com a abertodigital para ampliar o plano. '
+      '<p class="nota-bot">' + (iaSt.pausada ? '<b>Atendimento automático pausado:</b> o uso passou de 120% da franquia. Ele volta no dia 1º ou com um pacote extra; fale com a abertodigital. '
+        : f && u >= f ? '<b>Franquia do mês atingida.</b> A IA continua até 120%; depois o atendimento automático pausa. '
         : f && p >= 80 ? '<b>Mais de 80% da franquia usada.</b> ' : '') +
-      'Cada resposta automática, sugestão, resumo, reescrita ou leitura de card conta como 1 ação. A franquia renova todo dia 1º.</p></section>';
+      'Cada resposta automática, sugestão, resumo, reescrita ou leitura de card conta como 1 ação. A franquia renova todo dia 1º.' +
+      (f ? ' Pacotes extras no mês: +2.000 ações por R$ 39 ou +5.000 por R$ 89.' : '') +
+      (iaSt.franquia_det && iaSt.franquia_det.extra ? ' Este mês inclui <b>' + iaSt.franquia_det.extra.toLocaleString('pt-BR') + '</b> ações de pacote extra.' : '') + '</p></section>';
   }
 
   function desenhaDetalhe(){
@@ -3448,7 +3463,7 @@
     return '<div class="kpi kpi-ia' + est + '" id="k4"><div class="r">Uso da IA em ' + MESES[new Date().getMonth()] + '</div><div class="n">' + u.toLocaleString('pt-BR') +
       '<small>' + (f ? ' de ' + f.toLocaleString('pt-BR') : ' ações') + '</small></div>' +
       (f ? '<div class="uso-trilho" role="progressbar" aria-valuemin="0" aria-valuemax="' + f + '" aria-valuenow="' + u + '" aria-label="Uso da franquia de IA"><span style="width:' + pc + '%"></span></div>' : '') +
-      '<div class="s">' + (!f ? 'Sem limite no plano' : u >= f ? 'Franquia atingida' : pc + '% da franquia do plano') + '</div></div>';
+      '<div class="s">' + (!f ? 'Sem limite no plano' : iaSt && iaSt.pausada ? 'Atendimento automático pausado (acima de 120%)' : u >= f ? 'Franquia atingida; pausa acima de 120%' : pc + '% da franquia do plano') + '</div></div>';
   }
   function vDash(){
     var P = periodoDash, ini = addDias(-(P - 1)), iniAnt = addDias(-(2 * P - 1)), fimAnt = addDias(-P), tsIni = new Date(ini + 'T00:00:00').getTime();

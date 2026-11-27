@@ -36,6 +36,8 @@ function decide(app, empresaId, rec, canalNome) {
   const IA = require(`${__hooks}/ia.js`)
   const cfg = IA.cfgDaEmpresa(app, empresaId)
   if (!cfg || !cfg.getString("api_key")) return quieta(app, rec, "A IA não está conectada (falta a chave do Gemini em Atendimento automático).")
+  const pausa = IA.iaPausada(app, empresaId)
+  if (pausa) return quieta(app, rec, "A franquia de IA do mês passou de 120% (" + pausa.uso + " de " + pausa.franquia + " ações). O atendimento automático volta no dia 1º ou com um pacote extra; fale com a abertodigital.")
   const d = lerDados(rec)
   const agora = Date.now()
   // equipe escreveu há pouco? (ignora cópias de respostas da própria IA)

@@ -134,6 +134,12 @@ routerAdd("GET", "/api/abertocore/ia/custos", (e) => {
   return e.json(200, { contatos: I.custos($app, e.auth.getString("empresa")) })
 }, $apis.requireAuth("users"))
 
+// franquia de IA: avisos de 80%, 100% e 120% (uma vez por mês cada)
+cronAdd("ia-franquia", "17 * * * *", () => {
+  const I = require(`${__hooks}/ia.js`)
+  I.avisaFranquias($app)
+})
+
 // base de conhecimento da planilha: atualiza a cada hora
 cronAdd("ia-fonte", "41 * * * *", () => {
   const I = require(`${__hooks}/ia.js`)

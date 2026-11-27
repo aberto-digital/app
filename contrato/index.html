@@ -42,7 +42,7 @@
   <article class="folha" id="doc"></article>
 </main>
 
-<script src="../core/dados.js"></script>
+<script src="../core/dados.js?v=3"></script>
 <script src="../core/nuvem.js?v=9"></script>
 <script>
 (function(){
@@ -119,6 +119,7 @@
       '<p>3.2. Mensalidade: <b>' + (P.mensal ? brl(Core.mensalPlano(P.mensal, P.plano)) : 'não se aplica') + '</b>' + (P.mensal && Core.plano(P.plano).desconto ? ' (valor cheio de ' + brl(P.mensal) + ' com ' + Math.round(Core.plano(P.plano).desconto * 100) + '% de desconto do plano de ' + P.plano + ')' : '') + (P.mensal ? ', com vencimento todo dia ' + (P.vencimento || 10) + ', a partir do mês seguinte à entrega. Ela cobre hospedagem, manutenção, suporte por WhatsApp em horário comercial e os serviços mensais contratados' : '') + '.</p>' +
       '<p>3.3. Não estão inclusos, salvo se escrito na proposta: anúncios pagos, tarifas da API oficial do WhatsApp ou de outras plataformas e licenças de software escolhidas pela CONTRATANTE. Esses custos serão informados antes e pagos pela CONTRATANTE.</p>' +
       '<p>3.4. A mensalidade será reajustada uma vez por ano pelo IPCA dos últimos 12 meses, com aviso de 30 dias.</p>' +
+      ((Core.ACOES_IA || {})[P.pacote] ? '<p>3.4.1. O pacote inclui <b>' + Core.ACOES_IA[P.pacote].toLocaleString('pt-BR') + ' ações de inteligência artificial por mês</b> no AbertoCore (respostas automáticas, sugestões, resumos e leituras de conversa). A contagem recomeça todo dia 1º e o saldo não passa para o mês seguinte. A CONTRATANTE é avisada ao chegar a 80% e a 100%. Acima de 120% o atendimento automático pausa até o mês seguinte ou até a contratação de um pacote extra no mês (+2.000 ações por R$ 39 ou +5.000 por R$ 89); o restante do AbertoCore continua funcionando.</p>' : '') +
       '<p>3.5. Em caso de atraso, incidem multa de 2% e juros de 1% ao mês. Depois de 15 dias de atraso, a CONTRATADA poderá pausar os serviços mensais até a regularização, com aviso prévio.</p>' +
       '<h2>4. Prazos</h2><p>4.1. A implantação será entregue em até <b>' + (P.prazo || v('', 'prazo')) + ' dias úteis</b>, contados a partir do pagamento da implantação, do briefing respondido e dos acessos liberados.</p>' +
       '<p>4.2. A CONTRATANTE terá até 2 dias úteis para aprovar cada material. Atrasos nas aprovações, no envio de informações ou nos acessos aumentam o prazo pelo mesmo período.</p>' +

@@ -508,16 +508,52 @@ function custos(app, empresaId) {
 
 // ---------- franquia mensal de IA (ações de IA por mês) ----------
 // Padrão por plano; a agência pode mudar em perfil.iaFranquia (0 = sem limite).
-const FRANQUIA_PLANO = { Start: 300, "Presença": 600, Completo: 3000, Piloto: 3000, Teste: 3000 }
-function franquia(app, empresaId) {
+// Pacotes extras do mês (+2.000 por R$ 39, +5.000 por R$ 89) ficam em perfil.iaExtra = { "AAAA-MM": ações }.
+// Acima de 120% da franquia (com os extras) a IA de atendimento pausa até o dia 1º ou até entrar um pacote.
+const FRANQUIA_PLANO = { Start: 300, "Presença": 600, Completo: 5000, Piloto: 5000, Teste: 5000 }
+const PACOTES_IA = [{ acoes: 2000, preco: 39 }, { acoes: 5000, preco: 89 }]
+const TETO_IA = 1.2
+function mesBR() { return diaBR().slice(0, 7) }
+function perfilEmp(emp) { try { return JSON.parse(emp.getString("perfil") || "{}") || {} } catch (e) { return {} } }
+function franquiaDetalhe(app, empresaId) {
   try {
     const emp = app.findRecordById("empresas", empresaId)
-    if (/^abertodigital$/i.test(emp.getString("nome").trim())) return 0
-    let perfil = {}
-    try { perfil = JSON.parse(emp.getString("perfil") || "{}") || {} } catch (e) {}
-    if (perfil.iaFranquia != null && perfil.iaFranquia !== "") return Math.max(0, parseInt(perfil.iaFranquia, 10) || 0)
-    return FRANQUIA_PLANO[emp.getString("plano")] || 3000
-  } catch (e) { return 0 }
+    if (/^abertodigital$/i.test(emp.getString("nome").trim())) return { base: 0, extra: 0, total: 0 }
+    const perfil = perfilEmp(emp)
+    const base = perfil.iaFranquia != null && perfil.iaFranquia !== "" ? Math.max(0, parseInt(perfil.iaFranquia, 10) || 0) : (FRANQUIA_PLANO[emp.getString("plano")] || 5000)
+    const extra = base ? Math.max(0, parseInt((perfil.iaExtra || {})[mesBR()], 10) || 0) : 0
+    return { base: base, extra: extra, total: base ? base + extra : 0 }
+  } catch (e) { return { base: 0, extra: 0, total: 0 } }
+}
+function franquia(app, empresaId) { return franquiaDetalhe(app, empresaId).total }
+// A IA de atendimento está pausada pela franquia? (passou de 120% no mês)
+function iaPausada(app, empresaId) {
+  const f = franquia(app, empresaId)
+  if (!f) return null
+  const u = usoDoMes(app, empresaId).chamadas
+  return u >= Math.ceil(f * TETO_IA) ? { uso: u, franquia: f } : null
+}
+// Avisos de 80%, 100% e 120% (uma vez por mês cada): notificação para a empresa e e-mail para a agência.
+function avisaFranquias(app) {
+  const PU = require(`${__hooks}/push.js`)
+  const AL = require(`${__hooks}/alerta.js`)
+  const mes = mesBR()
+  app.findRecordsByFilter("empresas", "id != ''", "", 500, 0).forEach((emp) => {
+    try {
+      const f = franquia(app, emp.id); if (!f) return
+      const u = usoDoMes(app, emp.id).chamadas, pc = u / f
+      const nivel = pc >= TETO_IA ? 120 : pc >= 1 ? 100 : pc >= 0.8 ? 80 : 0
+      if (!nivel) return
+      const perfil = perfilEmp(emp), av = perfil.iaAvisos || {}
+      if ((av[mes] || 0) >= nivel) return
+      av[mes] = nivel; perfil.iaAvisos = av; emp.set("perfil", perfil); app.save(emp)
+      const txt = nivel === 120 ? "A IA de atendimento pausou: o uso do mês passou de 120% da franquia (" + milhar(u) + " de " + milhar(f) + " ações). Fale com a abertodigital para liberar um pacote extra."
+        : nivel === 100 ? "Franquia de IA do mês atingida (" + milhar(u) + " de " + milhar(f) + " ações). A IA continua até 120%; depois disso pausa o atendimento automático."
+        : "Você já usou " + Math.round(pc * 100) + "% da franquia de IA do mês (" + milhar(u) + " de " + milhar(f) + " ações)."
+      try { PU.notifica(app, emp.id, "ia", { titulo: "Uso da IA", corpo: txt, url: "/#assistente", tag: "ia-franquia" }) } catch (e) {}
+      try { AL.envia(app, "Franquia de IA " + nivel + "%: " + emp.getString("nome"), "<p><b>" + escHtml(emp.getString("nome")) + "</b>: " + escHtml(txt) + "</p><p>Pacotes: +2.000 ações por R$ 39 ou +5.000 por R$ 89 (Clientes no AbertoCore → Uso de IA no mês).</p>") } catch (e) {}
+    } catch (e) { app.logger().warn("ia: aviso de franquia falhou", "empresa", emp.id, "erro", String(e)) }
+  })
 }
 
 // ---------- assistência na caixa de mensagem (o texto volta para o humano revisar) ----------
@@ -569,6 +605,8 @@ function situacao(cfg, empresaId) {
     resumo_dia: cfg.getBool("resumo_dia"),
     uso: usoDoMes($app, empresaId),
     franquia: franquia($app, empresaId),
+    franquia_det: franquiaDetalhe($app, empresaId),
+    pausada: !!iaPausada($app, empresaId),
     resumo: resumo && resumo.texto ? resumo : null,
     fonte_url: cfg.getString("fonte_url"),
     fonte_em: cfg.getString("fonte_em"),
@@ -587,5 +625,5 @@ module.exports = {
   podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
   ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, aplicaAnalise, ultimaDoCliente, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes, contextoEmpresa, conversa, registraUso,
-  urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos, franquia, assistir,
+  urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos, franquia, franquiaDetalhe, iaPausada, avisaFranquias, PACOTES_IA, mesBR, assistir,
 }

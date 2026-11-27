@@ -20,8 +20,8 @@
      cada solução usada pela auditoria exista no catálogo. */
   var PRODUTOS_BASE = [
     {nome:'Start', tipo:'Pacote', setup:650, mensal:49, prazo:7, ds:'Perfil no Google otimizado e verificado, site de 1 página com botão de WhatsApp, domínio .com.br no 1º ano, hospedagem e 1 alteração por mês'},
-    {nome:'Presença', tipo:'Pacote', setup:1650, mensal:150, prazo:15, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business configurado com catálogo e respostas rápidas, AbertoCore com o WhatsApp e até 2 usuários, chatbot de menu com botões, assistente de IA interno com resumo do dia, funil e agenda com lembrete de retorno, 1º mês de acompanhamento com reunião e relatório mensal do Google'},
-    {nome:'Completo', tipo:'Pacote', setup:3500, mensal:450, prazo:30, ds:'Tudo do Presença, atendimento com IA 24h que responde, qualifica e agenda sozinho, Instagram + Facebook + e-mail na mesma caixa de mensagens, agendamento online, usuários ilimitados, e-mail com o domínio da empresa, painel de resultados e ajustes sob medida'},
+    {nome:'Presença', tipo:'Pacote', setup:1650, mensal:150, prazo:15, ds:'Tudo do Start, logo e identidade visual, WhatsApp Business configurado com catálogo e respostas rápidas, AbertoCore com o WhatsApp e até 2 usuários, chatbot de menu com botões, assistente de IA interno com resumo do dia (600 ações de IA por mês), funil e agenda com lembrete de retorno, 1º mês de acompanhamento com reunião e relatório mensal do Google'},
+    {nome:'Completo', tipo:'Pacote', setup:3500, mensal:450, prazo:30, ds:'Tudo do Presença, atendimento com IA 24h que responde, qualifica e agenda sozinho (5.000 ações de IA por mês), Instagram + Facebook + e-mail na mesma caixa de mensagens, agendamento online, usuários ilimitados, e-mail com o domínio da empresa, painel de resultados e ajustes sob medida'},
     {nome:'Chatbot de menu (triagem)', tipo:'Módulo', setup:600, mensal:199, ds:'Menu numerado no WhatsApp que responde as perguntas frequentes e separa os interessados dos curiosos'},
     {nome:'Gestão mensal do perfil no Google', tipo:'Módulo', setup:0, mensal:149, ds:'4 postagens por mês, fotos novas, horários de feriado e respostas às avaliações'},
     {nome:'Respostas às avaliações do Google', tipo:'Módulo', setup:0, mensal:79, ds:'A IA sugere a resposta e nós revisamos e publicamos em até 48h'},
@@ -31,9 +31,15 @@
     {nome:'Fotos e vídeos curtos com IA', tipo:'Módulo', setup:290, mensal:0, ds:'Sessão de 1h no local com 10 fotos tratadas e 3 vídeos curtos editados'},
     {nome:'Agendamento online', tipo:'Módulo', setup:250, mensal:0, ds:'Link de agenda no site e no WhatsApp com lembrete automático'},
     {nome:'Cardápio ou catálogo com QR Code', tipo:'Módulo', setup:350, mensal:0, ds:'Página com cardápio ou catálogo e QR Code impresso para o balcão e as mesas'},
+    {nome:'Pacote extra de IA (+2.000 ações)', tipo:'Módulo', setup:39, mensal:0, ds:'2.000 ações de IA a mais no mês em que a franquia do plano acabar (respostas, sugestões e resumos)'},
+    {nome:'Pacote extra de IA (+5.000 ações)', tipo:'Módulo', setup:89, mensal:0, ds:'5.000 ações de IA a mais no mês em que a franquia do plano acabar (respostas, sugestões e resumos)'},
     {nome:'Auditoria gratuita', tipo:'Serviço', setup:0, mensal:0, ds:'Relatório com nota e o que falta no Google, site, WhatsApp e redes'}
   ];
-  var CATALOGO_VERSAO = 3; // v3 (18/11/2026): 3 pacotes; o Completo antigo entrou no Presença e o Enterprise virou Completo
+  var CATALOGO_VERSAO = 4; // v4 (27/11/2026): franquia de ações de IA nos pacotes e pacotes extras de IA
+  /* Ações de IA por mês em cada pacote (respostas automáticas, sugestões, resumos e leituras de conversa).
+     Acima de 120% a IA de atendimento pausa até o dia 1º ou até um pacote extra. Igual em infra/pocketbase/pb_hooks/ia.js. */
+  var ACOES_IA = {'Start':0, 'Presença':600, 'Completo':5000};
+  var PACOTES_IA = [{acoes:2000, preco:39}, {acoes:5000, preco:89}];
   var ORDEM_PACOTES = ['Start', 'Presença', 'Completo'];
   var PACOTES_ANTIGOS = ['Enterprise'];
   /* Planos de contratação: desconto na mensalidade em troca de prazo mínimo. */
@@ -113,7 +119,7 @@
   function aviso(t){ var d = document.createElement('div'); d.className = 'aviso'; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 2800); }
 
   window.Core = {CHAVE:CHAVE, carrega:carrega, salva:salva, garante:garante, contato:contato, novoContato:novoContato, empresa:empresa,
-    signatario:signatario, produto:produto, PLANOS:PLANOS, plano:plano, mensalPlano:mensalPlano, pacotes:pacotes, modulos:modulos, incluso:incluso, ORDEM_PACOTES:ORDEM_PACOTES,
+    signatario:signatario, produto:produto, PLANOS:PLANOS, plano:plano, mensalPlano:mensalPlano, pacotes:pacotes, modulos:modulos, incluso:incluso, ORDEM_PACOTES:ORDEM_PACOTES, ACOES_IA:ACOES_IA, PACOTES_IA:PACOTES_IA,
     contratada:contratada, salvaContratada:salvaContratada, esc:esc, brl:brl, dataBR:dataBR, dataExtenso:dataExtenso, hoje:hoje,
     maisDias:maisDias, param:param, aviso:aviso};
 })();

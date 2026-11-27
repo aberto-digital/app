@@ -323,6 +323,40 @@
   .compor .ferr{display:flex;gap:8px;margin-bottom:9px;align-items:center;flex-wrap:wrap}
   .compor .ferr .info{font-size:12.5px;color:var(--sec)}
   .painel > .leg{font-size:12.5px;color:var(--sec);margin-top:8px}
+  /* topo: logo + nome da página; bolinha do servidor no canto do logo */
+  .marca-topo{position:relative}
+  .marca-topo .brilho,.marca-topo .bolha{display:none!important}
+  .marca-topo .nv-ponto{position:absolute;left:28px;top:26px;margin:0;width:11px;height:11px;border:2px solid var(--branco);box-sizing:content-box}
+  .topo-novo{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--ceu);color:#fff;flex:none}
+  .topo-novo svg{width:22px;height:22px}
+  .topo-novo[hidden]{display:none}
+  /* avatar com o logo do canal */
+  .av .sel svg{width:11px;height:11px;display:block}
+  .av .sel{font-size:9px}
+  .av img{z-index:0}
+  /* topo da conversa */
+  .conv-quem{display:flex;align-items:center;gap:12px;min-width:0;flex:1;text-align:left;border-radius:12px;padding:2px 4px 2px 0}
+  .conv-quem:hover{background:var(--papel)}
+  .conv-tx{display:flex;flex-direction:column;min-width:0}
+  .conv-tx .nm,.conv-tx .ng{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .conv-tx .ng{font-size:13px;color:var(--sec)}
+  .det-acoes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:-4px 0 16px}
+  .det-acoes .btn svg{width:16px;height:16px}
+  /* canal de resposta antes de "Responder" */
+  .cx-via{display:inline-flex;align-items:center;gap:3px;align-self:center;margin-right:6px;padding:4px 6px 4px 4px;border-radius:9px;border:1px solid var(--linha2);background:var(--branco)}
+  .cx-via:disabled{border-color:transparent;padding-right:2px;cursor:default;opacity:1}
+  .cx-via:not(:disabled):hover,.cx-via[aria-expanded="true"]{background:var(--papel)}
+  .cx-via .via-logo,.cx-pop .via-op .via-logo{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;color:#fff;font-size:10px;font-weight:800;flex:none}
+  .via-logo svg{width:14px;height:14px;display:block}
+  .via-ch{font-size:10px;color:var(--sec)}
+  .via-ext{font-size:11px;font-weight:700;color:var(--sec)}
+  .cx-pop.pop-via{min-width:230px}
+  .cx-pop .pop-tt.pop-tt-cinza{color:var(--sec)}
+  .cx-pop .via-op{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:8px;text-align:left;font-weight:600;font-size:14.5px}
+  .cx-pop .via-op > span:not(.via-logo){display:flex;flex-direction:column;flex:1}
+  .cx-pop .via-op small{font-weight:400;font-size:12px;color:var(--sec)}
+  .cx-pop .via-op b{color:var(--ceu)}
+  html[data-tema="escuro"] .conv-quem:hover{background:var(--sup2)}
   /* caixa de mensagem: Responder / Nota privada, barra com +, emoji, IA, respostas rápidas e áudio */
   .cx{position:relative;border:1px solid var(--linha2);border-radius:14px;background:var(--branco);transition:border-color .15s,background .15s}
   .cx:focus-within{border-color:var(--ceu)}
@@ -710,8 +744,6 @@
     .cfg-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:var(--ink);background:var(--papel);border:1px solid var(--linha2)}
     .cfg-btn svg{width:22px;height:22px}
     .cfg-btn[aria-pressed="true"]{background:var(--ceu);border-color:var(--ceu);color:#fff}
-    .em-cfg .marca-topo{display:none}
-    .em-cfg .tit{display:block}
     .em-cfg .topo h1{color:var(--ink);font-size:1.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .em-cfg .tit{min-width:0;flex:1}
     .em-cfg .aovivo{display:none}
@@ -746,8 +778,19 @@
     /* barra superior some ao rolar: só transform (sem mexer em layout durante a animação) */
     .topo{transition:transform .28s cubic-bezier(.2,.8,.2,1);will-change:transform}
     .principal{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
-    .rolou .topo,.rolou-conv .topo{transform:translateY(-100%)}
-    .rolou .principal,.rolou-conv .principal{transform:translateY(-60px);margin-bottom:-60px}
+    .tit{display:block;min-width:0;flex:1}
+    .topo h1{color:var(--texto);font-size:1.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topo .sub{display:none}
+    .marca-topo svg{width:36px;height:36px}
+    .na-sub .marca-topo{display:none}
+    .lista{transition:transform .28s cubic-bezier(.2,.8,.2,1),margin-bottom .28s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1}
+    .rolou .lista{transform:translateY(calc(-1 * var(--cabl, 104px)));margin-bottom:calc(-1 * var(--cabl, 104px))}
+    .app:has(.inbox.mostra-conv) .topo,.app:has(.inbox.mostra-conv) .trilho{display:none}
+    .app:has(.inbox.mostra-conv) .principal{padding-top:0}
+    .inbox.mostra-conv .conv-topo{padding-top:calc(8px + env(safe-area-inset-top))}
+    .inbox.mostra-conv .compor{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+    dialog:has(.arq-modal),dialog:has(.rr-modal){width:100vw;max-width:100vw}
+    .conv-quem{gap:9px}
     .trilho{position:relative;z-index:46}
     .compor{padding:10px 12px}
     .inbox{grid-template-columns:minmax(0,1fr)}
@@ -842,10 +885,11 @@
   <main class="principal">
     <div class="topo">
       <button class="voltar-cfg" id="voltarCfg" aria-label="Voltar para Configurações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="marca-topo"><button class="marca-ia-topo" id="iaTopo" type="button" aria-label="Assistente AbertoCore" aria-pressed="false"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span class="brilho" aria-hidden="true"></span><span class="bolha" id="iaTopoBolha" hidden></span></button><span class="nome-sis" data-sem-traducao>Aberto<b>Core</b></span><span class="demo" title="Demonstração com dados de exemplo">Demo</span></div>
+      <div class="marca-topo"><button class="marca-ia-topo" id="iaTopo" type="button" aria-label="Assistente AbertoCore" aria-pressed="false"><svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#1E3050"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><span class="brilho" aria-hidden="true"></span><span class="bolha" id="iaTopoBolha" hidden></span></button><span class="demo" title="Demonstração com dados de exemplo">Demo</span></div>
       <span class="sep" aria-hidden="true"></span>
       <div class="tit"><h1 id="titulo">Mensagens</h1><div class="sub" id="subtitulo"></div></div>
       <div class="dir">
+        <button class="topo-novo" id="topoNovo" type="button" aria-label="Novo contato" title="Novo contato" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
         <button class="aovivo" id="aovivo" hidden aria-pressed="true" title="Simula mensagens chegando em tempo real"><i></i><span>Ao vivo</span></button>
         <button class="ia-btn" id="iaBtn" aria-label="Assistente AbertoCore" title="Assistente AbertoCore" hidden><span class="ic-ia"></span><span class="bolha" id="iaBolha" hidden></span></button>
         <button class="cfg-btn" id="cfgBtn" aria-label="Configurações" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
@@ -965,11 +1009,23 @@
   var CORES_AV = ['#2F6FED','#1E3050','#C77700','#1F9D55','#B0417A','#5B6678','#D9603B','#3B7A8C'];
   function corAv(nome){ var h = 0; for (var i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) % 997; return CORES_AV[h % CORES_AV.length]; }
   function iniciais(nome){ var p = nome.trim().split(/\s+/); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
+  var LOGO_CANAL = {
+    WhatsApp:'<path d="M12 3.2a8.7 8.7 0 0 0-7.5 13.1L3.3 20.7l4.5-1.2A8.7 8.7 0 1 0 12 3.2z" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M9.1 7.9c-.3 0-.7.1-.9.5-.3.5-.6 1.2-.4 2.1.4 1.6 2.6 4.2 5.4 5 .9.3 1.8 0 2.3-.6.3-.4.3-.8.2-1l-1.7-.8c-.3-.1-.5 0-.6.2l-.5.6c-.1.1-.3.2-.5.1a5.6 5.6 0 0 1-2.6-2.4c-.1-.2 0-.3.1-.5l.4-.5c.1-.2.1-.4 0-.6l-.7-1.7c-.1-.3-.3-.4-.5-.4z" fill="#fff"/>',
+    Instagram:'<rect x="4" y="4" width="16" height="16" rx="4.6" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16.7" cy="7.3" r="1.2" fill="#fff"/>',
+    Facebook:'<path d="M12 3.3c-4.9 0-8.7 3.6-8.7 8.3 0 2.5 1.1 4.7 2.9 6.2v3l2.8-1.6c.9.3 1.9.4 3 .4 4.9 0 8.7-3.6 8.7-8.1S16.9 3.3 12 3.3z" fill="#fff"/><path d="M6.9 14.3l3.4-3.6 1.8 1.8 3.2-1.8-3.3 3.6-1.8-1.8z" fill="#1877F2" stroke="#1877F2" stroke-width="1.2" stroke-linejoin="round"/>',
+    'E-mail':'<rect x="3.5" y="5.5" width="17" height="13" rx="2.2" fill="none" stroke="#fff" stroke-width="2"/><path d="M4.5 7l7.5 6 7.5-6" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>',
+    'Chat do site':'<path d="M4 5.5h16v10H10l-4.5 3.5v-3.5H4z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>',
+    Presencial:'<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="10" r="2.3" fill="#fff"/>'
+  };
+  LOGO_CANAL.Messenger = LOGO_CANAL.Facebook;
+  function logoCanal(canal, cls){
+    var k = CANAIS[canal] || (canal === 'Messenger' ? CANAIS.Facebook : null) || {cor:'#6B7585', l:'?'}, svg = LOGO_CANAL[canal];
+    return '<span class="' + (cls || 'sel') + '" style="background:' + k.cor + '" title="' + esc(canal || '') + '" aria-label="' + esc(canal || '') + '">' +
+      (svg ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + svg + '</svg>' : esc(k.l)) + '</span>';
+  }
   function avatar(c, semSelo){
-    var k = CANAIS[c.canal] || {cor:'#5B6678', l:'?'};
     var foto = c.foto && window.Nuvem && Nuvem.urlFoto ? '<img src="' + esc(Nuvem.urlFoto(c.foto)) + '" alt="" loading="lazy" decoding="async" onerror="this.remove()">' : '';
-    return '<span class="av">' + esc(iniciais(c.nome)) + foto +
-      '</span>';
+    return '<span class="av">' + esc(iniciais(c.nome)) + foto + (semSelo ? '' : logoCanal(c.canal)) + '</span>';
   }
   // selo do canal antes do nome (na lista), em vez de em cima da foto
   function seloCanal(c){
@@ -1098,7 +1154,7 @@
         '<div class="acoes"><button class="btn peq" id="iaCfg">' + ic('config') + '<span class="txt">Configurar</span></button></div></div>' +
       '<div class="fio" id="fio">' + (IA_CHAT.length ? html : intro + html) + '</div>' +
       '<div class="compor"><form class="linha" id="fIA"><textarea id="texto" rows="1" placeholder="' + (con ? 'Pergunte algo, ex.: quem eu preciso retornar hoje?' : 'Conecte a IA para perguntar') + '" aria-label="Pergunta para o assistente"' + (con ? '' : ' disabled') + '></textarea><button class="envia" aria-label="Enviar"' + (con ? '' : ' disabled') + '>' + ic('enviar') + '</button></form></div>';
-    var fio = $('#fio'); fimConversa(fio);
+    var fio = $('#fio'); fimConversa(fio); ligaSwipe(box);
     var appEl = $('#app'); appEl.classList.remove('rolou-conv');
     if (rolar) rolar.el = null;
     fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
@@ -1172,9 +1228,9 @@
 
   /* ---------- navegação ---------- */
   var VISTAS = [
-    {id:'mensagens', curto:'Mensagens', nome:'Mensagens', ic:'msg', sub:'WhatsApp, Instagram, Facebook e e-mail numa caixa só'},
+    {id:'mensagens', curto:'Conversas', nome:'Conversas', ic:'msg', sub:'WhatsApp, Instagram, Facebook e e-mail numa caixa só'},
     {id:'funil', curto:'Funil', nome:'Funil', ic:'funil', sub:'Cada contato é um card. Arraste entre as etapas.'},
-    {id:'agenda', curto:'Agenda', nome:'Agenda e follow-up', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
+    {id:'agenda', curto:'Calendário', nome:'Calendário', ic:'agenda', sub:'Compromissos da semana e retornos combinados'},
     {id:'dashboard', curto:'Painel', nome:'Dashboard', ic:'dash', sub:'Relatórios atualizados em tempo real'},
     {id:'ajustes', grupo:'config', cat:'Conta', curto:'Conta', nome:'Conta e aparência', ic:'config', sub:'Sua conta, tema e notificações'},
     {id:'produtos', grupo:'config', cat:'Negócio', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
@@ -1192,7 +1248,7 @@
   var abaAt = 'ia';
   if (atual === 'chatbot'){ atual = 'assistente'; abaAt = 'chatbot'; }
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
-  var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '', respSel = '', etiqSel = [];
+  var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '', respSel = '', etiqSel = [], tipoSel = [], etapaSel = [];
   var anexoPend = null; // {cid, arq}: PDF gerado esperando o Julio enviar pela caixa de mensagem (WhatsApp e e-mail)
 
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.ignorado ? 0 : (c.naoLidas || 0)); }, 0); }
@@ -1224,6 +1280,7 @@
   function desenha(){
     var v = VISTAS.filter(function(x){ return x.id === atual; })[0];
     $('#titulo').textContent = v.nome; $('#subtitulo').textContent = v.sub;
+    var tn = $('#topoNovo'); if (tn) tn.hidden = atual !== 'mensagens';
     document.title = v.nome + ' | ' + CONFIG.sistema;
     desenhaNav();
     $('#app').classList.remove('rolou');
@@ -1242,7 +1299,8 @@
 
   /* ========== CONFIGURAÇÕES (agrupa no celular) ========== */
   $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
-  $('#iaTopo').onclick = function(){ $('#iaRail').onclick(); };
+  $('#iaTopo').onclick = function(){ vai('mensagens'); };
+  $('#topoNovo').onclick = function(){ modalContato(); };
   $('#iaRail').onclick = function(){ if (!iaLogado()){ aviso('O Assistente funciona com a conta conectada ao servidor. Entre pela tela de Ajustes.'); return; } $('#iaBtn').onclick(); };
   $('#iaBtn').onclick = function(){
     if (atual === 'mensagens' && sel === 'ia'){ var ibx = $('#inbox'); if (ibx && ibx.classList.contains('mostra-conv')){ ibx.classList.remove('mostra-conv'); convMovel = false; var p = filtrados()[0]; sel = p ? p.id : null; desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe(); return; } }
@@ -1646,23 +1704,24 @@
     V.innerHTML = '<div class="inbox' + (convMovel && sel ? ' mostra-conv' : '') + '" id="inbox">' +
       '<section class="lista" aria-label="Conversas">' +
         '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
-        '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar conversas"></button><button class="btn-novo" id="btnNovo" aria-label="Novo contato" title="Novo contato">' + ic('mais') + '</button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
+        '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar conversas"></button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
         '<div class="itens carrossel" id="itens">' + ABAS.map(function(a){ return '<div class="pane" data-pane="' + a[0] + '"></div>'; }).join('') + '</div>' +
       '</section>' +
       '<section class="conversa" id="conversa" aria-label="Conversa"></section>' +
       '<aside class="detalhe" id="detalhe" aria-label="Dados do contato"></aside>' +
     '</div>';
     $('#busca').addEventListener('input', function(e){ busca = e.target.value; desenhaLista(); });
-    $('#btnNovo').onclick = function(){ modalContato(); };
     $('#itens').addEventListener('click', function(e){ if (e.target.closest('#vazioNovo')) modalContato(); });
     $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaAbas(); vaiParaAba(aba, true); } });
     var bf = $('#btnFiltro'), pf = $('#popFiltro');
     bf.onclick = function(e){ e.stopPropagation(); var abre = pf.hidden; pf.hidden = !abre; bf.setAttribute('aria-expanded', abre); };
     pf.addEventListener('click', function(e){ e.stopPropagation(); });
-    pf.addEventListener('click', function(e){ if (e.target.closest('#filLimpa')){ canaisSel = []; respSel = ''; etiqSel = []; desenhaLista(); } });
+    pf.addEventListener('click', function(e){ if (e.target.closest('#filLimpa')){ canaisSel = []; respSel = ''; etiqSel = []; tipoSel = []; etapaSel = []; desenhaLista(); } });
     pf.addEventListener('change', function(e){
       var v = e.target.value;
       if (e.target.name === 'fResp'){ respSel = v; desenhaLista(); return; }
+      if (e.target.hasAttribute('data-tipo')){ tipoSel = $$('input[data-tipo]:checked', pf).map(function(i){ return i.value; }); desenhaLista(); return; }
+      if (e.target.hasAttribute('data-etapa')){ etapaSel = $$('input[data-etapa]:checked', pf).map(function(i){ return i.value; }); desenhaLista(); return; }
       if (e.target.hasAttribute('data-etiq')){ etiqSel = $$('input[data-etiq]:checked', pf).map(function(i){ return i.value; }); desenhaLista(); return; }
       if (v === 'Todos') canaisSel = [];
       else canaisSel = $$('input[data-canal]:checked', pf).map(function(i){ return i.value; });
@@ -1682,13 +1741,19 @@
       }
       barraRolagem(e.target, 'rolou');
     }, {passive:true, capture:true});
-    window.addEventListener('resize', function(){ vaiParaAba(aba, false); });
+    window.addEventListener('resize', function(){ vaiParaAba(aba, false); medeCabLista(); });
+    medeCabLista();
     $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (!b) return; if (b.hasAttribute('data-ia')) abreIA(); else abre(+b.getAttribute('data-id')); });
     if (Core.param('ia') === '1' && iaLogado()) sel = 'ia';
     if (sel === 'ia' && !iaLogado()) sel = null;
     if (sel !== 'ia' && (!sel || !contato(sel))) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     vaiParaAba(aba, false);
+  }
+  function medeCabLista(){
+    var lis = document.querySelector('.lista'), it = $('#itens'); if (!lis || !it) return;
+    var h = it.offsetParent === lis ? it.offsetTop : Math.round(it.getBoundingClientRect().top - lis.getBoundingClientRect().top);
+    if (h > 0) lis.style.setProperty('--cabl', h + 'px');
   }
   function filtrados(a){
     var q = busca.trim().toLowerCase();
@@ -1698,6 +1763,7 @@
       return vis && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
         (!respSel || (respSel === 'eu' ? c.resp === MEU_ID : respSel === 'sem' ? !c.resp : c.resp === respSel)) &&
         (!etiqSel.length || etiqSel.some(function(x){ return (c.etiquetas || []).indexOf(x) >= 0; })) &&
+        (!tipoSel.length || tipoSel.indexOf(c.tipo) >= 0) && (!etapaSel.length || etapaSel.indexOf(c.etapa) >= 0) &&
         (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).toLowerCase().indexOf(q) >= 0);
     }).sort(function(x, y){
       if ((a || aba) === 'prospeccao'){
@@ -1724,26 +1790,28 @@
     var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.nota ? 'Nota: ' : u.de === 'sis' ? '• ' : '';
     var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
     return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
-      '<span class="mid"><span class="l1"><span class="nome">' + seloCanal(c) + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
+      '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
       '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
       '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + (c.ignorado ? '<span class="chip">Ignorado</span>' : chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + chipsEtiq(c, 2)) + respMini(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
   }
   function desenhaLista(){
     if (!$('#itens')) return;
     desenhaAbas();
-    var nFil = canaisSel.length + (respSel ? 1 : 0) + etiqSel.length;
+    var nFil = canaisSel.length + (respSel ? 1 : 0) + etiqSel.length + tipoSel.length + etapaSel.length;
     $('#btnFiltro').innerHTML = ic('filtro') + (nFil ? '<span class="n">' + nFil + '</span>' : '');
     $('#btnFiltro').classList.toggle('ativo', nFil > 0);
     var etqs = todasEtiquetas();
     etiqSel = etiqSel.filter(function(x){ return etqs.indexOf(x) >= 0; });
     $('#popFiltro').innerHTML = '<div class="tt">Origem</div><label><input type="checkbox" value="Todos"' + (!canaisSel.length ? ' checked' : '') + '>Todas</label>' +
       Object.keys(CANAIS).map(function(k){ return '<label><input type="checkbox" data-canal value="' + k + '"' + (canaisSel.indexOf(k) >= 0 ? ' checked' : '') + '>' + chipCanal(k) + '</label>'; }).join('') +
+      '<div class="tt">Tipo</div>' + ['Lead', 'Cliente'].map(function(x){ return '<label><input type="checkbox" data-tipo value="' + x + '"' + (tipoSel.indexOf(x) >= 0 ? ' checked' : '') + '>' + chipTipo(x) + '</label>'; }).join('') +
+      '<div class="tt">Etapa</div>' + ETAPAS.map(function(x){ return '<label><input type="checkbox" data-etapa value="' + esc(x) + '"' + (etapaSel.indexOf(x) >= 0 ? ' checked' : '') + '>' + esc(x) + '</label>'; }).join('') +
       '<div class="tt">Responsável</div>' + [['', 'Todos'], ['eu', 'Minhas conversas'], ['sem', 'Sem responsável']].concat((EQUIPE || []).filter(function(p){ return p.id !== MEU_ID; }).map(function(p){ return [p.id, p.nome]; })).map(function(o){
         return '<label><input type="radio" name="fResp" value="' + esc(o[0]) + '"' + (respSel === o[0] ? ' checked' : '') + '>' + esc(o[1]) + '</label>'; }).join('') +
       (etqs.length ? '<div class="tt">Etiquetas</div>' + etqs.map(function(e){ return '<label><input type="checkbox" data-etiq value="' + esc(e) + '"' + (etiqSel.indexOf(e) >= 0 ? ' checked' : '') + '><span class="chip etq">' + esc(e) + '</span></label>'; }).join('') : '') +
       (nFil ? '<button type="button" class="btn peq fil-limpa" id="filLimpa">Limpar filtros</button>' : '');
     var q = busca.trim().toLowerCase();
-    var fixo = ''; // o Assistente AbertoCore agora abre pelo botão ✦ no topo
+    var fixo = iaLogado() && (!q || 'assistente abertocore ia'.indexOf(q) >= 0) ? itemIA() : ''; // fixo no topo da Entrada
     var nSug = sugestoesJuntar().length;
     var avisoSug = nSug ? '<button type="button" class="sug-junta" data-sugj>🔗 <span><b>' + nSug + (nSug === 1 ? ' par de contatos parece' : ' pares de contatos parecem') + ' a mesma pessoa.</b> Revisar e juntar</span></button>' : '';
     ABAS.forEach(function(a){
@@ -1755,7 +1823,7 @@
         html = (resp.length ? '<div class="div-lista">Para responder <span>' + resp.length + '</span></div>' + resp.map(itemContato).join('') : '<div class="div-lista">Para responder <span>0</span></div><div class="vazio peq">Ninguém esperando sua resposta.</div>') +
           (esp.length ? '<div class="div-lista esp">Aguardando retorno do cliente <span>' + esp.length + '</span></div><div class="grupo-esp">' + esp.map(itemContato).join('') + '</div>' : '');
       }
-      pane.innerHTML = fixo + ((a[0] === 'entrada' || a[0] === 'prospeccao') ? avisoSug : '') + (html ? html : L.length ? L.map(itemContato).join('') :
+      pane.innerHTML = (a[0] === 'entrada' ? fixo : '') + ((a[0] === 'entrada' || a[0] === 'prospeccao') ? avisoSug : '') + (html ? html : L.length ? L.map(itemContato).join('') :
         (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'arquivada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
           '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
       pane.scrollTop = y;
@@ -1771,6 +1839,32 @@
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     convMovel = true; var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
     var f = $('#fio'); if (f){ delete f.dataset.leu; fimConversa(f); }
+  }
+  var ACOES = {}; // arquivar, ignorar e desarquivar a conversa aberta (botões nos detalhes do contato)
+  /* Celular: arrastar da borda esquerda para a direita volta para a lista. */
+  function ligaSwipe(box){
+    if (box._swipe) return; box._swipe = 1;
+    var x0 = null, y0 = 0, dx = 0, ativo = false;
+    box.addEventListener('touchstart', function(e){
+      x0 = null; if (!matchMedia('(max-width:760px)').matches || e.touches.length > 1) return;
+      var t = e.touches[0]; if (t.clientX > 30) return;
+      x0 = t.clientX; y0 = t.clientY; dx = 0; ativo = false;
+    }, {passive:true});
+    box.addEventListener('touchmove', function(e){
+      if (x0 === null) return;
+      var t = e.touches[0], dy = Math.abs(t.clientY - y0); dx = t.clientX - x0;
+      if (!ativo){ if (dx > 12 && dx > dy * 1.3){ ativo = true; box.style.transition = 'none'; } else if (dy > 12 || dx < -6){ x0 = null; return; } }
+      if (ativo) box.style.transform = 'translateX(' + Math.max(0, dx) + 'px)';
+    }, {passive:true});
+    var fim = function(){
+      if (x0 === null) return; x0 = null; if (!ativo) return; ativo = false;
+      box.style.transition = 'transform .2s ease';
+      if (dx > Math.min(110, innerWidth * .3)){
+        box.style.transform = 'translateX(100%)';
+        setTimeout(function(){ box.style.transition = ''; box.style.transform = ''; var v = $('#voltar'); if (v) v.click(); }, 190);
+      } else { box.style.transform = ''; setTimeout(function(){ box.style.transition = ''; }, 220); }
+    };
+    box.addEventListener('touchend', fim); box.addEventListener('touchcancel', fim);
   }
   function desenhaConversa(){
     if (sel === 'ia') return desenhaIA();
@@ -1804,20 +1898,15 @@
       html += '<div class="msg ' + cls + (m.erro ? ' falhou' : '') + '">' + (m.de === 'ia' ? '<span class="quem">' + ic('ia') + 'Assistente de IA</span>' : m.de === 'bot' ? '<span class="quem">' + ic('msg') + (m.auto ? 'Automação · ' + esc(m.auto) : 'Chatbot') + '</span>' : '') + corpo + '<span class="h">' + hm(m.ts) + st + '</span>' + (m.botoes ? '<span class="wa-bts fixos">' + (m.lista ? '<span class="wa-bt">☰ Ver opções</span>' : '') + m.botoes.map(function(b){ return '<span class="wa-bt">' + esc(b) + '</span>'; }).join('') + '</span>' : '') + (m.erro ? '<span class="erro-msg">' + esc(m.erro) + '</span>' : '') + '</div>';
     });
     box.innerHTML = '<div class="conv-topo">' +
-        '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button>' + avatar(c) +
-        '<div><div class="nm">' + esc(c.nome) + '</div><div class="ng">' + esc(c.negocio) + ' · ' + chipCanal(c.canal) + '</div></div>' +
-        '<div class="acoes">' +
-          '<button class="btn peq det-btn" id="verDet">' + ic('info') + '<span class="txt">Detalhes</span></button>' +
-          '<button class="btn peq" id="ignora" title="' + (c.ignorado ? 'Voltar a receber avisos deste contato' : 'Sem avisos e sem resposta automática para este contato') + '">' + (c.ignorado ? '<span>Parar de ignorar</span>' : ic('x') + '<span class="txt">Ignorar</span>') + '</button>' +
-          (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" id="finaliza">' + ic('arquivo') + '<span class="txt">Arquivar</span></button>' : '<button class="btn peq" id="reabre"><span>Desarquivar</span></button>') +
-        '</div></div>' +
+        '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button>' +
+        '<button type="button" class="conv-quem" id="verDet" aria-label="Ver dados de ' + esc(c.nome) + '">' + avatar(c) +
+        '<span class="conv-tx"><span class="nm">' + esc(c.nome) + '</span><span class="ng">' + esc([c.negocio && c.negocio !== c.nome ? c.negocio : '', c.canal].filter(Boolean).join(' · ')) + '</span></span></button></div>' +
       resumoIA(c) +
       '<div class="fio" id="fio">' + html + iaQuietaHtml(c) + '</div>' +
       '<div class="compor">' +
-        (function(){ var vs = viasDe(c), v = viaDe(c); return vs.length > 1 ? '<div class="via-sel"><span id="viaRot">Responder por</span><span class="via-seg" role="radiogroup" aria-labelledby="viaRot">' + vs.map(function(x){ return '<button type="button" role="radio" data-via="' + x + '" aria-checked="' + (x === v) + '">' + NOME_VIA[x] + '</button>'; }).join('') + '</span></div>' : ''; })() +
         (anexoPend && anexoPend.cid === c.id ? '<div class="anexo-pend" id="anexoPend"><a href="' + esc(Nuvem.urlArquivo(anexoPend.arq)) + '" target="_blank" rel="noopener">📎 ' + esc(anexoPend.arq.nome) + '</a><button type="button" id="anexoTira" aria-label="Tirar o anexo">✕</button></div>' : '') +
         '<div class="cx' + (modoCx === 'nota' ? ' nota' : '') + '" id="cx">' +
-          '<div class="cx-abas" role="tablist" aria-label="Tipo de mensagem"><button type="button" role="tab" data-modo="resp" aria-selected="' + (modoCx !== 'nota') + '">Responder</button><button type="button" role="tab" data-modo="nota" aria-selected="' + (modoCx === 'nota') + '">' + icx('cadeado') + 'Nota privada</button></div>' +
+          '<div class="cx-abas" role="tablist" aria-label="Tipo de mensagem">' + botaoVia(c) + '<button type="button" role="tab" data-modo="resp" aria-selected="' + (modoCx !== 'nota') + '">Responder</button><button type="button" role="tab" data-modo="nota" aria-selected="' + (modoCx === 'nota') + '">' + icx('cadeado') + 'Nota privada</button></div>' +
           '<form id="fEnvia" class="cx-form"><textarea id="texto" rows="1" placeholder="Escreva sua resposta" aria-label="Mensagem"></textarea>' +
           '<div class="cx-barra" id="cxBarra">' +
             '<button type="button" class="cx-bt" id="anexar" title="Anexar arquivo" aria-label="Anexar arquivo">' + ic('mais') + '</button>' +
@@ -1834,7 +1923,7 @@
     fio.addEventListener('scroll', function(){ barraRolagem(fio, 'rolou-conv', {mostraNoFundo:true}); }, {passive:true});
     $('#voltar').onclick = function(){ convMovel = false; appEl.classList.remove('rolou-conv'); $('#inbox').classList.remove('mostra-conv'); };
     $('#verDet').onclick = function(){ appEl.classList.remove('rolou-conv', 'rolou'); $('#inbox').classList.add('mostra-det'); };
-    var f = $('#finaliza'); if (f) f.onclick = function(){
+    ACOES.arquivar = function(){
       c.status = 'finalizado'; salva();
       aviso('Conversa com <b>' + esc(c.nome) + '</b> arquivada. Ela volta para a Entrada se o cliente escrever de novo.');
       // volta para a Entrada: no celular fecha a conversa; no computador abre a próxima da Entrada
@@ -1845,7 +1934,7 @@
       desenhaLista(); desenhaConversa(); desenhaDetalhe();
       if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
     };
-    var ig = $('#ignora'); if (ig) ig.onclick = function(){
+    ACOES.ignorar = function(){
       if (c.ignorado){
         delete c.ignorado; c.status = 'entrada'; salva(); aba = 'entrada';
         aviso('Você volta a receber avisos de <b>' + esc(c.nome) + '</b>.');
@@ -1862,7 +1951,8 @@
       desenhaLista(); desenhaConversa(); desenhaDetalhe(); desenhaNav();
       if (typeof vaiParaAba === 'function') vaiParaAba('entrada', false);
     };
-    var r = $('#reabre'); if (r) r.onclick = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); };
+    ACOES.reabrir = function(){ c.status = 'entrada'; salva(); aba = 'entrada'; desenhaLista(); desenhaConversa(); desenhaDetalhe(); aviso('Conversa com <b>' + esc(c.nome) + '</b> de volta na Entrada.'); };
+    ligaSwipe(box);
     var ta = $('#texto');
     ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; });
     ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#fEnvia').requestSubmit(); } });
@@ -2275,6 +2365,19 @@
     var mic = $('#cxMic'); if (mic) mic.hidden = m === 'nota';
     fechaPopCx(); ta.focus();
   }
+  var CANAL_VIA = {wa:'WhatsApp', wal:'WhatsApp', ig:'Instagram', fb:'Facebook', em:'E-mail'};
+  function botaoVia(c){
+    var vs = viasDe(c), v = viaDe(c); if (!vs.length) return '';
+    return '<button type="button" class="cx-via" id="cxVia" aria-haspopup="true" aria-expanded="false" aria-label="Responder por ' + esc(NOME_VIA[v]) + (vs.length > 1 ? '. Trocar canal' : '') + '" title="Responder por ' + esc(NOME_VIA[v]) + '"' + (vs.length > 1 ? '' : ' disabled') + '>' +
+      logoCanal(CANAL_VIA[v], 'via-logo') + (v === 'wal' ? '<span class="via-ext" aria-hidden="true">↗</span>' : '') + (vs.length > 1 ? '<span class="via-ch" aria-hidden="true">▾</span>' : '') + '</button>';
+  }
+  function popVia(bt, c){
+    if (popCx.tipo === 'via') return fechaPopCx();
+    var v = viaDe(c);
+    abrePopCx('via', '<div class="pop-tt pop-tt-cinza">Responder por</div>' + viasDe(c).map(function(x){
+      return '<button type="button" class="via-op" data-via="' + x + '" aria-pressed="' + (x === v) + '">' + logoCanal(CANAL_VIA[x], 'via-logo') + '<span>' + esc(NOME_VIA[x]) + (x === 'wal' ? '<small>Abre o WhatsApp com a mensagem pronta</small>' : '') + '</span>' + (x === v ? '<b aria-hidden="true">✓</b>' : '') + '</button>';
+    }).join(''), bt);
+  }
   function phCx(c){
     var v = c ? viaDe(c) : '';
     if (c && viasDe(c).length > 1) return v === 'wal' ? 'Mensagem para abrir no WhatsApp' : 'Mensagem pelo ' + NOME_VIA[v] + ' (/ atalhos)';
@@ -2394,6 +2497,7 @@
     else ta.placeholder = phCx(c);
     $$('.cx-abas [data-modo]', box).forEach(function(b){ b.onclick = function(){ mudaModoCx(b.getAttribute('data-modo')); }; });
     $('#cxEmoji').onclick = function(e){ e.stopPropagation(); popEmoji(this); };
+    var bv = $('#cxVia'); if (bv) bv.onclick = function(e){ e.stopPropagation(); popVia(this, c); };
     $('#cxIA').onclick = function(e){ e.stopPropagation(); popIA(this); };
     $('#cxRap').onclick = function(e){ e.stopPropagation(); if (popCx.tipo === 'rap') fechaPopCx(); else popRap('', this); };
     var mic = $('#cxMic'); if (mic) mic.onclick = function(){ fechaPopCx(); comecaGravar(c); };
@@ -2401,6 +2505,11 @@
     pop.onclick = function(e){
       e.stopPropagation();
       var em = e.target.closest('[data-emj]'); if (em){ insereNoTexto(em.getAttribute('data-emj')); return; }
+      var vo = e.target.closest('[data-via]'); if (vo){
+        var rasc = ta.value; c.via = vo.getAttribute('data-via'); salva(); fechaPopCx(); desenhaConversa();
+        var t2 = $('#texto'); if (t2){ t2.value = rasc; t2.dispatchEvent(new Event('input')); t2.focus(); }
+        aviso('Respondendo por <b>' + esc(NOME_VIA[c.via]) + '</b>.'); return;
+      }
       var ia = e.target.closest('[data-ia]'); if (ia){ fechaPopCx(); assisteIA(ia.getAttribute('data-ia'), c); return; }
       var r = e.target.closest('[data-rap]'); if (r){ usaRap(+r.getAttribute('data-rap')); return; }
       if (e.target.closest('[data-rapger]')){ fechaPopCx(); modalRespostas(); }
@@ -2526,6 +2635,10 @@
     var evs = S.eventos.filter(function(e){ return e.contato === c.id && diffDias(e.data) >= 0; });
     box.innerHTML = '<div class="det-barra"><button class="btn peq" id="fechaDet">' + ic('x') + 'Fechar</button><button class="btn pri peq" id="salvaDet">' + ic('ok') + 'Salvar</button></div>' +
       '<div class="cab">' + avatar(c, true) + '<div class="nm">' + esc(c.nome) + ' <button class="nm-ed" id="dNomeEd" type="button" title="Editar nome e dados" aria-label="Editar nome e dados">✎</button></div><div class="ng">' + esc(c.negocio) + '</div></div>' +
+      '<div class="det-acoes">' +
+        '<button class="btn peq" type="button" id="dIgnora" title="' + (c.ignorado ? 'Voltar a receber avisos deste contato' : 'Sem avisos e sem resposta automática para este contato') + '">' + (c.ignorado ? 'Parar de ignorar' : ic('x') + 'Ignorar') + '</button>' +
+        (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" type="button" id="dArquiva">' + ic('arquivo') + 'Arquivar</button>' : '<button class="btn peq" type="button" id="dReabre">Desarquivar</button>') +
+      '</div>' +
       '<div class="campo"><span class="rot">Classificação</span><div class="seg" id="segTipo">' +
         '<button class="lead" data-t="Lead" aria-pressed="' + (c.tipo === 'Lead') + '">Lead</button>' +
         '<button class="cliente" data-t="Cliente" aria-pressed="' + (c.tipo === 'Cliente') + '">Cliente</button></div></div>' +
@@ -2551,6 +2664,7 @@
       (window.Nuvem && Nuvem.logado() ? '<div class="dado" id="dCustoIA" hidden><span>Custo da IA</span><span></span></div>' : '') + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
+    [['#dIgnora', 'ignorar'], ['#dArquiva', 'arquivar'], ['#dReabre', 'reabrir']].forEach(function(x){ var b = $(x[0]); if (b) b.onclick = function(){ if (sel === c.id && ACOES[x[1]]) ACOES[x[1]](); }; });
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });
     box.insertAdjacentHTML('beforeend', '<button class="btn det-juntar" id="dJunta" type="button">Juntar com outro contato</button><button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
     custoIA(c.id);
@@ -3007,6 +3121,7 @@
       var app = $('#app'), y = pane.scrollTop, max = pane.scrollHeight - pane.clientHeight;
       if (rolar.el !== pane){ rolar.el = pane; rolar.y = y; rolar.soma = 0; return; }
       if (y < 0 || y > max) return;                          // elástico do iOS
+      if (Date.now() < (rolar.trava || 0)){ rolar.y = y; rolar.soma = 0; return; } // a barra acabou de mudar e a lista mudou de altura
       var d = y - rolar.y; rolar.y = y;
       if (!d) return;
       rolar.soma = (rolar.soma > 0) === (d > 0) ? rolar.soma + d : d;
@@ -3017,8 +3132,8 @@
         else if (oculta && (fundo < 30 || rolar.soma > 60)) app.classList.remove(classe);
         return;
       }
-      if (!oculta && rolar.soma > 40 && y > 80 && max > 220) app.classList.add(classe);
-      else if (oculta && (rolar.soma < -40 || y < 20)) app.classList.remove(classe);
+      if (!oculta && rolar.soma > 40 && y > 80 && max > 220){ if (classe === 'rolou') medeCabLista(); app.classList.add(classe); rolar.trava = Date.now() + 450; rolar.soma = 0; }
+      else if (oculta && (rolar.soma < -40 || y < 20)){ app.classList.remove(classe); rolar.trava = Date.now() + 450; rolar.soma = 0; }
     });
   }
 

@@ -3007,12 +3007,12 @@
       '<div class="campo"><label for="dNota">Anotações</label><textarea id="dNota" rows="3">' + esc(c.nota) + '</textarea></div>' +
       '<button class="btn pri" id="dAgendar" style="width:100%;justify-content:center;margin-bottom:16px">' + ic('agenda') + (BELEZA ? 'Agendar horário' : 'Agendar compromisso') + '</button>' +
       (BELEZA ? blocoFicha(c) : blocoDocs(c)) +
-      '<div class="grupo-t" style="display:flex;justify-content:space-between;align-items:center">Contato<button class="btn peq" id="dEditar" type="button">Editar</button></div>' +
       (c.site ? '<div class="dado"><span>Site</span><a href="' + esc(/^https?:/.test(c.site) ? c.site : 'https://' + c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a></div>' : '') +
       (c.endereco ? '<div class="dado"><span>Endereço</span><a href="https://www.google.com/maps/search/' + encodeURIComponent(c.endereco) + '" target="_blank" rel="noopener">' + esc(c.endereco) + '</a></div>' : '') +
       ((c.canais || []).length > 1 ? '<div class="dado"><span>Canais</span><span>' + c.canais.map(function(k){ return chipCanal(k); }).join(' ') + '</span></div>' : '') +
-      (window.Nuvem && Nuvem.logado() ? '<div class="dado" id="dCustoIA" hidden><span>Custo da IA</span><span></span></div>' : '') + blocoLead(c) +
-      (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
+      blocoLead(c) +
+      (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '') +
+      (window.Nuvem && Nuvem.logado() ? '<div class="dado" id="dCustoIA" hidden style="margin-top:14px"><span>Custo da IA</span><span></span></div>' : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
     ligaLigacao(c);
     [['#dIgnora', 'ignorar'], ['#dArquiva', 'arquivar'], ['#dReabre', 'reabrir'], ['#dProsp', 'prospeccao']].forEach(function(x){ var b = $(x[0]); if (b) b.onclick = function(){ if (sel === c.id && ACOES[x[1]]) ACOES[x[1]](); }; });
@@ -3053,7 +3053,6 @@
     $('#dFollow').onchange = function(e){ c.followup = e.target.value || null; salva(); desenhaLista(); };
     $('#dNota').onchange = function(e){ c.nota = e.target.value; salva(); };
     $('#dAgendar').onclick = function(){ modalEvento(c.id); };
-    $('#dEditar').onclick = function(){ modalContato(c.id); };
     if (BELEZA) ligaFicha(c);
   }
   /* ---------- Ficha de mega hair: método, última aplicação e próxima manutenção ---------- */

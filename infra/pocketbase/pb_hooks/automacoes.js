@@ -20,6 +20,7 @@ function postOk(a, mediaId) {
   return !ps.length || ps.map(String).indexOf(String(mediaId)) >= 0
 }
 function ativas(app, empresaId, gatilho) {
+  if (!require(`${__hooks}/atende.js`).recursoLigado(app, empresaId, "automacoes")) return []
   try { return app.findRecordsByFilter("automacoes", "empresa = {:e} && ativo = true && gatilho = {:g}", "created", 0, 0, { e: empresaId, g: gatilho }) } catch (e) { return [] }
 }
 function acha(app, empresaId, gatilho, texto, mediaId) {

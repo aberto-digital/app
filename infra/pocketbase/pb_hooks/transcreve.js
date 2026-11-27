@@ -18,6 +18,7 @@ function transcrever(app, empresaId, m) {
   const IA = require(`${__hooks}/ia.js`)
   if (!m || !m.audio) throw new Error("Esta mensagem não tem áudio para transcrever.")
   if (m.transcricao) return m.transcricao
+  if (!require(`${__hooks}/atende.js`).recursoLigado(app, empresaId, "transcrever")) throw new Error("A transcrição de áudios está desligada em Atendimento automático.")
   const cfg = IA.cfgDaEmpresa(app, empresaId)
   if (!cfg || !cfg.getString("api_key")) throw new Error("Conecte a IA em Atendimento automático para transcrever áudios.")
 

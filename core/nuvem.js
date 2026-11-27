@@ -110,7 +110,7 @@
       });
       var cfg = res[3][0];
       var c = (cfg && cfg.dados) || {};
-      S.ia = c.ia; S.bot = c.bot; S.email = c.email; S.agenda = c.agenda; S.msgsCanal = c.msgsCanal || {}; S.prox = c.prox; S.catalogoV = c.catalogoV; S.enterpriseMigrado = c.enterpriseMigrado;
+      S.ia = c.ia; S.bot = c.bot; S.email = c.email; S.agenda = c.agenda; S.respostas = c.respostas; S.msgsCanal = c.msgsCanal || {}; S.prox = c.prox; S.catalogoV = c.catalogoV; S.enterpriseMigrado = c.enterpriseMigrado;
       if (cfg) novoMapa.config = { rid: cfg.id, h: hash(c) };
       return { S: S, mapa: novoMapa, contratada: c.contratada, vazio: !res.some(function (l) { return l.length; }) };
     });
@@ -157,7 +157,7 @@
 
   /* ---------- enviar para o servidor ---------- */
   function configDe(S) {
-    return { ia: S.ia, bot: S.bot, email: S.email, agenda: S.agenda, msgsCanal: S.msgsCanal, prox: S.prox, catalogoV: S.catalogoV, enterpriseMigrado: S.enterpriseMigrado, contratada: ler(CHAVE_CONTRATADA) || undefined };
+    return { ia: S.ia, bot: S.bot, email: S.email, agenda: S.agenda, respostas: S.respostas, msgsCanal: S.msgsCanal, prox: S.prox, catalogoV: S.catalogoV, enterpriseMigrado: S.enterpriseMigrado, contratada: ler(CHAVE_CONTRATADA) || undefined };
   }
   function campos(col, item) {
     if (col === 'contatos') return { nome: item.nome || '', telefone: item.tel || '', canal: item.canal || '', etapa: item.etapa || '' };
@@ -257,6 +257,19 @@
       if (srv.wa) final.wa = srv.wa;
       if (srv.social) final.social = srv.social;
       if (srv.usuario) final.usuario = srv.usuario;
+      // etiquetas que o servidor pôs (automações, site), menos as que a equipe tirou aqui
+      if ((srv.etiquetas || []).length) {
+        var fora = final.etiqFora || [], tem = final.etiquetas || [];
+        final.etiquetas = tem.concat(srv.etiquetas.filter(function (x) { return tem.indexOf(x) < 0; })).filter(function (x) { return fora.indexOf(x) < 0; });
+      }
+      // histórico de etapas: junta o do servidor (IA) com o daqui
+      if ((srv.hist || []).length) {
+        var hv = {}, hs = [];
+        (final.hist || []).concat(srv.hist).forEach(function (x) { var k = x && (x.e + '|' + x.ts); if (k && !hv[k]) { hv[k] = 1; hs.push(x); } });
+        hs.sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+        final.hist = hs.slice(-40);
+        if (srv.etapaTs && srv.etapa === final.etapa && (final.etapaTs || 0) < srv.etapaTs) final.etapaTs = srv.etapaTs;
+      }
       // o que a IA preencheu no servidor vale sobre uma cópia local mais antiga
       if (srv.ia && (!final.ia || (final.ia.ts || 0) < (srv.ia.ts || 0))) {
         final.ia = srv.ia;

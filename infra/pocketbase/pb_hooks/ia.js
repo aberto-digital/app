@@ -259,6 +259,9 @@ function aplicaAnalise(ctx, atual, dd, r, ate) {
   const iNova = ET.indexOf(r.etapa), iAtual = ET.indexOf(dd.etapa || ET[0])
   if (iNova > iAtual && FI.indexOf(r.etapa) < 0 && FI.indexOf(dd.etapa) < 0) {
     dd.etapa = r.etapa; atual.set("etapa", r.etapa); mudou.push("etapa " + r.etapa)
+    const agora = Date.now()
+    dd.etapaTs = agora
+    dd.hist = (Array.isArray(dd.hist) ? dd.hist : []).concat([{ e: r.etapa, ts: agora, ia: true }]).slice(-40)
   }
   // dados que o próprio contato passou na conversa: só preenchem campos vazios, nunca trocam o que a equipe escreveu
   const k = r.contato || {}, limpo = (v, n) => String(v || "").replace(/\s+/g, " ").trim().slice(0, n)
@@ -503,11 +506,58 @@ function custos(app, empresaId) {
   return out
 }
 
+// ---------- franquia mensal de IA (ações de IA por mês) ----------
+// Padrão por plano; a agência pode mudar em perfil.iaFranquia (0 = sem limite).
+const FRANQUIA_PLANO = { Start: 300, "Presença": 600, Completo: 3000, Piloto: 3000, Teste: 3000 }
+function franquia(app, empresaId) {
+  try {
+    const emp = app.findRecordById("empresas", empresaId)
+    if (/^abertodigital$/i.test(emp.getString("nome").trim())) return 0
+    let perfil = {}
+    try { perfil = JSON.parse(emp.getString("perfil") || "{}") || {} } catch (e) {}
+    if (perfil.iaFranquia != null && perfil.iaFranquia !== "") return Math.max(0, parseInt(perfil.iaFranquia, 10) || 0)
+    return FRANQUIA_PLANO[emp.getString("plano")] || 3000
+  } catch (e) { return 0 }
+}
+
+// ---------- assistência na caixa de mensagem (o texto volta para o humano revisar) ----------
+function assistir(app, cfg, rec, acao, rascunho) {
+  const empresaId = cfg.getString("empresa")
+  const d = lerDados(rec)
+  const ctx = contextoEmpresa(app, empresaId)
+  const rasc = String(rascunho || "").trim().slice(0, 3000)
+  const temMsgs = (d.msgs || []).some((m) => m.de !== "sis")
+  const idioma = "Escreva no mesmo idioma em que o cliente escreve na conversa (português do Brasil se não der para saber)."
+  const negocio = "Empresa: " + ctx.nome + (ctx.base ? "\nInformações do negócio:\n" + String(ctx.base).slice(0, 6000) : "") +
+    (ctx.playbook ? "\n\n" + String(ctx.playbook).slice(0, 8000) : "")
+  let sis, txt, max = 600
+  if (acao === "sugerir") {
+    if (!temMsgs) throw new Error("Esta conversa ainda não tem mensagens para a IA sugerir uma resposta.")
+    sis = "Você ajuda a equipe de " + ctx.nome + " a responder clientes por mensagem. Escreva UMA resposta pronta para a equipe enviar agora, " +
+      "como se fosse a própria equipe (não diga que é IA). Curta, natural, educada e útil, no tom de WhatsApp. Não invente preços, prazos ou fatos que não estejam nas informações do negócio ou na conversa; " +
+      "se faltar informação, faça uma pergunta. Sem saudação repetida se a conversa já está em andamento. Devolva só o texto da mensagem, sem aspas e sem explicações. " + idioma + "\n\n" + negocio
+    txt = "Conversa (mais antiga primeiro):\n" + conversa(d, 24) + (rasc ? "\n\nA equipe já começou a escrever isto; use como direção e complete:\n" + rasc : "")
+  } else if (acao === "resumir") {
+    if (!temMsgs) throw new Error("Esta conversa ainda não tem mensagens para resumir.")
+    sis = "Resuma a conversa para a equipe interna de " + ctx.nome + ", em português do Brasil. Até 5 linhas curtas começando com \"• \": o que o cliente quer, o que já foi combinado, o que está pendente e o próximo passo. Só fatos da conversa. Devolva só o resumo."
+    txt = "Contato: " + (d.nome || "Sem nome") + (d.negocio ? " (" + d.negocio + ")" : "") + "\nConversa:\n" + conversa(d, 60)
+    max = 500
+  } else if (acao === "reformular" || acao === "formal") {
+    if (!rasc) throw new Error("Escreva a mensagem primeiro e depois peça para a IA " + (acao === "formal" ? "deixar formal." : "reformular."))
+    sis = acao === "formal"
+      ? "Reescreva a mensagem abaixo num tom formal e cordial, adequado a um atendimento profissional, mantendo o mesmo sentido, as mesmas informações e o mesmo idioma. Corrija o português. Devolva só o texto reescrito, sem aspas."
+      : "Reescreva a mensagem abaixo para ficar mais clara, natural e simpática, no tom de conversa por WhatsApp, mantendo o mesmo sentido, as mesmas informações e o mesmo idioma. Corrija o português. Não aumente muito o tamanho. Devolva só o texto reescrito, sem aspas."
+    txt = "Mensagem:\n" + rasc + (temMsgs ? "\n\n(Só contexto, não reescreva isto. Conversa recente:\n" + conversa(d, 8) + ")" : "")
+  } else throw new Error("Ação desconhecida.")
+  const r = chama(app, cfg, "assistir", sis, txt, false, max, rec.id)
+  return String(r || "").replace(/^\s*["“]/, "").replace(/["”]\s*$/, "").trim()
+}
+
 // ---------- usados pelas rotas ----------
 function podeConfigurar(auth) { return auth.getString("papel") !== "equipe" }
 
 function situacao(cfg, empresaId) {
-  if (!cfg) return { conectada: false, provedor: "gemini", modelo: MODELO_PADRAO, crm_auto: true, resumo_dia: true, uso: usoDoMes($app, empresaId), resumo: null }
+  if (!cfg) return { conectada: false, provedor: "gemini", modelo: MODELO_PADRAO, crm_auto: true, resumo_dia: true, uso: usoDoMes($app, empresaId), franquia: franquia($app, empresaId), resumo: null }
   let resumo = null
   try { resumo = JSON.parse(cfg.getString("resumo") || "null") } catch (e) {}
   return {
@@ -518,6 +568,7 @@ function situacao(cfg, empresaId) {
     crm_auto: cfg.getBool("crm_auto"),
     resumo_dia: cfg.getBool("resumo_dia"),
     uso: usoDoMes($app, empresaId),
+    franquia: franquia($app, empresaId),
     resumo: resumo && resumo.texto ? resumo : null,
     fonte_url: cfg.getString("fonte_url"),
     fonte_em: cfg.getString("fonte_em"),
@@ -536,5 +587,5 @@ module.exports = {
   podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
   ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, aplicaAnalise, ultimaDoCliente, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes, contextoEmpresa, conversa, registraUso,
-  urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos,
+  urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos, franquia, assistir,
 }

@@ -50,6 +50,7 @@ routerAdd("POST", "/api/site/lead", (e) => {
     if (!d.site && b.site) d.site = S.limpa(b.site, 120)
     if (!d.cidade && b.cidade) d.cidade = S.limpa(b.cidade, 80)
     d.etiquetas = Array.from(new Set([].concat(d.etiquetas || [], ["Auditoria gratuita"])))
+    if (d.etiqFora) d.etiqFora = d.etiqFora.filter((x) => x !== "Auditoria gratuita")
     d.tipo = d.tipo || "Lead"
     if (b.modo === "feita_por_nos") d.etapa = d.etapa === "Novo contato" || !d.etapa ? "Qualificado" : d.etapa
     // retorno no próximo dia útil

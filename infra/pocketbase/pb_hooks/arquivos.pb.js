@@ -26,7 +26,7 @@ routerAdd("POST", "/api/abertocore/arquivo/enviar", (e) => {
   const nome = arq.getString("nome") || arquivo
   const link = PUB + "/api/files/arquivos/" + arq.id + "/" + encodeURIComponent(arquivo)
   const ext = (arquivo.split(".").pop() || "").toLowerCase()
-  const tipo = /^(jpe?g|png|webp|gif)$/.test(ext) ? "image" : /^(mp4)$/.test(ext) ? "video" : /^(mp3|ogg)$/.test(ext) ? "audio" : "document"
+  const tipo = /^(jpe?g|png|webp|gif)$/.test(ext) ? "image" : /^(mp4)$/.test(ext) ? "video" : /^(mp3|ogg|opus|m4a|aac|amr)$/.test(ext) ? "audio" : "document"
 
   const d = W.lerDados(rec)
   const sid = rec.getString("social_id")

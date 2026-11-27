@@ -257,7 +257,7 @@ function gravaAuto(app, rec, a, msgsNovas, extra) {
   d.tipo = d.tipo || "Lead"
   d.automacao = a.getString("nome")
   const et = a.getString("etiqueta")
-  if (et) d.etiquetas = Array.from(new Set([].concat(d.etiquetas || [], [et])))
+  if (et) { d.etiquetas = Array.from(new Set([].concat(d.etiquetas || [], [et]))); if (d.etiqFora) d.etiqFora = d.etiqFora.filter((x) => x !== et) }
   if (!d.origem || /^(Instagram|Facebook)$/.test(d.origem)) d.origem = "Automação: " + a.getString("nome")
   Object.assign(d, extra || {})
   atual.set("dados", d)

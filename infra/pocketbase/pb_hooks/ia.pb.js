@@ -109,6 +109,25 @@ cronAdd("ia-resumo-dia", "0 21 * * *", () => {
   I.rodaResumoDia($app)
 })
 
+// assistência na caixa de mensagem: sugerir, resumir, reformular, tornar formal (o texto volta para a equipe revisar)
+routerAdd("POST", "/api/abertocore/ia/assistir", (e) => {
+  const I = require(`${__hooks}/ia.js`)
+  const empresaId = e.auth.getString("empresa")
+  const cfg = I.precisaCfg(empresaId)
+  const b = e.requestInfo().body || {}
+  const localId = parseInt(b.contato, 10)
+  const acao = String(b.acao || "")
+  if (["sugerir", "resumir", "reformular", "formal"].indexOf(acao) < 0) throw new BadRequestError("Ação desconhecida.")
+  let rec
+  try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }) }
+  catch (err) { throw new NotFoundError("Contato não encontrado no servidor. Aguarde salvar e tente de novo.") }
+  let texto
+  try { texto = I.assistir($app, cfg, rec, acao, b.texto) }
+  catch (err) { throw new BadRequestError(String(err.message || err)) }
+  if (!texto) throw new BadRequestError("A IA não devolveu texto. Tente de novo.")
+  return e.json(200, { texto: texto })
+}, $apis.requireAuth("users"))
+
 // custo de IA por contato (local_id -> chamadas, tokens, R$ aproximado)
 routerAdd("GET", "/api/abertocore/ia/custos", (e) => {
   const I = require(`${__hooks}/ia.js`)

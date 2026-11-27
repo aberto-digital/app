@@ -110,6 +110,19 @@ onRecordUpdateRequest((e) => {
   if (velho.social && !novo.social) novo.social = velho.social
   if (velho.usuario && !novo.usuario) novo.usuario = velho.usuario
   if (velho.foto && novo.foto !== velho.foto) novo.foto = velho.foto   // a foto só o servidor troca
+  // etiquetas: o servidor (automações, site) também põe; o app tira as que a equipe removeu (etiqFora)
+  if ((velho.etiquetas || []).length) {
+    const fora = novo.etiqFora || []
+    novo.etiquetas = Array.from(new Set([].concat(novo.etiquetas || [], velho.etiquetas || []))).filter((x) => fora.indexOf(x) < 0)
+  }
+  // histórico de etapas: a IA (servidor) e o app escrevem; junta os dois
+  if ((velho.hist || []).length) {
+    const vistos = {}, h = []
+    ;[].concat(velho.hist || [], novo.hist || []).forEach((x) => { const k = x && (x.e + "|" + x.ts); if (k && !vistos[k]) { vistos[k] = 1; h.push(x) } })
+    h.sort((a, b) => (a.ts || 0) - (b.ts || 0))
+    novo.hist = h.slice(-40)
+  }
+  if (velho.etapaTs && velho.etapa === novo.etapa && (novo.etapaTs || 0) < velho.etapaTs) novo.etapaTs = velho.etapaTs
   const vb = velho.bot, nb = novo.bot
   if (vb && (!nb || (vb.ate || 0) > (nb.ate || 0) || (vb.ultimoMenu || 0) > (nb.ultimoMenu || 0))) novo.bot = Object.assign({}, nb || {}, vb)
   // o app tinha uma cópia antiga: mantém o que a IA preencheu no card

@@ -1245,6 +1245,7 @@
     {id:'canais', grupo:'config', cat:'Atendimento', curto:'Canais', nome:'Canais', ic:'canais', sub:'WhatsApp, Instagram, Messenger, e-mail e chat do site', fim:true},
     {id:'leads', grupo:'config', cat:'Vendas', curto:'Leads', nome:'Importar leads', ic:'funil', sub:'Listas de prospecção em Excel ou CSV'},
     {id:'clientes', grupo:'config', cat:'Agência', curto:'Clientes', nome:'Clientes no AbertoCore', ic:'dash', sub:'Acesso das empresas clientes ao app', agencia:true},
+    {id:'demos', grupo:'config', cat:'Agência', curto:'Demos', nome:'Links de demonstração', ic:'canais', sub:'Sites modelo para abrir ou mandar ao cliente', agencia:true, suporte:true},
     {id:'config', curto:'Ajustes', nome:'Configurações', ic:'prod', sub:'Produtos, atendimento automático e canais', oculta:true}
   ];
   if (BELEZA) VISTAS.forEach(function(v){ if (v.id === 'agenda'){ v.nome = 'Agenda'; v.sub = 'Horários da semana, manutenções e retornos'; } if (v.id === 'produtos'){ v.nome = 'Serviços e preços'; v.curto = 'Serviços'; v.sub = 'O que você faz e por quanto'; } });
@@ -1293,7 +1294,7 @@
     var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
     app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
     $('#cfgBtn').setAttribute('aria-pressed', emCfg);
-    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, agendamento:vAgendamento, clientes:vClientes})[atual]();
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, agendamento:vAgendamento, clientes:vClientes, demos:vDemos})[atual]();
     desenhaMenuCfg();
   }
 
@@ -1331,8 +1332,15 @@
     var nm = N && N.empresaNome ? N.empresaNome() : '';
     return !!(u && u.papel !== 'equipe' && /^abertodigital$/i.test(String(nm).trim()));
   }
+  // conta de suporte da agência: comparada por uma impressão do e-mail para o endereço não ficar no código (repo público).
+  // Só esconde o menu; as páginas de demonstração continuam públicas para o cliente abrir.
+  function impressao(t){ var x = 0x811c9dc5; t = String(t || '').trim().toLowerCase(); for (var i = 0; i < t.length; i++){ x ^= t.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x.toString(36); }
+  function ehSuporte(){
+    var N = window.Nuvem, u = N && N.usuario && N.usuario();
+    return ehAgencia() && !!u && impressao(u.email) === '1mqs0ld';
+  }
   function itensCfg(){
-    var L = VISTAS.filter(function(v){ return v.grupo === 'config' && (!v.agencia || ehAgencia()); });
+    var L = VISTAS.filter(function(v){ return v.grupo === 'config' && (!v.agencia || ehAgencia()) && (!v.suporte || ehSuporte()); });
     if (!BELEZA && ehAgencia()) L.splice(L.map(function(v){ return v.id; }).indexOf('leads') + 1, 0, {id:'auditoria', link:'auditoria/', cat:'Vendas', curto:'Auditoria', nome:'Auditoria de presença digital', ic:'dash', sub:'Score, gráficos e relatório em PDF por empresa'});
     var cats = []; L.forEach(function(v){ if (cats.indexOf(v.cat) < 0) cats.push(v.cat); });
     return cats.map(function(c){ return {cat:c, itens:L.filter(function(v){ return v.cat === c; })}; });
@@ -1371,6 +1379,34 @@
     $('#vista').innerHTML = '<div class="ajustes"></div>';
     if (N && N.req && ehAgencia()) painelClientes(N);
     else $('.ajustes').innerHTML = '<section class="painel"><p class="nota-bot">Disponível só para a equipe da abertodigital.</p></section>';
+  }
+
+  /* ---------- Links de demonstração (experiencia/): só a conta de suporte da agência ---------- */
+  function vDemos(){
+    var L = window.LinkExperiencia;
+    if (!ehSuporte() || !L){ $('#vista').innerHTML = '<div class="ajustes"><section class="painel"><p class="nota-bot">Disponível só na conta de suporte da abertodigital.</p></section></div>'; return; }
+    var d = { nome: '', cidade: '', l: 'pt' };
+    var base = location.origin + location.pathname.replace(/[^\/]*$/, '') + 'experiencia/';
+    function url(n){ var x = L.NICHOS.filter(function(k){ return k.n === n; })[0]; return L.monta(base, { m: x.m, n: x.n, nome: d.nome, cidade: d.cidade, l: d.l === 'en' ? 'en' : '' }); }
+    var grupos = [['pedido', 'Pedido', 'Cardápio, carrinho e checkout'], ['agendamento', 'Agendamento', 'Serviço, profissional, dia e horário'], ['orcamento', 'Orçamento', 'Perguntas, fotos e proposta']];
+    $('#vista').innerHTML = '<div class="ajustes"><section class="painel"><h2>Links de demonstração</h2>' +
+      '<p class="nota-bot">Site modelo com chat de IA de verdade e, depois do envio, a vitrine do AbertoCore do lado da empresa. Abra para mostrar ou copie o link para mandar ao cliente. Para usar a marca de um lead (logo e cor), use o botão na ficha dele.</p>' +
+      '<div class="duas"><div class="campo"><label for="dmN">Nome do negócio (opcional)</label><input id="dmN" maxlength="40" placeholder="Seu negócio"></div>' +
+      '<div class="campo"><label for="dmC">Cidade (opcional)</label><input id="dmC" maxlength="40" placeholder="Ex.: Arujá"></div></div>' +
+      '<div class="campo"><label for="dmL">Idioma</label><select id="dmL"><option value="pt">Português (R$)</option><option value="en">Inglês (US$)</option></select></div>' +
+      grupos.map(function(g){
+        return '<div class="grupo-t" style="margin-top:14px">' + g[1] + ' <small style="font-weight:400;color:var(--muted)">· ' + g[2] + '</small></div><div class="docs">' +
+          L.NICHOS.filter(function(x){ return x.m === g[0]; }).map(function(x){
+            return '<div class="doc-l"><span><b><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + x.cor + ';margin-right:6px;box-shadow:0 0 0 1px var(--linha)"></i>' + esc(x.rotulo.split(' · ')[1]) + '</b></span>' +
+              '<span class="doc-bts"><button type="button" class="btn peq" data-dabre="' + x.n + '">Abrir ↗</button><button type="button" class="btn peq pri" data-dcopia="' + x.n + '">Copiar link</button></span></div>';
+          }).join('') + '</div>';
+      }).join('') + '</section></div>';
+    function le(){ d.nome = $('#dmN').value.trim(); d.cidade = $('#dmC').value.trim(); d.l = $('#dmL').value; }
+    $('#vista').onclick = function(e){
+      var a = e.target.closest('[data-dabre]'), c = e.target.closest('[data-dcopia]');
+      if (a){ le(); window.open(url(a.getAttribute('data-dabre')), '_blank', 'noopener'); }
+      if (c){ le(); var u = url(c.getAttribute('data-dcopia')); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', u); }); }
+    };
   }
 
   /* ========== APARÊNCIA E CONTA ========== */
@@ -2806,7 +2842,7 @@
       lin('Briefing', nb ? nb + ' respostas' + (b.atualizado ? ', ' + quando(b.atualizado) : '') : 'Não preenchido', 'briefing/', nb ? 'Abrir' : 'Preencher', nb > 0) +
       lin('Proposta', p ? p.numero + ', ' + Core.brl(p.setup) : 'Não gerada', 'proposta/', p ? 'Abrir' : 'Gerar', !!p, 'proposta') +
       lin('Contrato', k ? 'Gerado ' + quando(k.gerado || Date.now()) : 'Não gerado', 'contrato/', k ? 'Abrir' : 'Gerar', !!k) +
-      '<div class="doc-l"><span><b>Link de experiência</b><small>Demo com a marca dele</small></span><span class="doc-bts"><button type="button" class="btn peq" id="dExp">Gerar</button></span></div></div>' +
+      (ehSuporte() ? '<div class="doc-l"><span><b>Link de experiência</b><small>Demo com a marca dele</small></span><span class="doc-bts"><button type="button" class="btn peq" id="dExp">Gerar</button></span></div>' : '') + '</div>' +
       (e.razao || e.cnpj ? '<div class="dado"><span>Razão social</span><span>' + esc(e.razao || '-') + '</span></div><div class="dado"><span>CNPJ</span><span>' + esc(e.cnpj || '-') + '</span></div>' : '') +
       (e.responsaveis && e.responsaveis.length > 1 ? '<div class="dado"><span>Responsáveis</span><span>' + e.responsaveis.map(function(r){ return esc(r.nome); }).join(', ') + '</span></div>' : '');
   }

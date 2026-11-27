@@ -180,7 +180,8 @@ function processaWebhook(app, corpo) {
         if (!clienteJaFalou) { d.prospeccao = true; d.tipo = d.tipo || "Lead" }
         // em lead de prospecção a IA volta 30 min depois da resposta manual (para seguir esquentando); nos demais, 12 h
         else d.bot = Object.assign({}, d.bot || {}, { modo: "humano", ate: Date.now() + (d.prospeccao ? 30 * 60000 : 12 * 3600000) })
-        d.status = "esperando"
+        // sem resposta ainda, o contato fica na aba Prospecção; a Entrada é só de quem respondeu
+        d.status = clienteJaFalou ? "esperando" : "prospeccao"
       } else {
         d.naoLidas = (d.naoLidas || 0) + 1
         // a pessoa passou um WhatsApp: guarda no contato, e a conversa do WhatsApp cai neste mesmo contato

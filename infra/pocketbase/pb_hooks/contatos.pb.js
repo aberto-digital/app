@@ -33,12 +33,15 @@ routerAdd("POST", "/api/abertocore/contatos/juntar", (e) => {
   const generico = (n) => !n || /^(Instagram|Facebook) \d{4}$/.test(n) || /@/.test(n)
   // dados: o mantido vale; o que estiver vazio vem do outro
   if (generico(da.nome) && !generico(db.nome)) da.nome = db.nome
-  ;["negocio", "tel", "wa", "email", "usuario", "followup", "endereco", "site", "empresa"].forEach((k) => { if (!da[k] && db[k]) da[k] = db[k] })
+  ;["negocio", "tel", "wa", "email", "usuario", "followup", "endereco", "site", "empresa", "lead", "lig"].forEach((k) => { if (!da[k] && db[k]) da[k] = db[k] })
+  if (!da.usuario && db.lead && db.lead.insta) da.usuario = String(db.lead.insta).replace(/^@/, "")
   if (db.nota && db.nota !== da.nota) da.nota = [da.nota, db.nota].filter(Boolean).join("\n")
   if ((db.valor || 0) > (da.valor || 0)) da.valor = db.valor
   if (db.tipo === "Cliente") da.tipo = "Cliente"
   da.naoLidas = (da.naoLidas || 0) + (db.naoLidas || 0)
   da.msgs = W.unirMsgs(da.msgs || [], db.msgs || []).sort((x, y) => (x.ts || 0) - (y.ts || 0))
+  // ninguém respondeu ainda: o contato juntado continua na Prospecção
+  if (!da.msgs.some((m) => m.de === "cli") && (da.prospeccao || db.prospeccao || da.status === "prospeccao" || db.status === "prospeccao")) { da.status = "prospeccao"; da.prospeccao = true }
   da.msgs.push({ de: "sis", txt: "Conversa de " + (db.canal || "outro canal") + " juntada a este contato.", ts: Date.now() })
   const canais = [].concat(da.canais || [da.canal], db.canais || [db.canal]).filter((v, i, a) => v && a.indexOf(v) === i)
   da.canais = canais

@@ -23,7 +23,7 @@
 
   var auth = ler(CHAVE_AUTH);
   var mapa = ler(CHAVE_SYNC) || {};
-  var timer = null, enviando = false, pendente = false, aplicandoRemoto = false;
+  var timer = null, enviando = false, pendente = false, aplicandoRemoto = false, travado = false, emCurso = null;
   var estado = 'local';
   var pronto = !auth, esperando = false; // com login, só envia depois de baixar o que está no servidor
 
@@ -166,7 +166,7 @@
   }
   function enviarAgora(forcar) {
     if (!auth) return Promise.resolve();
-    if (enviando) { pendente = true; return Promise.resolve(); }
+    if (enviando || travado) { pendente = true; return emCurso || Promise.resolve(); }
     var S = ler(CHAVE); if (!S) return Promise.resolve();
     enviando = true; marca('sincronizando');
     var ops = [];
@@ -207,12 +207,21 @@
       if (!bloco.length) return Promise.resolve();
       return Promise.all(bloco.map(function (f) { return f(); })).then(lote);
     }
-    return lote().then(function () {
+    emCurso = lote().then(function () {
       gravar(CHAVE_SYNC, mapa); enviando = false; marca('ok');
       if (pendente) { pendente = false; agenda(); }
     }).catch(function (e) {
       gravar(CHAVE_SYNC, mapa); enviando = false; marca('erro', e.message);
-    });
+    }).then(function () { emCurso = null; });
+    return emCurso;
+  }
+  // Juntar dois contatos: espera o envio em andamento, manda só o que mudou e segura os envios
+  // automáticos enquanto o servidor junta (senão uma gravação antiga desfaz a mescla).
+  function juntarContatos(manter, juntar) {
+    return (emCurso || Promise.resolve())
+      .then(function () { return enviarAgora(false); })
+      .then(function () { travado = true; return api('POST', '/api/abertocore/contatos/juntar', { manter: manter, juntar: juntar }); })
+      .then(function (r) { travado = false; agenda(); return r; }, function (e) { travado = false; agenda(); throw e; });
   }
   function agenda() { if (!auth) return; if (!pronto) { esperando = true; return; } clearTimeout(timer); timer = setTimeout(function () { enviarAgora(false); }, 1200); }
 
@@ -443,7 +452,7 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciaUI); else iniciaUI();
 
-  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, logado: function () { return !!auth; }, usuario: function () { return auth; }, empresaNome: function () { try { return localStorage.getItem('abertocore-empresa-nome') || ''; } catch (e) { return ''; } },
+  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, juntar: juntarContatos, logado: function () { return !!auth; }, usuario: function () { return auth; }, empresaNome: function () { try { return localStorage.getItem('abertocore-empresa-nome') || ''; } catch (e) { return ''; } },
     waConectado: function () { return !!wa.conectado; }, estado: function () { return estado; }, telaLogin: telaLogin,
     req: req, entrarComResposta: entrarComResposta,
     ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp,

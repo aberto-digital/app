@@ -659,7 +659,8 @@
   .at-sep{margin:18px 22px 0;padding-top:18px;border-top:1px solid var(--linha);max-width:1240px}
   .at-sep span{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px}.at-sep span svg{width:18px;height:18px}
   .at-sep small{display:block;color:var(--sec);font-size:12.5px;margin-top:4px}
-  .at-sep .ia-tit{margin-bottom:0;flex-wrap:nowrap}
+  .at-sep .ia-tit{margin-bottom:0;flex-wrap:nowrap;justify-content:flex-start;gap:12px}
+  .at-pag{padding-bottom:64px}
   .at-sep span.ia-tag{display:inline-block;font-size:11.5px;font-weight:700}
   .at-corpo{padding:12px 22px 6px;max-width:1240px}
   #usoIA:not(:empty){padding:18px 22px 0;max-width:1240px}
@@ -3343,7 +3344,7 @@
           '<div class="sj-rodape"><span class="sj-por' + (p.forte ? ' forte' : '') + '">' + esc(p.por) + '</span><span class="sj-bts"><button type="button" class="btn peq" data-nao="' + i + '">Não é a mesma</button><button type="button" class="btn pri peq" data-sj="' + i + '">Juntar</button></span></div></div>'; }).join('') + '</div>'
           : '<p class="vazio peq">Nenhum contato repetido por aqui. 👌</p>') +
         '<div class="bts"><button class="btn" value="fechar" formnovalidate>Fechar</button></div></form>';
-      M.querySelectorAll('[data-sj]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-sj')]; M.close(); juntar(p.manter.id, p.outro.id); }; });
+      M.querySelectorAll('[data-sj]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-sj')]; juntar(p.manter.id, p.outro.id, M); }; });
       M.querySelectorAll('[data-nao]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-nao')];
         // fica gravado nos dois contatos (vai para o servidor e vale para a equipe toda)
         p.manter.naoJuntar = (p.manter.naoJuntar || []).concat([p.outro.id]); p.outro.naoJuntar = (p.outro.naoJuntar || []).concat([p.manter.id]);
@@ -3370,22 +3371,34 @@
       var b = ev.target.closest('[data-j]'); if (!b) return;
       var o = contato(+b.getAttribute('data-j')); if (!o) return;
       if (!confirm('Juntar "' + o.nome + '" em "' + c.nome + '"?\n\nAs mensagens das duas conversas ficam juntas aqui e "' + o.nome + '" deixa de existir como contato separado.')) return;
-      M.close(); juntar(c.id, o.id);
+      juntar(c.id, o.id, M);
     };
     M.returnValue = ''; M.showModal(); setTimeout(function(){ $('#jtB').focus(); }, 30);
   }
-  function juntar(idA, idB){
-    var A = contato(idA), B = contato(idB); if (!A || !B) return;
+  var juntando = false; // evita dois cliques seguidos no Juntar
+  function juntar(idA, idB, M){
+    var A = contato(idA), B = contato(idB); if (!A || !B || juntando) return;
     function aplica(novo){
+      if (M && M.open) M.close();
       S.contatos = S.contatos.filter(function(x){ return x.id !== idB; });
       S.eventos.forEach(function(e){ if (e.contato === idB) e.contato = idA; });
       Object.keys(novo).forEach(function(k){ A[k] = novo[k]; }); A.id = idA;
       salva(); sel = idA; desenha(); aviso('Conversas juntadas em <b>' + esc(A.nome) + '</b>.');
     }
     var N = window.Nuvem;
-    if (N && N.logado && N.logado()){
-      Promise.resolve(N.enviar ? N.enviar() : null).catch(function(){}).then(function(){ return N.req('POST', '/api/abertocore/contatos/juntar', {manter:idA, juntar:idB}); }).then(function(r){ aplica(r.contato || {}); })
-        .catch(function(err){ aviso(esc(err.message || 'Não consegui juntar agora.')); });
+    if (N && N.logado && N.logado() && N.juntar){
+      juntando = true;
+      if (M){ M.innerHTML = '<form method="dialog"><h3>Juntando contatos…</h3><p class="nota-bot">Estou salvando e juntando as conversas de <b>' + esc(A.nome) + '</b> e <b>' + esc(B.nome) + '</b>. Pode levar alguns segundos, não feche esta tela.</p></form>'; if (!M.open) M.showModal(); }
+      else aviso('Juntando contatos…');
+      N.juntar(idA, idB).then(function(r){ juntando = false; aplica(r.contato || {}); })
+        .catch(function(err){
+          juntando = false;
+          var msg = (err && err.message) || 'Não consegui juntar agora.';
+          if (M && M.open){
+            M.innerHTML = '<form method="dialog"><h3>Não consegui juntar</h3><p class="nota-bot">' + esc(msg) + '</p><div class="bts"><button class="btn" value="fechar" formnovalidate>Fechar</button><button class="btn pri" type="button" id="jtDeNovo">Tentar de novo</button></div></form>';
+            $('#jtDeNovo').onclick = function(){ juntar(idA, idB, M); };
+          } else aviso(esc(msg));
+        });
       return;
     }
     var m = (A.msgs || []).concat(B.msgs || []).sort(function(x, y){ return (x.ts || 0) - (y.ts || 0); });
@@ -3769,7 +3782,7 @@
   /* ========== ATENDIMENTO AUTOMÁTICO (chatbot + IA) ========== */
   /* chave geral de cada bloco: ligado abre as configurações, desligado mostra só o título e a descrição */
   function cabBloco(icone, titulo, tag, sw, desc){
-    return '<div class="at-sep"><div class="ia-tit"><span>' + icone + esc(titulo) + (tag || '') + '</span>' + (sw || '') + '</div><small>' + desc + '</small></div>';
+    return '<div class="at-sep"><div class="ia-tit">' + (sw || '') + '<span>' + icone + esc(titulo) + (tag || '') + '</span></div><small>' + desc + '</small></div>';
   }
   function mestreOn(k){ if (k === 'bot') return !!botCfg().ativo; if (k === 'ativo') return !!(S.ia && S.ia.ativo); return !S.ia || S.ia[k] !== false; }
   function mestreBtn(k, rotulo){ return '<button class="chave" role="switch" data-mestre="' + k + '" aria-checked="' + mestreOn(k) + '" aria-label="' + esc(rotulo) + '"></button>'; }

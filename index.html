@@ -322,6 +322,12 @@
   .ia-quieta svg{width:16px;height:16px;flex:none;margin-top:1px}
   .nm-ed{border:0;background:transparent;color:var(--sec);cursor:pointer;font-size:15px;padding:2px 4px;border-radius:6px}
   .nm-ed:hover{color:var(--texto);background:var(--linha)}
+  .cab-via{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;margin-top:8px;font-size:13px}
+  .cab-via .via{display:inline-flex;align-items:center;gap:5px;max-width:100%;color:var(--sec);text-decoration:none}
+  .cab-via .via:hover{color:var(--ceu)}
+  .cab-via .via svg{width:15px;height:15px;flex:none}
+  .cab-via .via span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cab-via .via.ig svg{color:var(--ig)}.cab-via .via.wa svg{color:var(--wa)}
   .det-juntar{width:100%;justify-content:center;margin-top:18px}
   .jt-lista{display:grid;gap:6px;max-height:50vh;overflow:auto;margin-top:6px}
   .jt-item{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--linha);background:var(--branco);border-radius:10px;padding:8px 10px;cursor:pointer;color:inherit;font:inherit}
@@ -1038,7 +1044,10 @@
   /* ---------- utilidades ---------- */
   var IC = {
     tel:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
-    msg:'<path d="M4 5h16v11H9l-5 4z"/>',
+    ig:'<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6" fill="currentColor"/>',
+  wa:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9c0 3 3 6 6 6l1-1.6-2-1-1 .8c-.8-.4-1.600-1.200-2-2l.8-1-1-2z"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.500 7.500L12 13l8.500-5.500"/>',
+  msg:'<path d="M4 5h16v11H9l-5 4z"/>',
     funil:'<path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/>',
     agenda:'<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/>',
     dash:'<path d="M5 20v-8M12 20V5M19 20v-5M3 20h18"/>',
@@ -2960,16 +2969,29 @@
       (iaSt.franquia_det && iaSt.franquia_det.extra ? ' Este mês inclui <b>' + iaSt.franquia_det.extra.toLocaleString('pt-BR') + '</b> ações de pacote extra.' : '') + '</p></section>';
   }
 
+  /* Faixa de contato no topo do card: só o que existe (Instagram, WhatsApp/telefone, e-mail). */
+  function viaContato(c){
+    var L = [];
+    function via(cls, icone, txt, href){ L.push('<a class="via ' + cls + '" href="' + href + '"' + (/^https?:/.test(href) ? ' target="_blank" rel="noopener"' : '') + ' title="' + esc(txt) + '">' + ic(icone) + '<span>' + esc(txt) + '</span></a>'); }
+    if (c.usuario) via('ig', 'ig', '@' + c.usuario, 'https://instagram.com/' + encodeURIComponent(c.usuario));
+    if (c.tel){
+      var wa = c.canal === 'WhatsApp' || (c.canais || []).indexOf('WhatsApp') >= 0;
+      if (wa) via('wa', 'wa', c.tel, 'https://wa.me/' + foneWa(c.tel)); else via('tel', 'tel', c.tel, 'tel:' + String(c.tel).replace(/[^\d+]/g, ''));
+    }
+    if (c.email) via('em', 'mail', c.email, 'mailto:' + c.email);
+    return L.length ? '<div class="cab-via">' + L.join('') + '</div>' : '';
+  }
   function desenhaDetalhe(){
     if (sel === 'ia') return detalheIA();
     var c = contato(sel), box = $('#detalhe'); if (!box || !c) return;
     var evs = S.eventos.filter(function(e){ return e.contato === c.id && diffDias(e.data) >= 0; });
     box.innerHTML = '<div class="det-barra"><button class="btn peq" id="fechaDet">' + ic('x') + 'Fechar</button><button class="btn pri peq" id="salvaDet">' + ic('ok') + 'Salvar</button></div>' +
-      '<div class="cab">' + avatar(c, true) + '<div class="nm">' + esc(c.nome) + ' <button class="nm-ed" id="dNomeEd" type="button" title="Editar nome e dados" aria-label="Editar nome e dados">✎</button></div><div class="ng">' + esc(c.negocio) + '</div></div>' +
+      '<div class="cab">' + avatar(c, true) + '<div class="nm">' + esc(c.nome) + ' <button class="nm-ed" id="dNomeEd" type="button" title="Editar nome e dados" aria-label="Editar nome e dados">✎</button></div><div class="ng">' + esc(c.negocio) + '</div>' + viaContato(c) + '</div>' +
       '<div class="det-acoes">' +
         '<button class="btn peq" type="button" id="dIgnora" title="' + (c.ignorado ? 'Voltar a receber avisos deste contato' : 'Sem avisos e sem resposta automática para este contato') + '">' + (c.ignorado ? 'Parar de ignorar' : ic('x') + 'Ignorar') + '</button>' +
         (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" type="button" id="dArquiva">' + ic('arquivo') + 'Arquivar</button>' : '<button class="btn peq" type="button" id="dReabre">Desarquivar</button>') +
         (!c.ignorado && stDe(c) !== 'prospeccao' ? '<button class="btn peq" type="button" id="dProsp" title="Tira da Entrada e leva para a aba Prospecção">Voltar à Prospecção</button>' : '') +
+        '<button class="btn peq" type="button" id="dJunta" title="Une este contato a outro que seja a mesma pessoa">Juntar</button>' +
       '</div>' +
       blocoLigacao(c) +
       '<div class="campo"><span class="rot">Classificação</span><div class="seg" id="segTipo">' +
@@ -2986,21 +3008,16 @@
       '<button class="btn pri" id="dAgendar" style="width:100%;justify-content:center;margin-bottom:16px">' + ic('agenda') + (BELEZA ? 'Agendar horário' : 'Agendar compromisso') + '</button>' +
       (BELEZA ? blocoFicha(c) : blocoDocs(c)) +
       '<div class="grupo-t" style="display:flex;justify-content:space-between;align-items:center">Contato<button class="btn peq" id="dEditar" type="button">Editar</button></div>' +
-      '<div class="dado"><span>Canal</span>' + chipCanal(c.canal) + '</div>' +
-      '<div class="dado"><span>Telefone</span><span>' + esc(c.tel) + '</span></div>' +
-      (c.usuario ? '<div class="dado"><span>Instagram</span><a href="https://instagram.com/' + encodeURIComponent(c.usuario) + '" target="_blank" rel="noopener">@' + esc(c.usuario) + '</a></div>' : '') +
-      (c.email ? '<div class="dado"><span>E-mail</span><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a></div>' : '') +
       (c.site ? '<div class="dado"><span>Site</span><a href="' + esc(/^https?:/.test(c.site) ? c.site : 'https://' + c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a></div>' : '') +
       (c.endereco ? '<div class="dado"><span>Endereço</span><a href="https://www.google.com/maps/search/' + encodeURIComponent(c.endereco) + '" target="_blank" rel="noopener">' + esc(c.endereco) + '</a></div>' : '') +
       ((c.canais || []).length > 1 ? '<div class="dado"><span>Canais</span><span>' + c.canais.map(function(k){ return chipCanal(k); }).join(' ') + '</span></div>' : '') +
-      '<div class="dado"><span>Origem</span><span>' + esc(c.origem) + '</span></div>' +
       (window.Nuvem && Nuvem.logado() ? '<div class="dado" id="dCustoIA" hidden><span>Custo da IA</span><span></span></div>' : '') + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
     ligaLigacao(c);
     [['#dIgnora', 'ignorar'], ['#dArquiva', 'arquivar'], ['#dReabre', 'reabrir'], ['#dProsp', 'prospeccao']].forEach(function(x){ var b = $(x[0]); if (b) b.onclick = function(){ if (sel === c.id && ACOES[x[1]]) ACOES[x[1]](); }; });
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });
-    box.insertAdjacentHTML('beforeend', '<button class="btn det-juntar" id="dJunta" type="button">Juntar com outro contato</button><button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
+    box.insertAdjacentHTML('beforeend', '<button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');
     custoIA(c.id);
     $('#dNomeEd').onclick = function(){ modalContato(c.id); };
     $('#dJunta').onclick = function(){ modalJuntar(c.id); };

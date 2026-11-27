@@ -44,6 +44,16 @@ async function t(nome, fn) { try { await fn(); ok++; console.log('ok -', nome) }
     assert.strictEqual(Pedido.qtd(p, k), 2)
   })
 
+  await t('doceria: quantidade obrigatória e preço da opção somam no item', () => {
+    const d = Marca.ler('?n=doceria')
+    assert.strictEqual(Pedido.valida('coxinha', ['qtd:p50'], 'doceria'), false)
+    assert.strictEqual(Pedido.valida('coxinha', ['qtd:p50', 'preparo:frito'], 'doceria'), true)
+    const p = Pedido.novo(d)
+    Pedido.adiciona(p, 'coxinha', ['qtd:p50', 'preparo:frito', 'extra:molho'])
+    Pedido.adiciona(p, 'refri')
+    assert.strictEqual(Pedido.resumo(p, 'retirada').subtotal, 22 + 80 + 4 + 14)
+  })
+
   await t('em inglês usa preços em dólar', () => {
     const p = Pedido.novo(Marca.ler('?n=pizzaria&l=en'))
     Pedido.adiciona(p, 'calabresa')

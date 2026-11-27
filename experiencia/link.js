@@ -6,6 +6,7 @@
   // ramo do lead -> modelo e nicho (exato: o nicho tem modelo próprio; senão é o mais parecido)
   var REGRAS = [
     { re: /pizz/i, m: 'pedido', n: 'pizzaria' },
+    { re: /doce|docinho|salgad|brigadeir|confeit|coxinha|bolo|brownie/i, m: 'pedido', n: 'doceria' },
     { re: /hamb[uú]rg|burger|smash|lanche/i, m: 'pedido', n: 'hamburgueria' },
     { re: /barbear|barber/i, m: 'agendamento', n: 'barbearia' },
     { re: /pilates|fisio|quiropra|massoter/i, m: 'agendamento', n: 'pilates' },
@@ -24,6 +25,7 @@
   var NICHOS = [
     { n: 'pizzaria', m: 'pedido', rotulo: 'Pedido · Pizzaria', cor: '#C0392B' },
     { n: 'hamburgueria', m: 'pedido', rotulo: 'Pedido · Hamburgueria', cor: '#E67E22' },
+    { n: 'doceria', m: 'pedido', rotulo: 'Pedido · Docinhos e salgados', cor: '#6F4E37' },
     { n: 'estetica', m: 'agendamento', rotulo: 'Agendamento · Estética e beleza', cor: '#B5487A' },
     { n: 'barbearia', m: 'agendamento', rotulo: 'Agendamento · Barbearia', cor: '#1F2A36' },
     { n: 'pilates', m: 'agendamento', rotulo: 'Agendamento · Pilates e fisioterapia', cor: '#2E8B7A' },

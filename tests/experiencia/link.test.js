@@ -9,6 +9,8 @@ function t(nome, fn) { try { fn(); ok++; console.log('ok -', nome) } catch (e) {
 
 t('ramo vira nicho e modelo', () => {
   assert.deepStrictEqual(Link.nichoDoRamo('Pizzaria com delivery'), { m: 'pedido', n: 'pizzaria', exato: true })
+  assert.deepStrictEqual(Link.nichoDoRamo('Docinhos e salgados para festa'), { m: 'pedido', n: 'doceria', exato: true })
+  assert.deepStrictEqual(Link.nichoDoRamo('Confeitaria artesanal'), { m: 'pedido', n: 'doceria', exato: true })
   assert.deepStrictEqual(Link.nichoDoRamo('Hamburgueria smash'), { m: 'pedido', n: 'hamburgueria', exato: true })
   assert.deepStrictEqual(Link.nichoDoRamo('Burger joint (EUA)'), { m: 'pedido', n: 'hamburgueria', exato: true })
 })

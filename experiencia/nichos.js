@@ -75,6 +75,61 @@
         { nome: 'Pedro Alves', canal: 'Site', txt: { pt: 'Pedido #101 chegou, muito bom!', en: 'Order #101 arrived, so good!' } },
       ],
     },
+    // ---------------- Pedido: docinhos e salgados ----------------
+    doceria: {
+      modelo: 'pedido', cor: '#6F4E37', taxa: 7, taxaUsd: 4.99,
+      textos: {
+        pt: { titulo: 'Docinhos e salgados para a sua festa', chamada: 'Feitos no dia, em porções, meio cento ou cento, com entrega.', tipo: 'Doceria e salgadaria', prazo: '50 a 60 min' },
+        en: { titulo: 'Sweets and savory snacks for your party', chamada: 'Made fresh, in boxes of 10, 50 or 100, with delivery.', tipo: 'Sweets & savory shop', prazo: '50 to 60 min' },
+      },
+      categorias: [
+        { nome: { pt: 'Docinhos', en: 'Sweets' }, grupos: [
+          { id: 'qtd', rot: { pt: 'Quantas unidades?', en: 'How many pieces?' }, obrig: true, max: 1, op: [
+            { id: 'p10', nome: { pt: 'Porção com 10', en: 'Box of 10' }, preco: 0, precoUsd: 0 },
+            { id: 'p50', nome: { pt: 'Meio cento (50)', en: 'Half hundred (50)' }, ds: { pt: 'Melhor preço por unidade', en: 'Better price per piece' }, preco: 90, precoUsd: 34 },
+            { id: 'p100', nome: { pt: 'Cento (100)', en: 'Hundred (100)' }, ds: { pt: 'Ideal para festa', en: 'Great for parties' }, preco: 170, precoUsd: 65 } ] },
+          { id: 'extra', rot: { pt: 'Quer deixar mais especial?', en: 'Want to make it special?' }, max: 2, op: [
+            { id: 'caixa', nome: { pt: 'Caixa para presente', en: 'Gift box' }, preco: 8, precoUsd: 3 },
+            { id: 'cartao', nome: { pt: 'Cartão com mensagem', en: 'Message card' }, preco: 5, precoUsd: 2 } ] } ], itens: [
+          { id: 'brigadeiro', etq: { pt: 'Mais pedido', en: 'Best seller' }, img: '🍫', nome: { pt: 'Brigadeiro gourmet', en: 'Gourmet brigadeiro' }, ds: { pt: 'Chocolate belga e granulado', en: 'Belgian chocolate and sprinkles' }, preco: 28, precoUsd: 10 },
+          { id: 'beijinho', img: '🥥', nome: { pt: 'Beijinho', en: 'Coconut kisses' }, ds: { pt: 'Coco e cravo, cobertura de açúcar', en: 'Coconut, sugar coated' }, preco: 26, precoUsd: 9.5 },
+          { id: 'casadinho', etq: { pt: 'Recomendado', en: 'Recommended' }, img: '🍪', nome: { pt: 'Casadinho', en: 'Casadinho' }, ds: { pt: 'Brigadeiro branco e de chocolate', en: 'White and dark brigadeiro' }, preco: 30, precoUsd: 11 },
+          { id: 'cajuzinho', img: '🥜', nome: { pt: 'Cajuzinho', en: 'Cajuzinho' }, ds: { pt: 'Amendoim e chocolate', en: 'Peanut and chocolate' }, preco: 26, precoUsd: 9.5 },
+          { id: 'trufa', img: '🍬', nome: { pt: 'Trufas recheadas', en: 'Filled truffles' }, ds: { pt: 'Sabores sortidos', en: 'Assorted flavors' }, preco: 38, precoUsd: 14 },
+        ] },
+        { nome: { pt: 'Salgados', en: 'Savory snacks' }, grupos: [
+          { id: 'qtd', rot: { pt: 'Quantas unidades?', en: 'How many pieces?' }, obrig: true, max: 1, op: [
+            { id: 'p10', nome: { pt: 'Porção com 10', en: 'Box of 10' }, preco: 0, precoUsd: 0 },
+            { id: 'p50', nome: { pt: 'Meio cento (50)', en: 'Half hundred (50)' }, ds: { pt: 'Melhor preço por unidade', en: 'Better price per piece' }, preco: 80, precoUsd: 30 },
+            { id: 'p100', nome: { pt: 'Cento (100)', en: 'Hundred (100)' }, ds: { pt: 'Ideal para festa', en: 'Great for parties' }, preco: 155, precoUsd: 58 } ] },
+          { id: 'preparo', rot: { pt: 'Como prefere?', en: 'How do you want them?' }, obrig: true, max: 1, op: [
+            { id: 'frito', nome: { pt: 'Frito na hora', en: 'Fried to order' }, preco: 0, precoUsd: 0 },
+            { id: 'assado', nome: { pt: 'Assado', en: 'Baked' }, preco: 0, precoUsd: 0 } ] },
+          { id: 'extra', rot: { pt: 'Acompanha?', en: 'Add on?' }, max: 2, op: [
+            { id: 'molho', nome: { pt: 'Molho de pimenta da casa', en: 'House hot sauce' }, preco: 4, precoUsd: 1.5 },
+            { id: 'embalagem', nome: { pt: 'Embalagem para festa', en: 'Party packaging' }, preco: 6, precoUsd: 2.5 } ] } ], itens: [
+          { id: 'coxinha', etq: { pt: 'Mais pedido', en: 'Best seller' }, img: '🍗', nome: { pt: 'Coxinha de frango', en: 'Chicken coxinha' }, ds: { pt: 'Massa leve e frango desfiado', en: 'Light dough, shredded chicken' }, preco: 22, precoUsd: 8 },
+          { id: 'kibe', img: '🧆', nome: { pt: 'Kibe', en: 'Kibbeh' }, ds: { pt: 'Carne e hortelã', en: 'Beef and mint' }, preco: 22, precoUsd: 8 },
+          { id: 'empadinha', img: '🥧', nome: { pt: 'Empadinha', en: 'Mini pie' }, ds: { pt: 'Frango com catupiry ou palmito', en: 'Chicken with cream cheese or hearts of palm' }, preco: 28, precoUsd: 10 },
+          { id: 'esfiha', img: '🥟', nome: { pt: 'Esfiha aberta', en: 'Open esfiha' }, ds: { pt: 'Carne ou queijo', en: 'Beef or cheese' }, preco: 26, precoUsd: 9.5 },
+          { id: 'pastelzinho', img: '🥟', nome: { pt: 'Pastelzinho', en: 'Mini pastel' }, ds: { pt: 'Queijo, carne ou pizza', en: 'Cheese, beef or pizza' }, preco: 24, precoUsd: 9 },
+          { id: 'risole', img: '🍤', nome: { pt: 'Risole de camarão', en: 'Shrimp rissole' }, ds: { pt: 'Camarão cremoso', en: 'Creamy shrimp' }, preco: 30, precoUsd: 11 },
+        ] },
+        { nome: { pt: 'Para a festa', en: 'For parties' }, itens: [
+          { id: 'cento', img: '🎉', nome: { pt: 'Cento de salgados variados', en: 'Hundred mixed snacks' }, ds: { pt: 'Coxinha, kibe, esfiha, risole e pastel', en: 'Coxinha, kibbeh, esfiha, rissole and pastel' }, preco: 120, precoUsd: 45 },
+          { id: 'kit', etq: { pt: 'Combo festa', en: 'Party combo' }, img: '🎂', nome: { pt: 'Kit festa (50 docinhos + 50 salgados)', en: 'Party kit (50 sweets + 50 snacks)' }, ds: { pt: 'Entrega no horário combinado', en: 'Delivered at the agreed time' }, preco: 125, precoUsd: 48 },
+        ] },
+        { nome: { pt: 'Bebidas', en: 'Drinks' }, itens: [
+          { id: 'refri', img: '🥤', nome: { pt: 'Refrigerante 2 L', en: 'Soda 2 L' }, ds: { pt: 'Coca-Cola ou Guaraná', en: 'Coke or ginger ale' }, preco: 14, precoUsd: 3.5 },
+          { id: 'suco', img: '🧃', nome: { pt: 'Suco natural 500 ml', en: 'Fresh juice 16 oz' }, ds: { pt: 'Laranja ou limão', en: 'Orange or lemonade' }, preco: 10, precoUsd: 4.5 },
+        ] },
+      ],
+      exemplos: [
+        { nome: 'Marta Silva', canal: 'WhatsApp', txt: { pt: 'Faz cento de coxinha para sábado?', en: 'Can you do 100 coxinhas for Saturday?' } },
+        { nome: 'Camila Rocha', canal: 'Instagram', txt: { pt: 'Qual o valor do cento de brigadeiro?', en: 'How much for 100 brigadeiros?' } },
+        { nome: 'Rodrigo Alves', canal: 'Site', txt: { pt: 'Pedido #101 chegou certinho, obrigado!', en: 'Order #101 arrived perfectly, thanks!' } },
+      ],
+    },
     // ---------------- Agendamento ----------------
     // abre/fecha: horário de atendimento (horas cheias); fechado: dias da semana sem atendimento (0 = domingo);
     // sinal: valor de exemplo pago via Pix para garantir o horário (R$ / US$). dur em minutos.
@@ -240,6 +295,7 @@
   // Fotos ilustrativas (Unsplash, licença livre para uso comercial; veja fotos/CREDITOS.md).
   // Cada item aponta para experiencia/fotos/<código>.jpg. Sem foto, o site usa o emoji do item.
   var FOTOS = {
+    doceria: { brigadeiro: '1599599810769-bcde5a160d32', trufa: '1511381939415-e44015466834', beijinho: '1548848221-0c2e497ed557', casadinho: '1499636136210-6f4ee915583e', cajuzinho: '1563729784474-d77dbb933a9e', coxinha: '1626082927389-6cd097cdc6ec', kibe: '1626645738196-c2a7c87a8f58', empadinha: '1534432182912-63863115e106', esfiha: '1601050690597-df0568f70950', pastelzinho: '1626645738196-c2a7c87a8f58', risole: '1626082927389-6cd097cdc6ec', cento: '1534432182912-63863115e106', kit: '1541529086526-db283c563270', refri: '1622483767028-3f66f32aef97', suco: '1600271886742-f049cd451bba' },
     pizzaria: { mussarela: '1574071318508-1cdbab80d002', calabresa: '1604382354936-07c5d9983bd3', margherita: '1513104890138-7c749659a591', portuguesa: '1565299624946-b28f40a0ae38', frango: '1565299624946-b28f40a0ae38', chocolate: '1606313564200-e75d5e30476c', refri: '1622483767028-3f66f32aef97', suco: '1600271886742-f049cd451bba' },
     hamburgueria: { classico: '1568901346375-23c9450c58cd', duplo: '1572802419224-296b0aeee0d9', bacon: '1571091718767-18b5b1457add', frango: '1586190848861-99aa4a171e90', batata: '1573080496219-bb080dd4f877', onion: '1639024471283-03518883512d', refri: '1581636625402-29b2a704ef13', milkshake: '1572490122747-3968b75cc699' },
     estetica: { sobrancelha: '1487412947147-5cebf100ffc2', henna: '1596462502278-27bfdc403348', lash: '1487412947147-5cebf100ffc2', cilios: '1487412947147-5cebf100ffc2', manicure: '1522337660859-02fbefca4702', pemao: '1604654894610-df63bc536371', limpeza: '1570172619644-dfd03ed5d881' },

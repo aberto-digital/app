@@ -659,7 +659,8 @@
   .at-sep{margin:18px 22px 0;padding-top:18px;border-top:1px solid var(--linha);max-width:1240px}
   .at-sep span{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px}.at-sep span svg{width:18px;height:18px}
   .at-sep small{display:block;color:var(--sec);font-size:12.5px;margin-top:4px}
-  .at-sep .ia-tit{margin-bottom:0;flex-wrap:nowrap}
+  .at-sep .ia-tit{margin-bottom:0;flex-wrap:nowrap;justify-content:flex-start;gap:12px}
+  .at-pag{padding-bottom:64px}
   .at-sep span.ia-tag{display:inline-block;font-size:11.5px;font-weight:700}
   .at-corpo{padding:12px 22px 6px;max-width:1240px}
   #usoIA:not(:empty){padding:18px 22px 0;max-width:1240px}
@@ -3769,7 +3770,7 @@
   /* ========== ATENDIMENTO AUTOMÁTICO (chatbot + IA) ========== */
   /* chave geral de cada bloco: ligado abre as configurações, desligado mostra só o título e a descrição */
   function cabBloco(icone, titulo, tag, sw, desc){
-    return '<div class="at-sep"><div class="ia-tit"><span>' + icone + esc(titulo) + (tag || '') + '</span>' + (sw || '') + '</div><small>' + desc + '</small></div>';
+    return '<div class="at-sep"><div class="ia-tit">' + (sw || '') + '<span>' + icone + esc(titulo) + (tag || '') + '</span></div><small>' + desc + '</small></div>';
   }
   function mestreOn(k){ if (k === 'bot') return !!botCfg().ativo; if (k === 'ativo') return !!(S.ia && S.ia.ativo); return !S.ia || S.ia[k] !== false; }
   function mestreBtn(k, rotulo){ return '<button class="chave" role="switch" data-mestre="' + k + '" aria-checked="' + mestreOn(k) + '" aria-label="' + esc(rotulo) + '"></button>'; }

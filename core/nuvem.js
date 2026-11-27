@@ -110,7 +110,7 @@
       });
       var cfg = res[3][0];
       var c = (cfg && cfg.dados) || {};
-      S.ia = c.ia; S.bot = c.bot; S.email = c.email; S.agenda = c.agenda; S.respostas = c.respostas; S.msgsCanal = c.msgsCanal || {}; S.prox = c.prox; S.catalogoV = c.catalogoV; S.enterpriseMigrado = c.enterpriseMigrado;
+      S.ia = c.ia; S.bot = c.bot; S.email = c.email; S.agenda = c.agenda; S.orcamento = c.orcamento; S.respostas = c.respostas; S.msgsCanal = c.msgsCanal || {}; S.prox = c.prox; S.catalogoV = c.catalogoV; S.enterpriseMigrado = c.enterpriseMigrado;
       if (cfg) novoMapa.config = { rid: cfg.id, h: hash(c) };
       return { S: S, mapa: novoMapa, contratada: c.contratada, vazio: !res.some(function (l) { return l.length; }) };
     });
@@ -157,7 +157,7 @@
 
   /* ---------- enviar para o servidor ---------- */
   function configDe(S) {
-    return { ia: S.ia, bot: S.bot, email: S.email, agenda: S.agenda, respostas: S.respostas, msgsCanal: S.msgsCanal, prox: S.prox, catalogoV: S.catalogoV, enterpriseMigrado: S.enterpriseMigrado, contratada: ler(CHAVE_CONTRATADA) || undefined };
+    return { ia: S.ia, bot: S.bot, email: S.email, agenda: S.agenda, orcamento: S.orcamento, respostas: S.respostas, msgsCanal: S.msgsCanal, prox: S.prox, catalogoV: S.catalogoV, enterpriseMigrado: S.enterpriseMigrado, contratada: ler(CHAVE_CONTRATADA) || undefined };
   }
   function campos(col, item) {
     if (col === 'contatos') return { nome: item.nome || '', telefone: item.tel || '', canal: item.canal || '', etapa: item.etapa || '' };

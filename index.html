@@ -649,7 +649,7 @@
   .auto-post{aspect-ratio:1;border:2px solid transparent;border-radius:8px;overflow:hidden;padding:0;background:var(--papel);cursor:pointer;font-size:11px;color:var(--sec)}
   .auto-post img{width:100%;height:100%;object-fit:cover;display:block}.auto-post[aria-pressed=true]{border-color:var(--ceu);box-shadow:0 0 0 2px var(--ceu)}
   @media (max-width:760px){.auto-pag{padding:10px 14px 4px}.auto-bt{grid-template-columns:1fr}.auto-posts{grid-template-columns:repeat(3,1fr)}}
-  .ia-pag{display:flex;flex-direction:column;gap:18px;padding:18px 22px 6px;max-width:1240px}
+  .ia-pag{display:flex;flex-direction:column;gap:0}
   .ia-pag h2{display:flex;align-items:center;justify-content:flex-start;gap:8px}.ia-pag h2 svg{width:18px;height:18px;color:var(--ceu)}
   .ia-duas{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
   .ia-tit{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}.ia-tit h2{margin:0}
@@ -659,9 +659,13 @@
   .at-sep{margin:18px 22px 0;padding-top:18px;border-top:1px solid var(--linha);max-width:1240px}
   .at-sep span{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px}.at-sep span svg{width:18px;height:18px}
   .at-sep small{display:block;color:var(--sec);font-size:12.5px;margin-top:4px}
+  .at-sep .ia-tit{margin-bottom:0;flex-wrap:nowrap}
+  .at-sep span.ia-tag{display:inline-block;font-size:11.5px;font-weight:700}
+  .at-corpo{padding:12px 22px 6px;max-width:1240px}
+  #usoIA:not(:empty){padding:18px 22px 0;max-width:1240px}
   #vistaBot .assist{padding-top:12px;max-width:1240px}
   @media (max-width:1100px){.ia-duas{grid-template-columns:1fr}}
-  @media (max-width:760px){.ia-pag{padding:12px 14px 4px}.at-sep{margin:14px 14px 0}#vistaBot .assist{padding:12px 14px}}
+  @media (max-width:760px){.at-corpo{padding:10px 14px 4px}#usoIA:not(:empty){padding:12px 14px 0}.at-sep{margin:14px 14px 0}#vistaBot .assist{padding:12px 14px}}
   .teste{display:flex;flex-direction:column;height:520px;padding:0;overflow:hidden}
   .teste h2{padding:16px 18px 0}
   .teste .fio{background:var(--papel);padding:14px}
@@ -700,7 +704,7 @@
   .via-seg button[aria-checked=true]{background:var(--ceu);color:#fff}
   .via-seg button:focus-visible{outline:2px solid var(--ceu);outline-offset:1px}
   .fonte-ia{margin-top:16px}.fonte-ia textarea{width:100%;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--linha);border-radius:8px;background:var(--branco);color:inherit}
-  .uso-ia{font-size:12.5px;color:var(--sec);margin:12px 0 0}
+  p.uso-ia{font-size:12.5px;color:var(--sec);margin:12px 0 0}
   .resumo-ia{background:var(--papel);border-radius:10px;padding:12px 14px;margin:12px 0 10px}.resumo-ia .rt{font-weight:600;font-size:13px;margin-bottom:4px}.resumo-ia .rx{white-space:pre-wrap;font-size:13.5px;line-height:1.5}
   #iaResumo .btn{margin-top:10px}
   .sug-ia{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -3667,32 +3671,31 @@
     var A = S.ia, V = $('#vistaSub');
     var logado = iaLogado();
     V.innerHTML = '<div class="ia-pag">' +
-      '<section class="painel ia-con"><h2>' + ic('ia') + 'Assistente de IA · conexão e base de conhecimento</h2><p class="nota-bot">Vale para as duas IAs abaixo: a que atende seus clientes e a que trabalha para a equipe.</p><div id="iaCon">' + (logado ? '<p class="nota-bot">Carregando…</p>' : '<p class="nota-bot">Entre na sua conta (botão Entrar, no topo) para conectar a IA. Sem login, esta tela mostra só a demonstração.</p>') + '</div></section>' +
-      '<div class="ia-duas">' +
-      '<section class="painel"><div class="ia-tit"><h2>IA de atendimento</h2><span class="ia-tag ext">fala com o cliente</span>' + mestreBtn('ativo', 'IA de atendimento') + '</div>' +
-        '<p class="nota-bot">Responde sozinha no Instagram e no Messenger (e no WhatsApp quando a Meta aprovar), até agendar ou fechar, e passa para a equipe quando precisa. Se alguém da equipe responde, ela espera antes de voltar.</p>' +
-        '<div data-corpo="ativo"' + (mestreOn('ativo') ? '' : ' hidden') + '>' +        '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede uma pessoa, pede preço personalizado ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
-        '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Agendar"></button></div>' +
+      cabBloco(ic('ia'), 'Assistente de IA · conexão e base de conhecimento', '', '', 'Vale para as duas IAs abaixo: a que atende seus clientes e a que trabalha para a equipe.') +
+      '<div class="at-corpo"><section class="painel ia-con"><div id="iaCon">' + (logado ? '<p class="nota-bot">Carregando…</p>' : '<p class="nota-bot">Entre na sua conta (botão Entrar, no topo) para conectar a IA. Sem login, esta tela mostra só a demonstração.</p>') + '</div></section></div>' +
+      cabBloco(ic('msg'), 'IA de atendimento', ' <span class="ia-tag ext">fala com o cliente</span>', mestreBtn('ativo', 'IA de atendimento'), 'Responde sozinha no Instagram e no Messenger (e no WhatsApp quando a Meta aprovar), até agendar ou fechar, e passa para a equipe quando precisa. Se alguém da equipe responde, ela espera antes de voltar.') +
+      '<div class="at-corpo" data-corpo="ativo"' + (mestreOn('ativo') ? '' : ' hidden') + '><section class="painel">' +
+        '<div class="linha-ch"><div><div class="t">Passar para humano</div><div class="d">Quando o cliente pede uma pessoa, pede preço personalizado ou reclama</div></div><button class="chave" role="switch" id="iaHum" aria-checked="' + A.humano + '" aria-label="Passar para humano"></button></div>' +
+        '<div class="linha-ch"><div><div class="t">Agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Agendar"></button></div>' +
         '<div class="linha-ch"><div><div class="t">' + RC['prospeccao'][0] + '</div><div class="d">' + RC['prospeccao'][1] + '</div></div><button class="chave" role="switch" data-rec="prospeccao" aria-checked="' + recOn('prospeccao') + '" aria-label="' + RC['prospeccao'][0] + '"></button></div>' +
         '<div class="linha-ch"><div><div class="t">' + RC['site'][0] + '</div><div class="d">' + RC['site'][1] + '</div></div><button class="chave" role="switch" data-rec="site" aria-checked="' + recOn('site') + '" aria-label="' + RC['site'][0] + '"></button></div>' +
         '<div class="linha-ch"><div><div class="t">' + RC['transcrever'][0] + '</div><div class="d">' + RC['transcrever'][1] + '</div></div><button class="chave" role="switch" data-rec="transcrever" aria-checked="' + recOn('transcrever') + '" aria-label="' + RC['transcrever'][0] + '"></button></div>' +
-        '<div class="duas"><div class="campo"><label for="iaN">Nome do assistente</label><input id="iaN" value="' + esc(A.nome) + '"></div>' +
+        '<div class="duas" style="margin-top:16px"><div class="campo"><label for="iaN">Nome do assistente</label><input id="iaN" value="' + esc(A.nome) + '"></div>' +
         '<div class="campo"><label for="iaT">Tom de voz</label><select id="iaT">' + ['Próximo e direto','Formal','Animado'].map(function(t){ return '<option' + (t === A.tom ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
         '<div class="campo"><label for="iaE">Esperar antes de responder</label><select id="iaE">' + [[0,'Responder na hora'],[5,'5 segundos'],[10,'10 segundos (recomendado)'],[15,'15 segundos'],[20,'20 segundos']].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === (A.espera == null ? 10 : +A.espera) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><div class="dica">Se o cliente manda várias mensagens seguidas, a IA espera esse tempo e responde uma vez só, lendo tudo. Evita respostas repetidas e parece mais natural.</div></div>' +
         '<div class="campo"><label for="iaH">Horário de atendimento</label><input id="iaH" value="' + esc(A.horario) + '"></div>' +
         '<div class="campo"><label for="iaB">Informações do negócio</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea><div class="dica">Preços, serviços, horário, endereço, regras ("orçamento só presencial") e perguntas frequentes. A base da planilha, se houver, complementa este texto.</div></div>' +
-        '<button class="btn pri" id="iaSalva">Salvar atendimento</button></div>' +
-      '</section>' +
-      '<section class="painel"><div class="ia-tit"><h2>IA interna</h2><span class="ia-tag int">só para a equipe</span>' + mestreBtn('interna', 'IA interna') + '</div>' +
-        '<p class="nota-bot">Não fala com o cliente. Lê as conversas, organiza o CRM, avisa o que precisa de atenção e responde às perguntas da equipe na conversa <b>Assistente AbertoCore</b>.</p>' +
-        '<div data-corpo="interna"' + (mestreOn('interna') ? '' : ' hidden') + '>' +
+        '<button class="btn pri" id="iaSalva">Salvar atendimento</button>' +
+      '</section></div>' +
+      cabBloco(ic('ia'), 'IA interna', ' <span class="ia-tag int">só para a equipe</span>', mestreBtn('interna', 'IA interna'), 'Não fala com o cliente. Lê as conversas, organiza o CRM, avisa o que precisa de atenção e responde às perguntas da equipe na conversa <b>Assistente AbertoCore</b>.') +
+      '<div class="at-corpo" data-corpo="interna"' + (mestreOn('interna') ? '' : ' hidden') + '><section class="painel">' +
         '<div class="linha-ch"><div><div class="t">Preencher o CRM sozinha</div><div class="d">A cada 10 minutos lê as conversas novas, escreve um resumo, anota valor e próximo retorno, completa os dados do contato e avança o card no funil (fechar ou perder fica com a equipe)</div></div><button class="chave" role="switch" id="iaCrm" aria-checked="false" aria-label="Preencher o CRM sozinha"' + (logado ? '' : ' disabled') + '></button></div>' +
         '<div class="linha-ch"><div><div class="t">Resumo do dia às 18h</div><div class="d">Chega no e-mail do dono: números do dia, quem precisa de você e o que tem amanhã</div></div><button class="chave" role="switch" id="iaRes" aria-checked="false" aria-label="Resumo do dia às 18h"' + (logado ? '' : ' disabled') + '></button></div>' +
         '<div class="linha-ch"><div><div class="t">' + RC['assistente'][0] + '</div><div class="d">' + RC['assistente'][1] + '</div></div><button class="chave" role="switch" data-rec="assistente" aria-checked="' + recOn('assistente') + '" aria-label="' + RC['assistente'][0] + '"></button></div>' +
         '<div class="linha-ch"><div><div class="t">' + RC['ajuda'][0] + '</div><div class="d">' + RC['ajuda'][1] + '</div></div><button class="chave" role="switch" data-rec="ajuda" aria-checked="' + recOn('ajuda') + '" aria-label="' + RC['ajuda'][0] + '"></button></div>' +
         '<div class="linha-ch"><div><div class="t">' + RC['alertas'][0] + '</div><div class="d">' + RC['alertas'][1] + '</div></div><button class="chave" role="switch" data-rec="alertas" aria-checked="' + recOn('alertas') + '" aria-label="' + RC['alertas'][0] + '"></button></div>' +
         '<div id="iaResumo"></div>' +
-        '<div class="botoes-ia"><button class="btn" id="iaAbreChat">' + ic('msg') + 'Abrir a conversa com o assistente</button></div></div>' +
+        '<div class="botoes-ia"><button class="btn" id="iaAbreChat">' + ic('msg') + 'Abrir a conversa com o assistente</button></div>' +
       '</section></div></div>';
 
     ['iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); }; });
@@ -3765,6 +3768,9 @@
 
   /* ========== ATENDIMENTO AUTOMÁTICO (chatbot + IA) ========== */
   /* chave geral de cada bloco: ligado abre as configurações, desligado mostra só o título e a descrição */
+  function cabBloco(icone, titulo, tag, sw, desc){
+    return '<div class="at-sep"><div class="ia-tit"><span>' + icone + esc(titulo) + (tag || '') + '</span>' + (sw || '') + '</div><small>' + desc + '</small></div>';
+  }
   function mestreOn(k){ if (k === 'bot') return !!botCfg().ativo; if (k === 'ativo') return !!(S.ia && S.ia.ativo); return !S.ia || S.ia[k] !== false; }
   function mestreBtn(k, rotulo){ return '<button class="chave" role="switch" data-mestre="' + k + '" aria-checked="' + mestreOn(k) + '" aria-label="' + esc(rotulo) + '"></button>'; }
   function mestreLiga(b){
@@ -3779,9 +3785,9 @@
   function stAt(t, on){ var e = document.querySelector('.abas-at [data-t="' + t + '"] .st-at'); if (e){ e.textContent = on ? 'ligado' : 'desligado'; e.classList.toggle('on', !!on); } }
   function vAtendimento(){
     $('#vista').innerHTML = '<div class="at-pag"><div id="usoIA">' + blocoUsoIA() + '</div><div id="vistaSub"></div>' +
-      '<div class="at-sep"><div class="ia-tit"><span>' + ic('raio') + 'Automações do Instagram</span>' + mestreBtn('automacoes', 'Automações do Instagram') + '</div><small>Estilo ManyChat: quem comenta uma palavra num post, responde um story ou manda uma palavra na DM recebe sua mensagem na hora, e o contato entra no CRM com etiqueta.</small></div>' +
+      cabBloco(ic('raio'), 'Automações do Instagram', '', mestreBtn('automacoes', 'Automações do Instagram'), 'Estilo ManyChat: quem comenta uma palavra num post, responde um story ou manda uma palavra na DM recebe sua mensagem na hora, e o contato entra no CRM com etiqueta.') +
       '<div id="vistaAuto" data-corpo="automacoes"' + (mestreOn('automacoes') ? '' : ' hidden') + '></div>' +
-      '<div class="at-sep"><div class="ia-tit"><span>' + ic('msg') + 'Chatbot de menu</span>' + mestreBtn('bot', 'Chatbot de menu') + '</div><small>Sem IA: manda um menu de opções na primeira mensagem do WhatsApp. Se a IA de atendimento estiver ligada, ela é quem responde.</small></div>' +
+      cabBloco(ic('msg'), 'Chatbot de menu', '', mestreBtn('bot', 'Chatbot de menu'), 'Sem IA: manda um menu de opções na primeira mensagem do WhatsApp. Se a IA de atendimento estiver ligada, ela é quem responde.') +
       '<div id="vistaBot" data-corpo="bot"' + (mestreOn('bot') ? '' : ' hidden') + '></div></div>';
     document.querySelectorAll('#vista [data-mestre]').forEach(function(b){ b.onclick = function(){ mestreLiga(b); }; });
     vAssistente(); vAutomacoes(); vChatbot();

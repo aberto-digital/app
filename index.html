@@ -210,6 +210,25 @@
   .imp-res{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.imp-res div{background:var(--papel);border-radius:10px;padding:10px;text-align:center}.imp-res b{display:block;font-size:22px}
   .imp-lista{max-height:240px;overflow:auto;border:1px solid var(--linha,#e3e6ec);border-radius:10px;font-size:13px}.imp-lista div{padding:7px 10px;border-bottom:1px solid var(--linha,#eef0f4);display:flex;gap:8px;justify-content:space-between}.imp-lista div:last-child{border:0}.imp-lista em{color:var(--sec);font-style:normal;white-space:nowrap}
   .lead-bloco .dado a{color:var(--azul,#2F6FED)}
+  .lig-bloco{margin:0 0 16px;padding:12px;border:1px solid var(--linha);border-radius:12px;background:var(--branco)}
+  .lig-bloco .grupo-t{margin-top:0;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .lig-cont{font-size:11.5px;font-weight:600;color:var(--sec);text-transform:none;letter-spacing:0}
+  .lig-ligar{width:100%;justify-content:center;margin:4px 0 8px;text-decoration:none}
+  .lig-ligar svg{width:18px;height:18px;margin-right:6px}
+  .lig-ligar.off{opacity:.55;pointer-events:none}
+  .lig-outros{font-size:12.5px;color:var(--sec);margin:0 0 8px}.lig-outros a{color:var(--ceu);margin-left:6px}
+  .lig-vimos{font-size:12.5px;color:var(--sec);background:var(--papel);border-radius:8px;padding:8px 10px;margin:0 0 8px;white-space:pre-wrap}
+  .lig-res{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+  .lig-res button{padding:9px 8px;border-radius:9px;border:1px solid var(--linha2);background:var(--branco);font:inherit;font-size:13px;font-weight:600;color:var(--texto);cursor:pointer}
+  .lig-res button.ok{border-color:var(--verde);color:var(--verde)}
+  .lig-res button.fim{color:var(--vermelho)}
+  .lig-res button:active{transform:scale(.98)}
+  .lig-roteiro{font-size:13px;margin:8px 0}.lig-roteiro summary{cursor:pointer;font-weight:700}
+  .lig-roteiro p{margin:6px 0;line-height:1.4}.lig-roteiro p b{color:var(--navy)}
+  .lig-hist{font-size:12px;color:var(--sec);margin-top:8px}.lig-hist div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-top:1px solid var(--linha)}
+  .lig-resumo{padding:8px 16px;font-size:12.5px;color:var(--sec);border-bottom:1px solid var(--linha);background:var(--branco)}
+  html[data-tema="escuro"] .lig-bloco,html[data-tema="escuro"] .lig-resumo,html[data-tema="escuro"] .lig-res button{background:#1A2333}
+  html[data-tema="escuro"] .lig-vimos{background:#121A27}
   .seg-tema button{flex:1;padding:9px 10px;font-weight:600}
   .pt-st{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#9aa6b6}.pt-st.ok{background:#1f9d55}.pt-st.sincronizando{background:#FFB020}.pt-st.erro{background:#d64545}
   .item{display:flex;gap:12px;width:100%;text-align:left;padding:13px 14px;border-bottom:1px solid var(--linha);border-left:3px solid transparent}
@@ -991,6 +1010,7 @@
 
   /* ---------- utilidades ---------- */
   var IC = {
+    tel:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
     msg:'<path d="M4 5h16v11H9l-5 4z"/>',
     funil:'<path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/>',
     agenda:'<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/>',
@@ -1860,9 +1880,12 @@
         (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).toLowerCase().indexOf(q) >= 0);
     }).sort(function(x, y){
       if ((a || aba) === 'prospeccao'){
+        var gx = ligGrupo(x), gy = ligGrupo(y);
+        if (gx !== gy) return gx - gy;
+        if ((gx === 0 || gx === 2) && x.followup !== y.followup) return x.followup < y.followup ? -1 : 1;
         var px = 'ABC'.indexOf((x.lead && x.lead.prioridade) || 'C'), py = 'ABC'.indexOf((y.lead && y.lead.prioridade) || 'C');
         if (px !== py) return px - py;
-        return ((+(y.lead && y.lead.score) || 0) - (+(x.lead && x.lead.score) || 0)) || String(x.negocio).localeCompare(String(y.negocio));
+        return ((+(y.lead && y.lead.score) || 0) - (+(x.lead && x.lead.score) || 0)) || (ligTent(x).length - ligTent(y).length) || String(x.negocio).localeCompare(String(y.negocio));
       }
       if ((a || aba) === 'entrada' && x.status !== y.status) return x.status === 'entrada' ? -1 : 1;
       if ((a || aba) === 'finalizado') return ultima(y).ts - ultima(x).ts;
@@ -1878,6 +1901,111 @@
     }).join('');
     var abaSel = $('#abas [aria-selected="true"]'); if (abaSel && abaSel.scrollIntoView) abaSel.scrollIntoView({inline:'nearest', block:'nearest'});
   }
+  /* ---------- Ligação (aba Prospecção) ----------
+     O funil não muda: cada tentativa fica em c.lig.t e o retorno usa o próprio c.followup. */
+  var LIG_MAX = 3; // tentativas sem atender antes de o lead ir para o fim da lista
+  var LIG_RES = [
+    {k:'nao', t:'Não atendeu', sem:true}, {k:'caixa', t:'Caixa postal', sem:true},
+    {k:'naodono', t:'Não é o dono'}, {k:'retornar', t:'Retornar depois'},
+    {k:'sem', t:'Sem interesse', cl:'fim'}, {k:'errado', t:'Número errado', cl:'fim'},
+    {k:'reuniao', t:'Reunião marcada', cl:'ok'}
+  ];
+  function ligRotulo(k){ var r = LIG_RES.filter(function(x){ return x.k === k; })[0]; return r ? r.t : k; }
+  function proxDiaUtil(n){ var d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + (n || 1)); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1); return iso(d); }
+  function ligTent(c){ return (c.lig && c.lig.t) || []; }
+  function ligSemAtend(c){ return ligTent(c).filter(function(x){ return x.r === 'nao' || x.r === 'caixa'; }).length; }
+  /* 0 retorno de hoje ou atrasado, 1 pronto para ligar, 2 volta em outro dia, 3 esgotado (3 tentativas sem atender) */
+  function ligGrupo(c){
+    if (c.followup && diffDias(c.followup) <= 0) return 0;
+    if (c.followup) return 2;
+    return ligSemAtend(c) >= LIG_MAX ? 3 : 1;
+  }
+  function ligResumo(){
+    var d0 = new Date(); d0.setHours(0, 0, 0, 0); var ini = d0.getTime(), n = 0, at = 0, re = 0;
+    S.contatos.forEach(function(c){ ligTent(c).forEach(function(x){
+      if (x.ts < ini) return; n++;
+      if (x.r === 'naodono' || x.r === 'retornar' || x.r === 'sem' || x.r === 'reuniao') at++;
+      if (x.r === 'reuniao') re++;
+    }); });
+    return '<div class="lig-resumo"><b>Hoje</b> ' + n + (n === 1 ? ' ligação' : ' ligações') + ' · ' + at + (at === 1 ? ' atendeu' : ' atenderam') + ' · ' + re + (re === 1 ? ' reunião' : ' reuniões') + '</div>';
+  }
+  function chipLig(c){
+    var n = ligTent(c).length; if (!n || c.status !== 'prospeccao') return '';
+    var sem = ligSemAtend(c);
+    return '<span class="chip etapa">' + (sem ? sem + '/' + LIG_MAX + ' sem atender' : n + (n === 1 ? ' ligação' : ' ligações')) + '</span>';
+  }
+  function blocoLigacao(c){
+    if (!(c.lead && c.status === 'prospeccao')) return '';
+    var fone = foneWa(c.tel), L = c.lead, t = ligTent(c), sem = ligSemAtend(c);
+    var outros = String(L.telefone || '').split(/[,;\/]/).map(function(x){ return x.trim(); }).filter(function(x){ return x && foneWa(x) && foneWa(x) !== fone; });
+    var G = L.notaGoogle ? ' no Google, com nota ' + notaG(L.notaGoogle) : ' no Google';
+    var vimos = c.nota ? '<div class="lig-vimos"><b>O que vimos:</b>\n' + esc(c.nota) + '</div>' : '';
+    return '<div class="lig-bloco" id="lgBloco"><div class="grupo-t">Ligação<span class="lig-cont">' + (t.length ? t.length + (t.length === 1 ? ' tentativa' : ' tentativas') + (sem ? ' · ' + sem + ' de ' + LIG_MAX + ' sem atender' : '') : 'Ainda sem ligação') + '</span></div>' +
+      (fone ? '<a class="btn pri lig-ligar" id="lgLigar" href="tel:+' + fone + '">' + ic('tel') + 'Ligar ' + esc(c.tel) + '</a>' : '<a class="btn lig-ligar off">Sem telefone válido</a>') +
+      (outros.length ? '<div class="lig-outros">Outros telefones:' + outros.map(function(x){ return '<a href="tel:+' + foneWa(x) + '">' + esc(x) + '</a>'; }).join('') + '</div>' : '') +
+      vimos +
+      '<details class="lig-roteiro"><summary>Roteiro da ligação</summary>' +
+        '<p><b>1. Abrir.</b> “Olá, aqui é o ' + esc(CONFIG.responsavel) + ', da ' + esc(CONFIG.empresa) + ', aqui de Arujá. Falo com ' + esc(c.nome) + '?”</p>' +
+        '<p><b>2. Motivo.</b> “Eu ajudo negócios daqui a serem encontrados no Google e a atender melhor pelo WhatsApp. Vi a ' + esc(c.negocio) + G + ' e queria te mostrar uma ideia rápida. Tem 1 minuto?”</p>' +
+        '<p><b>3. Pedir 10 minutos.</b> “Posso te mostrar em 10 minutos, por vídeo ou aí no seu espaço? Hoje à tarde ou amanhã cedo?”</p>' +
+        '<p><b>Pediu pelo WhatsApp.</b> “Mando sim. Mas é mais fácil ver junto, são só 10 minutos. Amanhã cedo funciona? Confirmo o WhatsApp para te chamar.”</p>' +
+        '<p><b>Não é o dono.</b> “Qual o nome dele e o melhor horário para falar? É só para pedir 10 minutos.”</p>' +
+        '<p><b>Já tem site ou agência.</b> “Que bom, não vou trocar nada. Posso só te mostrar o que vimos no Google, sem compromisso?”</p>' +
+        '<p><b>Sem tempo.</b> “Sem problema. Qual horário fica melhor para eu ligar de novo?”</p>' +
+        '<p><b>Sem interesse.</b> “Tudo bem, obrigado pelo tempo.” Marque <i>Sem interesse</i>. Se pedirem para não ligar mais, não ligue de novo.</p>' +
+        '<p><b>Regras.</b> No máximo ' + LIG_MAX + ' tentativas sem atender, em horários diferentes. Melhores horários: começo da manhã e de 13h30 às 14h30. Não prometa resultado nem diga que algo já está pronto se não estiver.</p>' +
+      '</details>' +
+      '<div class="campo"><label for="lgNota">Anotação da ligação</label><textarea id="lgNota" rows="2" placeholder="Quem atendeu, o que disse, melhor horário…"></textarea></div>' +
+      '<div class="campo"><label for="lgData">Voltar a ligar em (para Retornar depois e Não é o dono)</label><input id="lgData" type="date" value="' + proxDiaUtil(1) + '"></div>' +
+      '<div class="lig-res" id="lgRes">' + LIG_RES.map(function(r){ return '<button type="button" data-r="' + r.k + '"' + (r.cl ? ' class="' + r.cl + '"' : '') + '>' + r.t + '</button>'; }).join('') + '</div>' +
+      '<button class="btn peq" type="button" id="lgPula">Pular para o próximo</button>' +
+      (t.length ? '<div class="lig-hist">' + t.slice(-5).reverse().map(function(x){ return '<div><span>' + esc(ligRotulo(x.r)) + (x.nota ? ' · ' + esc(x.nota.slice(0, 60)) : '') + '</span><span>' + dataCurta(iso(new Date(x.ts))) + ' ' + hm(x.ts) + '</span></div>'; }).join('') + '</div>' : '') +
+    '</div>';
+  }
+  function proximoLigacao(c){
+    var L = filtrados('prospeccao').filter(function(x){ return x.id !== c.id && ligGrupo(x) <= 1; })[0] || filtrados('prospeccao').filter(function(x){ return x.id !== c.id; })[0];
+    if (L) abre(L.id); else { desenhaLista(); desenhaConversa(); desenhaDetalhe(); aviso('Não há mais leads na lista de prospecção.'); }
+    return !!L;
+  }
+  function registraLigacao(c, k){
+    var r = LIG_RES.filter(function(x){ return x.k === k; })[0]; if (!r) return;
+    var nota = ($('#lgNota') ? $('#lgNota').value : '').trim(), data = ($('#lgData') && $('#lgData').value) || '';
+    var agora = agoraMs();
+    c.lig = c.lig || {t:[]};
+    c.lig.t = ligTent(c).concat([{ts:agora, r:k, nota:nota}]).slice(-30);
+    var sem = ligSemAtend(c), txt = 'Ligação: ' + r.t.toLowerCase(), abrirReuniao = false, fim = '';
+    if (k === 'nao' || k === 'caixa'){
+      txt += ' (' + sem + ' de ' + LIG_MAX + ' sem atender)';
+      if (sem >= LIG_MAX){ c.followup = null; fim = 'Três tentativas sem atender: o lead vai para o fim da lista.'; }
+      else c.followup = proxDiaUtil(1);
+    } else if (k === 'naodono' || k === 'retornar'){
+      c.followup = data && diffDias(data) >= 0 ? data : proxDiaUtil(1);
+      txt += ', voltar a ligar em ' + dataCurta(c.followup);
+    } else if (k === 'sem'){
+      c.followup = null; c.status = 'finalizado'; if (CONFIG.etapaPerda) mudaEtapa(c, CONFIG.etapaPerda);
+    } else if (k === 'errado'){
+      c.followup = null; c.status = 'finalizado';
+    } else if (k === 'reuniao'){
+      c.followup = null; c.status = 'entrada';
+      if (ETAPAS.length > 1 && c.etapa === ETAPAS[0]) mudaEtapa(c, ETAPAS[1]);
+      abrirReuniao = true;
+    }
+    c.msgs.push({de:'sis', txt:txt + '.', ts:agora, k:'l' + agora.toString(36) + Math.random().toString(36).slice(2, 6)});
+    if (nota) c.msgs.push({de:'sis', nota:true, txt:nota, autor:meuNome(), ts:agora + 1, k:'n' + (agora + 1).toString(36) + Math.random().toString(36).slice(2, 6)});
+    salva();
+    if (abrirReuniao){
+      desenhaLista(); desenhaConversa(); desenhaDetalhe();
+      aviso('Reunião marcada com <b>' + esc(c.nome) + '</b>. O lead passou para a Entrada. Agende o horário.');
+      modalEvento(c.id);
+      return;
+    }
+    aviso('<b>' + esc(c.nome) + '</b>: ' + esc(r.t.toLowerCase()) + '.' + (fim ? ' ' + fim : ''));
+    proximoLigacao(c);
+  }
+  function ligaLigacao(c){
+    var lr = $('#lgRes'); if (lr) lr.onclick = function(e){ var b = e.target.closest('button[data-r]'); if (b) registraLigacao(c, b.getAttribute('data-r')); };
+    var lp = $('#lgPula'); if (lp) lp.onclick = function(){ proximoLigacao(c); };
+  }
   function itemContato(c){
     var u = ultima(c), novo = c.naoLidas > 0 && !c.ignorado;
     var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.nota ? 'Nota: ' : u.de === 'sis' ? '• ' : '';
@@ -1885,7 +2013,7 @@
     return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
       '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
       '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +
-      '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + (c.ignorado ? '<span class="chip">Ignorado</span>' : chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipFollow(c) + chipsEtiq(c, 2)) + respMini(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
+      '<span class="l3">' + (c.lead && c.lead.prioridade ? '<span class="chip pri-lead p' + esc(c.lead.prioridade).toLowerCase() + '">' + esc(c.lead.prioridade) + '</span>' : '') + (c.ignorado ? '<span class="chip">Ignorado</span>' : chipTipo(c.tipo) + '<span class="chip etapa">' + c.etapa + '</span>' + chipLig(c) + chipFollow(c) + chipsEtiq(c, 2)) + respMini(c) + (novo ? '<span class="cont">' + c.naoLidas + '</span>' : '') + '</span></span></button>';
   }
   function desenhaLista(){
     if (!$('#itens')) return;
@@ -1915,6 +2043,11 @@
         var resp = L.filter(function(c){ return c.status === 'entrada'; }), esp = L.filter(function(c){ return c.status === 'esperando'; });
         html = (resp.length ? '<div class="div-lista">Para responder <span>' + resp.length + '</span></div>' + resp.map(itemContato).join('') : '<div class="div-lista">Para responder <span>0</span></div><div class="vazio peq">Ninguém esperando sua resposta.</div>') +
           (esp.length ? '<div class="div-lista esp">Aguardando retorno do cliente <span>' + esp.length + '</span></div><div class="grupo-esp">' + esp.map(itemContato).join('') + '</div>' : '');
+      }
+      if (a[0] === 'prospeccao' && L.length){
+        var rotG = ['Retornar agora', 'Ligar', 'Voltam em outro dia', 'Esgotados (' + LIG_MAX + ' tentativas)'], grp = [[], [], [], []];
+        L.forEach(function(c){ grp[ligGrupo(c)].push(c); });
+        html = ligResumo() + grp.map(function(g, i){ return g.length ? '<div class="div-lista' + (i >= 2 ? ' esp' : '') + '">' + rotG[i] + ' <span>' + g.length + '</span></div>' + g.map(itemContato).join('') : ''; }).join('');
       }
       pane.innerHTML = (a[0] === 'entrada' ? fixo : '') + ((a[0] === 'entrada' || a[0] === 'prospeccao') ? avisoSug : '') + (html ? html : L.length ? L.map(itemContato).join('') :
         (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'arquivada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
@@ -2749,6 +2882,7 @@
         '<button class="btn peq" type="button" id="dIgnora" title="' + (c.ignorado ? 'Voltar a receber avisos deste contato' : 'Sem avisos e sem resposta automática para este contato') + '">' + (c.ignorado ? 'Parar de ignorar' : ic('x') + 'Ignorar') + '</button>' +
         (c.ignorado ? '' : c.status !== 'finalizado' ? '<button class="btn peq" type="button" id="dArquiva">' + ic('arquivo') + 'Arquivar</button>' : '<button class="btn peq" type="button" id="dReabre">Desarquivar</button>') +
       '</div>' +
+      blocoLigacao(c) +
       '<div class="campo"><span class="rot">Classificação</span><div class="seg" id="segTipo">' +
         '<button class="lead" data-t="Lead" aria-pressed="' + (c.tipo === 'Lead') + '">Lead</button>' +
         '<button class="cliente" data-t="Cliente" aria-pressed="' + (c.tipo === 'Cliente') + '">Cliente</button></div></div>' +
@@ -2774,6 +2908,7 @@
       (window.Nuvem && Nuvem.logado() ? '<div class="dado" id="dCustoIA" hidden><span>Custo da IA</span><span></span></div>' : '') + blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '');
     $('#fechaDet').onclick = function(){ $('#inbox').classList.remove('mostra-det'); };
+    ligaLigacao(c);
     [['#dIgnora', 'ignorar'], ['#dArquiva', 'arquivar'], ['#dReabre', 'reabrir']].forEach(function(x){ var b = $(x[0]); if (b) b.onclick = function(){ if (sel === c.id && ACOES[x[1]]) ACOES[x[1]](); }; });
     box.querySelectorAll('[data-envdoc]').forEach(function(b){ b.onclick = function(){ enviaDoc(b.getAttribute('data-envdoc'), c.id, b); }; });
     box.insertAdjacentHTML('beforeend', '<button class="btn det-juntar" id="dJunta" type="button">Juntar com outro contato</button><button class="btn det-excluir" id="dExclui">' + ic('x') + 'Excluir conversa</button>');

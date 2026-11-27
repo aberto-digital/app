@@ -14,6 +14,7 @@ Sistema integrado de atendimento da **abertodigital**. Ele junta mensagens, funi
 | --- | --- | --- |
 | Mensagens | Caixa única com WhatsApp, Instagram, Facebook e e-mail. Abas Entrada, Esperando e Finalizados, filtro de origem com seleção múltipla, busca e resposta sugerida pela IA. | Mensagens reais pelas APIs da Meta e por e-mail |
 | Contato (painel lateral) | Classifica como Lead ou Cliente e define etapa do funil, valor, próximo retorno e anotações. Também agenda compromissos. | O mesmo, salvo no banco |
+| Ligação (aba Prospecção) | Botão Ligar (`tel:`), roteiro, anotação e 7 resultados (não atendeu, caixa postal, não é o dono, retornar, sem interesse, número errado, reunião marcada). Cada tentativa fica em `c.lig.t` e o retorno usa o `followup`. A lista se ordena em Retornar agora, Ligar, Voltam em outro dia e Esgotados (3 tentativas sem atender). O funil não muda. | O mesmo, com histórico de tentativas no banco |
 | Funil | Quadro com 6 etapas e cards arrastáveis (no celular, toque no card para mover). Mostra o total em R$ por etapa. Ao fechar, o contato vira Cliente. | O mesmo, salvo no banco |
 | Agenda e follow-up | Próximos 7 dias e retornos atrasados, de hoje e futuros. Novo compromisso com confirmação automática ao cliente. | Integração com Google Agenda e lembretes reais |
 | Dashboard | Conversas abertas, novos leads, conversão, valor em negociação, leads por dia, mensagens por canal, funil e números da IA. | Números calculados do banco |
@@ -154,6 +155,7 @@ Modelo: Mega Hair Marcela (nov/2026). Um AbertoCore só, com várias empresas: c
 
 | Data | Mudança |
 | --- | --- |
+| 27 nov 2026 | Ligação na aba Prospecção: botão Ligar, roteiro, resultados e ordem de contato da lista, sem mudar o funil |
 | 19 nov 2026 | Deploy automático da VPS pelo GitHub Actions; checklist de cliente novo (modelo Mega Hair Marcela) |
 | 18 nov 2026 | AbertoCore com várias empresas: perfil por segmento, convites, ficha do cabelo e manutenções; primeiro cliente (Mega Hair Marcela) |
 | 17 nov 2026 | WhatsApp Cloud API: webhook com assinatura, envio de texto, status de entrega, tempo real no app; chatbot de menu com botões e lista; tela Atendimento automático (chatbot + IA) |

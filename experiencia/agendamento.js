@@ -222,17 +222,19 @@
       onlinePay: 'Pagamento online', custom: 'Sob medida', full: 'Ocupado', pick: 'Escolha um horário para continuar.', err: 'Preencha nome e telefone.',
     };
     var main = doc.getElementById('conteudo');
-    var html = N.categorias.length > 1 ? '<nav class="abas" role="tablist">' + N.categorias.map(function (c, i) { return '<button role="tab" data-cat="' + i + '" aria-selected="' + (i === 0) + '">' + esc(c.nome[l]) + '</button>'; }).join('') + '</nav>' : '<div style="height:14px"></div>';
+    var todos = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { todos.push(i); }); });
+    Comum.casca(doc, win, 'agendamento', en, todos);
+    var html = N.categorias.length > 1 ? '<div class="ferr"><nav class="abas" role="tablist">' + N.categorias.map(function (c, i) { return '<button role="tab" data-cat="' + i + '" aria-selected="' + (i === 0) + '">' + esc(c.nome[l]) + '</button>'; }).join('') + '</nav></div>' : '<div style="height:14px"></div>';
     html += N.categorias.map(function (c, i) {
-      return '<section class="cat" id="cat' + i + '"><h2>' + esc(c.nome[l]) + '</h2>' + c.itens.map(function (it) {
-        return '<div class="item"><div class="ilu" aria-hidden="true">' + it.img + '</div><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco">' + it.dur + ' min · ' + precoTxt(precoDe(it, l), l) + '</div></div><button type="button" class="pilula" data-serv="' + it.id + '">' + tx.book + '</button></div>';
-      }).join('') + '</section>';
+      return '<section class="cat" id="cat' + i + '"><h2>' + esc(c.nome[l]) + '</h2><div class="grade">' + c.itens.map(function (it) {
+        return '<button type="button" class="item" data-serv="' + it.id + '"><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco">' + it.dur + ' min · ' + precoTxt(precoDe(it, l), l) + '</div><span class="pilula">' + tx.book + '</span></div><div class="ilu vis">' + Comum.visual(it) + '</div></button>';
+      }).join('') + '</div></section>';
     }).join('');
     html += '<section class="avaliacoes"><h2>' + tx.reviews + '</h2>' + [
       en ? ['Booked in a minute and got a reminder the day before. Loved it!', 'Mariana R.'] : ['Marquei em 1 minuto e recebi lembrete no dia anterior. Amei!', 'Mariana R.'],
       en ? ['On time, great service and easy to reschedule.', 'Lucas F.'] : ['Pontual, atendimento ótimo e fácil de remarcar.', 'Lucas F.'],
     ].map(function (a) { return '<div class="av"><span class="est">★★★★★</span> ' + esc(a[0]) + '<br><small>' + esc(a[1]) + ' · ' + (en ? 'example review' : 'avaliação de exemplo') + '</small></div>'; }).join('') + '</section>';
-    html += '<div class="info-loja">🕒 ' + esc(E.t.info) + (cfg.cidade ? '<br>📍 ' + esc(cfg.cidade) : '') + '</div>';
+    html += '<div class="info-loja" id="perfil">🕒 ' + esc(E.t.info) + (cfg.cidade ? '<br>📍 ' + esc(cfg.cidade) : '') + '</div>';
     html += '<p class="rodape-demo">' + tx.demoBy + ' <a href="https://abertodigital.com" target="_blank" rel="noopener">abertodigital</a></p>';
     main.innerHTML = html;
 
@@ -242,7 +244,7 @@
       if (c) {
         main.querySelectorAll('[data-cat]').forEach(function (x) { x.setAttribute('aria-selected', x === c); });
         var alvo = doc.getElementById('cat' + c.getAttribute('data-cat'));
-        win.scrollTo({ top: alvo.getBoundingClientRect().top + win.scrollY - 80, behavior: 'smooth' });
+        win.scrollTo({ top: alvo.getBoundingClientRect().top + win.scrollY - 120, behavior: 'smooth' });
       }
     });
 

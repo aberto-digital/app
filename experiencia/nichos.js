@@ -12,10 +12,17 @@
         en: { titulo: 'Hot pizza at your door', chamada: 'Slow-fermented dough, wood-fired oven and fast delivery.', tipo: 'Pizzeria', prazo: '40 to 50 min' },
       },
       categorias: [
-        { nome: { pt: 'Pizzas', en: 'Pizzas' }, itens: [
+        { nome: { pt: 'Pizzas', en: 'Pizzas' }, grupos: [
+          { id: 'tam', rot: { pt: 'Qual o tamanho da sua fome?', en: 'How hungry are you?' }, obrig: true, max: 1, op: [
+            { id: 'media', nome: { pt: 'Média', en: 'Medium' }, ds: { pt: '6 fatias', en: '6 slices' }, preco: 0, precoUsd: 0 },
+            { id: 'grande', nome: { pt: 'Grande', en: 'Large' }, ds: { pt: '8 fatias', en: '8 slices' }, preco: 12, precoUsd: 4 } ] },
+          { id: 'extra', rot: { pt: 'Que tal turbinar sua pizza?', en: 'Want to level it up?' }, max: 3, op: [
+            { id: 'borda', nome: { pt: 'Borda recheada', en: 'Stuffed crust' }, preco: 8, precoUsd: 3 },
+            { id: 'bacon', nome: { pt: 'Bacon extra', en: 'Extra bacon' }, preco: 6, precoUsd: 2 },
+            { id: 'queijo', nome: { pt: 'Queijo extra', en: 'Extra cheese' }, preco: 5, precoUsd: 2 } ] } ], itens: [
           { id: 'mussarela', img: '🍕', nome: { pt: 'Mussarela', en: 'Mozzarella' }, ds: { pt: 'Mussarela, tomate e orégano', en: 'Mozzarella, tomato and oregano' }, preco: 44.9, precoUsd: 16.9 },
-          { id: 'calabresa', img: '🍕', nome: { pt: 'Calabresa', en: 'Pepperoni' }, ds: { pt: 'Calabresa fatiada e cebola', en: 'Pepperoni and onion' }, preco: 49.9, precoUsd: 18.9 },
-          { id: 'margherita', img: '🍅', nome: { pt: 'Margherita', en: 'Margherita' }, ds: { pt: 'Mussarela de búfala, tomate e manjericão', en: 'Buffalo mozzarella, tomato and basil' }, preco: 54.9, precoUsd: 19.9 },
+          { id: 'calabresa', etq: { pt: 'Mais pedido', en: 'Best seller' }, img: '🍕', nome: { pt: 'Calabresa', en: 'Pepperoni' }, ds: { pt: 'Calabresa fatiada e cebola', en: 'Pepperoni and onion' }, preco: 49.9, precoUsd: 18.9 },
+          { id: 'margherita', etq: { pt: 'Recomendado', en: 'Recommended' }, img: '🍅', nome: { pt: 'Margherita', en: 'Margherita' }, ds: { pt: 'Mussarela de búfala, tomate e manjericão', en: 'Buffalo mozzarella, tomato and basil' }, preco: 54.9, precoUsd: 19.9 },
           { id: 'portuguesa', img: '🥚', nome: { pt: 'Portuguesa', en: 'Ham & egg' }, ds: { pt: 'Presunto, ovo, cebola e azeitona', en: 'Ham, egg, onion and olives' }, preco: 52.9, precoUsd: 19.5 },
           { id: 'frango', img: '🍗', nome: { pt: 'Frango com catupiry', en: 'Chicken & cream cheese' }, ds: { pt: 'Frango desfiado e catupiry', en: 'Shredded chicken and cream cheese' }, preco: 54.9, precoUsd: 19.9 },
         ] },
@@ -40,10 +47,17 @@
         en: { titulo: 'Smash burgers done right', chamada: 'Brioche bun, house blend and crispy fries.', tipo: 'Burger joint', prazo: '30 to 40 min' },
       },
       categorias: [
-        { nome: { pt: 'Lanches', en: 'Burgers' }, itens: [
-          { id: 'classico', img: '🍔', nome: { pt: 'Smash clássico', en: 'Classic smash' }, ds: { pt: 'Blend 90 g, queijo e molho da casa', en: '3 oz patty, cheese and house sauce' }, preco: 29.9, precoUsd: 9.9 },
+        { nome: { pt: 'Lanches', en: 'Burgers' }, grupos: [
+          { id: 'tam', rot: { pt: 'Qual o tamanho da sua fome?', en: 'How hungry are you?' }, obrig: true, max: 1, op: [
+            { id: 'simples', nome: { pt: 'Simples', en: 'Single' }, ds: { pt: 'Um smash de 90 g', en: 'One 3 oz smash' }, preco: 0, precoUsd: 0 },
+            { id: 'duplo', nome: { pt: 'Duplo', en: 'Double' }, ds: { pt: 'Dois smashs de 90 g', en: 'Two 3 oz smashes' }, preco: 11, precoUsd: 3.5 } ] },
+          { id: 'extra', rot: { pt: 'Que tal turbinar seu burger?', en: 'Want to level it up?' }, max: 10, op: [
+            { id: 'ovo', nome: { pt: 'Ovo', en: 'Egg' }, preco: 4, precoUsd: 1.5 },
+            { id: 'bacon', nome: { pt: 'Bacon', en: 'Bacon' }, preco: 6, precoUsd: 2 },
+            { id: 'cheddar', nome: { pt: 'Cheddar extra', en: 'Extra cheddar' }, preco: 5, precoUsd: 1.5 } ] } ], itens: [
+          { id: 'classico', etq: { pt: 'Mais pedido', en: 'Best seller' }, img: '🍔', nome: { pt: 'Smash clássico', en: 'Classic smash' }, ds: { pt: 'Blend 90 g, queijo e molho da casa', en: '3 oz patty, cheese and house sauce' }, preco: 29.9, precoUsd: 9.9 },
           { id: 'duplo', img: '🍔', nome: { pt: 'Smash duplo', en: 'Double smash' }, ds: { pt: '2 blends, cheddar e cebola caramelizada', en: '2 patties, cheddar and caramelized onion' }, preco: 36.9, precoUsd: 12.9 },
-          { id: 'bacon', img: '🥓', nome: { pt: 'Bacon burger', en: 'Bacon burger' }, ds: { pt: 'Blend, bacon crocante e barbecue', en: 'Patty, crispy bacon and BBQ' }, preco: 38.9, precoUsd: 13.5 },
+          { id: 'bacon', etq: { pt: 'Recomendado', en: 'Recommended' }, img: '🥓', nome: { pt: 'Bacon burger', en: 'Bacon burger' }, ds: { pt: 'Blend, bacon crocante e barbecue', en: 'Patty, crispy bacon and BBQ' }, preco: 38.9, precoUsd: 13.5 },
           { id: 'frango', img: '🍗', nome: { pt: 'Chicken crispy', en: 'Crispy chicken' }, ds: { pt: 'Frango empanado e maionese verde', en: 'Fried chicken and herb mayo' }, preco: 32.9, precoUsd: 11.5 },
         ] },
         { nome: { pt: 'Acompanhamentos', en: 'Sides' }, itens: [
@@ -223,6 +237,21 @@
       ],
     },
   };
+  // Fotos ilustrativas (Unsplash, licença livre para uso comercial; veja fotos/CREDITOS.md).
+  // Cada item aponta para experiencia/fotos/<código>.jpg. Sem foto, o site usa o emoji do item.
+  var FOTOS = {
+    pizzaria: { mussarela: '1574071318508-1cdbab80d002', calabresa: '1604382354936-07c5d9983bd3', margherita: '1513104890138-7c749659a591', portuguesa: '1565299624946-b28f40a0ae38', frango: '1565299624946-b28f40a0ae38', chocolate: '1606313564200-e75d5e30476c', refri: '1622483767028-3f66f32aef97', suco: '1600271886742-f049cd451bba' },
+    hamburgueria: { classico: '1568901346375-23c9450c58cd', duplo: '1572802419224-296b0aeee0d9', bacon: '1571091718767-18b5b1457add', frango: '1586190848861-99aa4a171e90', batata: '1573080496219-bb080dd4f877', onion: '1639024471283-03518883512d', refri: '1581636625402-29b2a704ef13', milkshake: '1572490122747-3968b75cc699' },
+    estetica: { sobrancelha: '1487412947147-5cebf100ffc2', henna: '1596462502278-27bfdc403348', lash: '1487412947147-5cebf100ffc2', cilios: '1487412947147-5cebf100ffc2', manicure: '1522337660859-02fbefca4702', pemao: '1604654894610-df63bc536371', limpeza: '1570172619644-dfd03ed5d881' },
+    barbearia: { corte: '1622286342621-4bd786c2447c', barba: '1503951914875-452162b0f3f1', combo: '1599351431202-1e0f0137899a', pezinho: '1605497788044-5a32c7078486', sobrancelha: '1621605815971-fbc98d665033' },
+    pilates: { experimental: '1518611012118-696072aa579a', aula: '1544367567-0f2fcb009e0b', avaliacao: '1576091160399-112ba8d25d1d', fisio: '1571019613454-1cb2f99b2d8b' },
+    mecanica: { revisao: '1625047509248-ec889cbff17f', freios: '1619642751034-765dfdf7c58e', suspensao: '1530046339160-ce3e530c7d2f', oleo: '1486262715619-67b85e0b08d3', ar: '1625047509248-ec889cbff17f', diagnostico: '1486262715619-67b85e0b08d3' },
+    vidracaria: { box: '1584622650111-993a426fbf0a', janela: '1560448204-e02f11c3d0e2', espelho: '1618220179428-22790b461013', portao: '1600566753190-17f0baa2a6c3', cobertura: '1613490493576-7fde63acd811', manutencao: '1600607687939-ce8a6c25118c' },
+    reformas: { pintura: '1562259949-e8e7689d7828', eletrica: '1621905251189-08b45d6a269e', hidraulica: '1585704032915-c3400ca199e7', piso: '1581858726788-75bc0f6a952d', banheiro: '1552321554-5fefe8c9ef14', reparos: '1589939705384-5185137a7f0f' },
+  };
+  Object.keys(FOTOS).forEach(function (n) {
+    NICHOS[n].categorias.forEach(function (c) { c.itens.forEach(function (i) { if (FOTOS[n][i.id]) i.foto = 'fotos/' + FOTOS[n][i.id] + '.jpg'; }); });
+  });
   if (typeof module !== 'undefined' && module.exports) module.exports = NICHOS;
   else raiz.NICHOS = NICHOS;
 })(typeof window !== 'undefined' ? window : this);

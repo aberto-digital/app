@@ -211,16 +211,18 @@
       err: 'Preencha nome e telefone.', remove: 'Tirar',
     };
     var main = doc.getElementById('conteudo');
-    var html = '<section class="cat"><h2 style="margin-top:18px">' + tx.need + '</h2>' + N.categorias.map(function (c) {
+    var todos = []; N.categorias.forEach(function (c) { c.itens.forEach(function (i) { todos.push(i); }); });
+    Comum.casca(doc, win, 'orcamento', en, todos);
+    var html = '<section class="cat" id="cat0"><h2 style="margin-top:18px">' + tx.need + '</h2><div class="grade">' + N.categorias.map(function (c) {
       return c.itens.map(function (it) {
-        return '<div class="item"><div class="ilu" aria-hidden="true">' + it.img + '</div><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco"><small style="display:inline">' + tx.from + '</small> ' + Marca.preco(faixa(it, l).de, l) + '</div></div><button type="button" class="pilula" data-tipo="' + it.id + '">' + tx.ask + '</button></div>';
+        return '<button type="button" class="item" data-tipo="' + it.id + '"><div class="txt"><b>' + esc(it.nome[l]) + '</b><small>' + esc(it.ds[l]) + '</small><div class="preco"><small>' + tx.from + '</small> ' + Marca.preco(faixa(it, l).de, l) + '</div><span class="pilula">' + tx.ask + '</span></div><div class="ilu vis">' + Comum.visual(it) + '</div></button>';
       }).join('');
-    }).join('') + '</section>';
+    }).join('') + '</div></section>';
     html += '<section class="avaliacoes"><h2>' + tx.reviews + '</h2>' + [
       en ? ['Sent photos at night and had the price the next morning.', 'Mariana R.'] : ['Mandei as fotos à noite e de manhã já tinha o valor.', 'Mariana R.'],
       en ? ['Clear quote, no surprises, great job.', 'Lucas F.'] : ['Orçamento claro, sem surpresa no final. Serviço caprichado.', 'Lucas F.'],
     ].map(function (a) { return '<div class="av"><span class="est">★★★★★</span> ' + esc(a[0]) + '<br><small>' + esc(a[1]) + ' · ' + (en ? 'example review' : 'avaliação de exemplo') + '</small></div>'; }).join('') + '</section>';
-    html += '<div class="info-loja">🕒 ' + esc(E.t.info) + (cfg.cidade ? '<br>📍 ' + esc(cfg.cidade) : '') + '</div>';
+    html += '<div class="info-loja" id="perfil">🕒 ' + esc(E.t.info) + (cfg.cidade ? '<br>📍 ' + esc(cfg.cidade) : '') + '</div>';
     html += '<p class="rodape-demo">' + tx.demoBy + ' <a href="https://abertodigital.com" target="_blank" rel="noopener">abertodigital</a></p>';
     main.innerHTML = html;
     main.addEventListener('click', function (e) { var b = e.target.closest('[data-tipo]'); if (b) { o.tipo = b.getAttribute('data-tipo'); tela(); } });

@@ -25,6 +25,25 @@ async function t(nome, fn) { try { await fn(); ok++; console.log('ok -', nome) }
     assert.strictEqual(Pedido.resumo(p, 'retirada').taxa, 0)
   })
 
+  await t('opções: tamanho e extras somam no preço e viram linhas diferentes', () => {
+    const h = Marca.ler('?n=hamburgueria')
+    const p = Pedido.novo(h)
+    assert.strictEqual(Pedido.valida('classico', [], 'hamburgueria'), false)
+    assert.strictEqual(Pedido.valida('classico', ['tam:duplo', 'extra:ovo', 'extra:ovo'], 'hamburgueria'), true)
+    assert.strictEqual(Pedido.valida('classico', ['tam:duplo', 'tam:simples'], 'hamburgueria'), false)
+    Pedido.adiciona(p, 'classico', ['tam:duplo', 'extra:ovo', 'extra:ovo'], 2)
+    Pedido.adiciona(p, 'classico', ['tam:simples'])
+    Pedido.adiciona(p, 'classico', ['tam:inexistente'])
+    const r = Pedido.resumo(p, 'retirada')
+    assert.strictEqual(r.linhas.length, 2)
+    assert.strictEqual(r.itens, 3)
+    assert.strictEqual(r.subtotal, 127.7)
+    assert.ok(r.linhas.some((x) => /Duplo, Ovo ×2/.test(x.nome)))
+    const k = r.linhas.find((x) => x.qtd === 2).id
+    Pedido.adiciona(p, k); Pedido.remove(p, k)
+    assert.strictEqual(Pedido.qtd(p, k), 2)
+  })
+
   await t('em inglês usa preços em dólar', () => {
     const p = Pedido.novo(Marca.ler('?n=pizzaria&l=en'))
     Pedido.adiciona(p, 'calabresa')

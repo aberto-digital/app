@@ -388,6 +388,14 @@
   .det-acoes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:-4px 0 16px}
   .det-acoes .btn svg{width:16px;height:16px}
   /* canal de resposta antes de "Responder" */
+  .cx-vias{display:inline-flex;align-items:center;gap:2px;align-self:center;margin-right:8px}
+  .cx-v{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;color:var(--muted);background:transparent;border:0;cursor:pointer}
+  .cx-v svg{width:20px;height:20px;display:block}
+  .cx-v:hover:not(:disabled){background:var(--papel);color:var(--sec)}
+  .cx-v.on,.cx-v.on:hover{color:var(--cv)}
+  .cx-v:disabled{cursor:default}
+  .cx-v i{position:absolute;right:1px;top:0;font-size:10px;font-style:normal;font-weight:800}
+  .cx-v:focus-visible{outline:2px solid var(--ceu);outline-offset:1px}
   .cx-via{display:inline-flex;align-items:center;gap:3px;align-self:center;margin-right:6px;padding:4px 6px 4px 4px;border-radius:9px;border:1px solid var(--linha2);background:var(--branco)}
   .cx-via:disabled{border-color:transparent;padding-right:2px;cursor:default;opacity:1}
   .cx-via:not(:disabled):hover,.cx-via[aria-expanded="true"]{background:var(--papel)}
@@ -2318,7 +2326,7 @@
         return;
       }
       if (t && !c.resp && MEU_ID) c.resp = MEU_ID;
-      var via = viaDe(c);
+      var via = viaDe(c); delete viaTemp[c.id]; // a escolha vale so para esta mensagem
       // PDF da auditoria/proposta esperando na caixa: vai como anexo junto com o texto (WhatsApp e e-mail)
       if (anexoPend && anexoPend.cid === c.id && (via === 'wa' || via === 'em')){
         var arq = anexoPend.arq; anexoPend = null; ta.value = '';
@@ -2368,9 +2376,17 @@
   }
   function foneWa(t){ var d = String(t || '').replace(/\D/g, ''); if (d.length === 10 || d.length === 11) d = '55' + d; return d.length >= 12 && d.length <= 13 ? d : ''; }
   var NOME_VIA = {wa:'WhatsApp', ig:'Instagram', fb:'Messenger', em:'E-mail', wal:'WhatsApp ↗'};
+  // escolha feita na caixa so para a proxima mensagem; depois de enviar volta a seguir o canal em que o cliente escreveu por ultimo
+  var viaTemp = {};
+  function viaUltima(c, vs){
+    var m = (c.msgs || []).slice().reverse().filter(function(x){ return x.de === 'cli' && x.wa; })[0]; if (!m) return '';
+    var w = String(m.wa), v = /^em:/.test(w) ? 'em' : /^cm:/.test(w) ? 'ig' : /^wamid/i.test(w) ? 'wa' : '';
+    return v && vs.indexOf(v) >= 0 ? v : '';
+  }
   function viaDe(c){
     var vs = viasDe(c); if (!vs.length) return '';
-    if (c.via && vs.indexOf(c.via) >= 0) return c.via;
+    if (viaTemp[c.id] && vs.indexOf(viaTemp[c.id]) >= 0) return viaTemp[c.id];
+    var vu = viaUltima(c, vs); if (vu) return vu;
     var pad = {WhatsApp:'wa', Instagram:'ig', Facebook:'fb', Messenger:'fb', 'E-mail':'em'}[c.canal];
     return vs.indexOf(pad) >= 0 ? pad : (vs[0] === 'wal' && vs.length > 1 ? vs[1] : vs[0]);
   }
@@ -2692,8 +2708,11 @@
   var CANAL_VIA = {wa:'WhatsApp', wal:'WhatsApp', ig:'Instagram', fb:'Facebook', em:'E-mail'};
   function botaoVia(c){
     var vs = viasDe(c), v = viaDe(c); if (!vs.length) return '';
-    return '<button type="button" class="cx-via" id="cxVia" aria-haspopup="true" aria-expanded="false" aria-label="Responder por ' + esc(NOME_VIA[v]) + (vs.length > 1 ? '. Trocar canal' : '') + '" title="Responder por ' + esc(NOME_VIA[v]) + '"' + (vs.length > 1 ? '' : ' disabled') + '>' +
-      logoCanal(CANAL_VIA[v], 'via-logo') + (v === 'wal' ? '<span class="via-ext" aria-hidden="true">↗</span>' : '') + (vs.length > 1 ? '<span class="via-ch" aria-hidden="true">▾</span>' : '') + '</button>';
+    return '<div class="cx-vias" role="radiogroup" aria-label="Responder por">' + vs.map(function(x){
+      var cv = {wa:'var(--wa)', wal:'var(--wa)', ig:'var(--ig)', fb:'var(--fb)', em:'var(--ceu)'}[x], svg = (LOGO_CANAL[CANAL_VIA[x]] || '').split('#fff').join('currentColor');
+      return '<button type="button" class="cx-v' + (x === v ? ' on' : '') + '" data-v="' + x + '" role="radio" aria-checked="' + (x === v) + '" aria-label="Responder por ' + esc(NOME_VIA[x]) + '" title="' + esc(NOME_VIA[x]) + (x === 'wal' ? ' (abre o WhatsApp com a mensagem pronta)' : '') + '" style="--cv:' + cv + '"' + (vs.length > 1 ? '' : ' disabled') + '>' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true">' + svg + '</svg>' + (x === 'wal' ? '<i aria-hidden="true">\u2197</i>' : '') + '</button>';
+    }).join('') + '</div>';
   }
   function popVia(bt, c){
     if (popCx.tipo === 'via') return fechaPopCx();
@@ -2831,7 +2850,11 @@
     else ta.placeholder = phCx(c);
     $$('.cx-abas [data-modo]', box).forEach(function(b){ b.onclick = function(){ mudaModoCx(b.getAttribute('data-modo')); }; });
     $('#cxEmoji').onclick = function(e){ e.stopPropagation(); popEmoji(this); };
-    var bv = $('#cxVia'); if (bv) bv.onclick = function(e){ e.stopPropagation(); popVia(this, c); };
+    $$('.cx-vias .cx-v', box).forEach(function(b){ b.onclick = function(e){
+      e.stopPropagation(); viaTemp[c.id] = b.getAttribute('data-v');
+      $$('.cx-vias .cx-v', box).forEach(function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', on); });
+      var t = $('#texto'); if (t){ if (modoCx !== 'nota') t.placeholder = phCx(c); t.focus(); }
+    }; });
     $('#cxIA').onclick = function(e){ e.stopPropagation(); popIA(this); };
     $('#cxRap').onclick = function(e){ e.stopPropagation(); if (popCx.tipo === 'rap') fechaPopCx(); else popRap('', this); };
     var mic = $('#cxMic'); if (mic) mic.onclick = function(){ fechaPopCx(); comecaGravar(c); };

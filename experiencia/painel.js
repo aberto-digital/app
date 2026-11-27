@@ -107,6 +107,9 @@
         '<main class="corpo-p">' + (aba === 'mensagens' ? telaMensagens() : V.tela(aba, e)) + '</main>' +
         '<div class="acoes-p"><a class="btn sec" href="index.html' + esc(win.location.search) + '">' + T.back + '</a><a class="btn" target="_blank" rel="noopener" href="' + linkWhats(cfg) + '">' + T.want + '</a></div>';
       Marca.aplica(cfg, doc);
+      // funil: rola até a coluna do card do cliente (no celular só cabe uma coluna por vez)
+      var kb = raizEl.querySelector('.kanban'), dq = kb && kb.querySelector('.pcard.destaque');
+      if (dq) kb.scrollLeft = Math.max(0, dq.closest('.col').offsetLeft - kb.offsetLeft - 4);
     }
     function ir(a) { aba = a; abertaConv = true; desenha(); win.scrollTo(0, 0); }
     raizEl.addEventListener('click', function (ev) {

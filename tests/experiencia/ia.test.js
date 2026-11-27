@@ -1,0 +1,85 @@
+// Testes da IA da demo "Link de experiência" (infra/pocketbase/pb_hooks/experiencia.js).
+// Rodar: node tests/experiencia/ia.test.js
+const path = require('path')
+const assert = require('assert')
+global.__hooks = path.resolve(__dirname, '../../infra/pocketbase/pb_hooks')
+global.$os = { getenv: () => '' }
+global.$http = { send: () => { throw new Error('rede não deve ser usada no teste') } }
+
+const store = new Map()
+let geminiFalha = false, chamadas = 0, ultimo = null
+const app = {
+  store: () => ({ get: (k) => store.get(k), set: (k, v) => store.set(k, v) }),
+  logger: () => ({ warn() {}, info() {}, error() {} }),
+  findFirstRecordByFilter(col, f) {
+    if (col === 'empresas') return { id: 'EMP_AGENCIA', getString: () => 'abertodigital' }
+    throw new Error('não achado')
+  },
+}
+const IA = require(global.__hooks + '/ia.js')
+IA.cfgDaEmpresa = () => ({ getString: (k) => ({ api_key: 'k', empresa: 'EMP_AGENCIA' }[k] || '') })
+IA.chama = (a, cfg, tipo, sistema, texto, json, max) => {
+  chamadas++; ultimo = { tipo, sistema, texto, json, max }
+  if (geminiFalha) throw new Error('HTTP 503')
+  return 'A pizza calabresa sai por R$ 49,90.'
+}
+const X = require(global.__hooks + '/experiencia.js')
+
+let ok = 0
+function t(nome, fn) { try { fn(); ok++; console.log('ok -', nome) } catch (e) { console.log('FALHOU -', nome, '\n ', e.message); process.exitCode = 1 } }
+
+const itens = Array.from({ length: 45 }, (_, i) => ({ nome: 'Item ' + i, preco: 10 + i, cat: 'Pizzas' }))
+const msgs = Array.from({ length: 15 }, (_, i) => ({ de: i % 2 ? 'ia' : 'cli', txt: 'x'.repeat(900) }))
+
+t('monta corta para 12 mensagens de até 500 caracteres e 40 itens', () => {
+  const m = X.monta({ n: 'pizzaria', nome: 'Pizzaria Bella', cidade: 'Arujá', l: 'pt', itens, msgs })
+  const linhasMsg = m.texto.split('\n').filter((l) => /^(Cliente|Atendente):/.test(l))
+  assert.strictEqual(linhasMsg.length, 12)
+  linhasMsg.forEach((l) => assert.ok(l.length <= 500 + 12, 'linha longa: ' + l.length))
+  assert.ok(m.sistema.includes('Item 39') && !m.sistema.includes('Item 40'))
+})
+
+t('sistema tem o nome do negócio, avisa que é demonstração e proíbe inventar', () => {
+  const m = X.monta({ n: 'pizzaria', nome: 'Pizzaria Bella', cidade: 'Arujá', l: 'pt', itens: itens.slice(0, 3), msgs: [{ de: 'cli', txt: 'oi' }] })
+  assert.ok(m.sistema.includes('Pizzaria Bella'))
+  assert.ok(/demonstra/i.test(m.sistema))
+  assert.ok(/não invente/i.test(m.sistema))
+})
+
+t('nicho inexistente, campos faltando ou tipos errados não quebram', () => {
+  const m = X.monta({ n: '<script>', nome: 123, itens: 'lixo', msgs: null })
+  assert.ok(typeof m.sistema === 'string' && m.sistema.length > 0)
+  assert.ok(X.respostaPronta('nao-existe', 'pt').length > 0)
+})
+
+t('responde chama a IA com tipo experiencia e no máximo 300 tokens', () => {
+  const r = X.responde(app, { n: 'pizzaria', nome: 'Bella', itens: itens.slice(0, 2), msgs: [{ de: 'cli', txt: 'quanto custa?' }] }, '1.1.1.1')
+  assert.deepStrictEqual(r, { texto: 'A pizza calabresa sai por R$ 49,90.', limite: false })
+  assert.strictEqual(ultimo.tipo, 'experiencia'); assert.strictEqual(ultimo.max, 300); assert.strictEqual(ultimo.json, false)
+})
+
+t('31ª mensagem do mesmo IP na hora usa a resposta pronta sem chamar a IA', () => {
+  store.clear(); chamadas = 0
+  for (let i = 0; i < 30; i++) X.responde(app, { n: 'pizzaria', msgs: [{ de: 'cli', txt: 'oi' }] }, '2.2.2.2')
+  const r = X.responde(app, { n: 'pizzaria', msgs: [{ de: 'cli', txt: 'oi' }] }, '2.2.2.2')
+  assert.strictEqual(chamadas, 30)
+  assert.strictEqual(r.limite, true)
+  assert.strictEqual(r.texto, X.respostaPronta('pizzaria', 'pt'))
+})
+
+t('conversa com mais de 20 mensagens do cliente usa a resposta pronta', () => {
+  store.clear(); chamadas = 0
+  const longa = Array.from({ length: 21 }, () => ({ de: 'cli', txt: 'oi' }))
+  const r = X.responde(app, { n: 'pizzaria', msgs: longa }, '3.3.3.3')
+  assert.strictEqual(r.limite, true); assert.strictEqual(chamadas, 0)
+})
+
+t('falha do Gemini devolve a resposta pronta, sem erro', () => {
+  store.clear(); geminiFalha = true
+  const r = X.responde(app, { n: 'hamburgueria', l: 'en', msgs: [{ de: 'cli', txt: 'hi' }] }, '4.4.4.4')
+  geminiFalha = false
+  assert.strictEqual(r.limite, false)
+  assert.strictEqual(r.texto, X.respostaPronta('hamburgueria', 'en'))
+})
+
+console.log(ok + ' testes ok')

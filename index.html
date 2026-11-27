@@ -326,7 +326,13 @@
   /* topo: logo + nome da página; bolinha do servidor no canto do logo */
   .marca-topo{position:relative}
   .marca-topo .brilho,.marca-topo .bolha{display:none!important}
-  .marca-topo .nv-ponto{position:absolute;left:28px;top:26px;margin:0;width:11px;height:11px;border:2px solid var(--branco);box-sizing:content-box}
+  /* o logo é só o logo: sem a estrelinha do assistente; a bolinha do servidor fica no lugar dela */
+  .trilho .marca-ia .brilho,.trilho .marca-ia .bolha,.marca-ia-topo .brilho,.marca-ia-topo .bolha{display:none!important}
+  .trilho .marca-ia[aria-pressed="true"]{background:none;box-shadow:none}
+  .marca-ia-topo[aria-pressed="true"] svg{box-shadow:none}
+  .marca-ia .nv-ponto,.marca-ia-topo .nv-ponto{position:absolute;right:-4px;bottom:-4px;margin:0;width:11px;height:11px;border:2px solid var(--navy);box-sizing:content-box}
+  .marca-ia-topo .nv-ponto{border-color:var(--branco)}
+  html[data-tema="escuro"] .trilho .marca-ia .nv-ponto{border-color:#121B2A}
   .topo-novo{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--ceu);color:#fff;flex:none}
   .topo-novo svg{width:22px;height:22px}
   .topo-novo[hidden]{display:none}
@@ -1301,7 +1307,19 @@
   $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
   $('#iaTopo').onclick = function(){ vai('mensagens'); };
   $('#topoNovo').onclick = function(){ modalContato(); };
-  $('#iaRail').onclick = function(){ if (!iaLogado()){ aviso('O Assistente funciona com a conta conectada ao servidor. Entre pela tela de Ajustes.'); return; } $('#iaBtn').onclick(); };
+  $('#iaRail').onclick = function(){ vai('mensagens'); };
+  $('#iaRail').setAttribute('aria-label', 'abertodigital · Conversas'); $('#iaTopo').setAttribute('aria-label', 'abertodigital · Conversas');
+  var dicaRail = $('#iaRail .dica'); if (dicaRail) dicaRail.textContent = 'abertodigital';
+  /* bolinha de conectado (criada pelo core/nuvem.js) no canto do logo visível: barra lateral no computador, topo no celular */
+  function poePonto(){
+    var p = document.querySelector('.nv-ponto'); if (!p) return;
+    var alvo = matchMedia('(max-width:760px)').matches ? $('#iaTopo') : $('#iaRail');
+    if (alvo && p.parentNode !== alvo) alvo.appendChild(p);
+    if (!p._sop){ p._sop = 1; p.addEventListener('click', function(e){ e.stopPropagation(); }); }
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(poePonto, 0); });
+  setTimeout(poePonto, 0);
+  (function(mq){ (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(poePonto); })(matchMedia('(max-width:760px)'));
   $('#iaBtn').onclick = function(){
     if (atual === 'mensagens' && sel === 'ia'){ var ibx = $('#inbox'); if (ibx && ibx.classList.contains('mostra-conv')){ ibx.classList.remove('mostra-conv'); convMovel = false; var p = filtrados()[0]; sel = p ? p.id : null; desenhaNav(); desenhaLista(); desenhaConversa(); desenhaDetalhe(); return; } }
     if (atual !== 'mensagens') vai('mensagens');

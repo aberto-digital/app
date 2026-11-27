@@ -176,7 +176,12 @@
   .av .sel{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;border:2px solid var(--branco);display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff;background:#6B7585;z-index:1}
 
   /* ===== Mensagens ===== */
-  .inbox{display:grid;grid-template-columns:360px 1fr 300px;grid-template-rows:minmax(0,1fr);height:100%}
+  .inbox{position:relative;--wl:360px;--wd:300px;display:grid;grid-template-columns:var(--wl) 1fr var(--wd);grid-template-rows:minmax(0,1fr);height:100%}
+  .rz{position:absolute;top:0;bottom:0;width:9px;z-index:5;cursor:col-resize;touch-action:none;outline:0}
+  .rz::after{content:"";position:absolute;left:4px;top:0;bottom:0;width:1px;background:transparent;transition:background .15s}
+  .rz:hover::after,.rz.ativo::after,.rz:focus-visible::after{left:3px;width:3px;background:var(--ceu);opacity:.7}
+  .rz-l{left:calc(var(--wl) - 4px)}.rz-d{right:calc(var(--wd) - 4px)}
+  html.arrastando,html.arrastando *{user-select:none!important;cursor:col-resize!important}
   .lista{min-width:0;border-right:1px solid var(--linha);background:var(--branco);display:flex;flex-direction:column;min-height:0}
   .lista .busca{display:flex;align-items:center;gap:8px;margin:14px 14px 8px;padding:9px 12px;border-radius:10px;background:var(--papel);border:1px solid var(--linha)}
   .lista .busca svg{width:17px;height:17px;color:var(--muted)}
@@ -773,7 +778,8 @@
   @keyframes sobe{from{transform:translateY(-10px);opacity:0}}
 
   @media (max-width:1180px){
-    .inbox{grid-template-columns:320px 1fr}
+    .inbox{--wl:320px;grid-template-columns:var(--wl) 1fr}
+    .rz-d{display:none}
     .detalhe{display:none;position:fixed;inset:0 0 0 auto;width:min(380px,100vw);z-index:60;box-shadow:0 0 0 100vmax rgba(16,26,44,.45);padding-top:0}
     .det-barra{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;margin:0 -20px 16px;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;background:var(--branco);border-bottom:1px solid var(--linha);z-index:2}
     .inbox.mostra-det .detalhe{display:block}
@@ -859,6 +865,7 @@
     .compor{padding:10px 12px}
     .inbox{grid-template-columns:minmax(0,1fr)}
     .inbox>*{min-width:0}
+    .rz{display:none}
     .inbox .conversa{display:none}
     .inbox.mostra-conv .lista{display:none}
     .inbox.mostra-conv .conversa{display:flex}
@@ -1812,6 +1819,44 @@
     if (Math.abs(car.scrollLeft - x) < 2) return;
     if (suave && car.scrollTo) car.scrollTo({left:x, behavior:'smooth'}); else car.scrollLeft = x;
   }
+  /* Arrastar a borda da lista e do painel do lead muda a largura; fica salvo neste navegador. */
+  var LARG = {l:[360, 240, 640], d:[300, 240, 560]}; // padrão, mínimo, máximo (px)
+  function largSalva(){ try { return JSON.parse(localStorage.getItem('abertocore-larg-v1')) || {}; } catch (e){ return {}; } }
+  function largGrava(k, v){ try { var o = largSalva(); if (v == null) delete o[k]; else o[k] = v; localStorage.setItem('abertocore-larg-v1', JSON.stringify(o)); } catch (e){} }
+  function ligaLargura(){
+    var ib = $('#inbox'); if (!ib) return;
+    var sv = largSalva();
+    ['l', 'd'].forEach(function(k){ if (sv[k]) ib.style.setProperty('--w' + k, Math.max(LARG[k][1], Math.min(LARG[k][2], +sv[k] || LARG[k][0])) + 'px'); });
+    function limite(k, v){
+      var outro = k === 'l' ? 'd' : 'l', ow = parseFloat(getComputedStyle(ib).getPropertyValue('--w' + outro)) || LARG[outro][0];
+      if (k === 'l' && matchMedia('(max-width:1180px)').matches) ow = 0;
+      var maxEsp = ib.getBoundingClientRect().width - ow - 360; // a conversa nunca fica menor que 360 px
+      return Math.round(Math.max(LARG[k][1], Math.min(LARG[k][2], maxEsp, v)));
+    }
+    function poe(k, v, grava){ v = limite(k, v); ib.style.setProperty('--w' + k, v + 'px'); if (grava) largGrava(k, v); return v; }
+    [['l', '#rzL'], ['d', '#rzD']].forEach(function(x){
+      var k = x[0], h = $(x[1]); if (!h) return;
+      h.addEventListener('pointerdown', function(e){
+        if (e.button) return; e.preventDefault();
+        try { h.setPointerCapture(e.pointerId); } catch (err){}
+        h.classList.add('ativo'); document.documentElement.classList.add('arrastando');
+        var r = ib.getBoundingClientRect(), ultimo = null;
+        function mexe(ev){ ultimo = poe(k, k === 'l' ? ev.clientX - r.left : r.right - ev.clientX, false); }
+        function solta(){
+          h.removeEventListener('pointermove', mexe); h.removeEventListener('pointerup', solta); h.removeEventListener('pointercancel', solta);
+          h.classList.remove('ativo'); document.documentElement.classList.remove('arrastando');
+          if (ultimo != null) largGrava(k, ultimo);
+        }
+        h.addEventListener('pointermove', mexe); h.addEventListener('pointerup', solta); h.addEventListener('pointercancel', solta);
+      });
+      h.addEventListener('dblclick', function(){ ib.style.removeProperty('--w' + k); largGrava(k, null); });
+      h.addEventListener('keydown', function(e){
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault();
+        var atual = parseFloat(getComputedStyle(ib).getPropertyValue('--w' + k)) || LARG[k][0], passo = (e.key === 'ArrowRight' ? 1 : -1) * (k === 'l' ? 1 : -1) * 16;
+        poe(k, atual + passo, true);
+      });
+    });
+  }
   function vMensagens(){
     var V = $('#vista');
     V.innerHTML = '<div class="inbox' + (convMovel && sel ? ' mostra-conv' : '') + '" id="inbox">' +
@@ -1822,7 +1867,10 @@
       '</section>' +
       '<section class="conversa" id="conversa" aria-label="Conversa"></section>' +
       '<aside class="detalhe" id="detalhe" aria-label="Dados do contato"></aside>' +
+      '<div class="rz rz-l" id="rzL" role="separator" aria-orientation="vertical" aria-label="Largura da lista de conversas" title="Arraste para mudar a largura (duplo clique volta ao padrão)" tabindex="0"></div>' +
+      '<div class="rz rz-d" id="rzD" role="separator" aria-orientation="vertical" aria-label="Largura dos dados do contato" title="Arraste para mudar a largura (duplo clique volta ao padrão)" tabindex="0"></div>' +
     '</div>';
+    ligaLargura();
     $('#busca').addEventListener('input', function(e){ busca = e.target.value; desenhaLista(); });
     $('#itens').addEventListener('click', function(e){ if (e.target.closest('#vazioNovo')) modalContato(); });
     $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaAbas(); vaiParaAba(aba, true); } });
@@ -1872,7 +1920,7 @@
     var q = busca.trim().toLowerCase();
     return S.contatos.filter(function(c){
       var st = a || aba;
-      var vis = c.ignorado ? st === 'finalizado' : (c.status === st || (st === 'entrada' && c.status === 'esperando'));
+      var vis = c.ignorado ? st === 'finalizado' : (stDe(c) === st || (st === 'entrada' && stDe(c) === 'esperando'));
       return vis && (!canaisSel.length || canaisSel.indexOf(c.canal) >= 0) &&
         (!respSel || (respSel === 'eu' ? c.resp === MEU_ID : respSel === 'sem' ? !c.resp : c.resp === respSel)) &&
         (!etiqSel.length || etiqSel.some(function(x){ return (c.etiquetas || []).indexOf(x) >= 0; })) &&
@@ -1894,7 +1942,7 @@
   }
   function desenhaAbas(){
     var cont = {entrada:0, esperando:0, finalizado:0, prospeccao:0};
-    S.contatos.forEach(function(c){ if (!c.ignorado) cont[c.status]++; });
+    S.contatos.forEach(function(c){ if (!c.ignorado) cont[stDe(c)]++; });
     $('#abas').innerHTML = ABAS.map(function(a){
       if (a[0] === 'finalizado') return '<button role="tab" class="aba-ic" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '" aria-label="Arquivados" title="Arquivados">' + ic('arquivo') + '</button>';
       return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + (a[0] === 'prospeccao' && cont.prospeccao ? '<small class="cinza">' + cont.prospeccao + '</small>' : '') + '</button>';
@@ -1930,12 +1978,12 @@
     return '<div class="lig-resumo"><b>Hoje</b> ' + n + (n === 1 ? ' ligação' : ' ligações') + ' · ' + at + (at === 1 ? ' atendeu' : ' atenderam') + ' · ' + re + (re === 1 ? ' reunião' : ' reuniões') + '</div>';
   }
   function chipLig(c){
-    var n = ligTent(c).length; if (!n || c.status !== 'prospeccao') return '';
+    var n = ligTent(c).length; if (!n || stDe(c) !== 'prospeccao') return '';
     var sem = ligSemAtend(c);
     return '<span class="chip etapa">' + (sem ? sem + '/' + LIG_MAX + ' sem atender' : n + (n === 1 ? ' ligação' : ' ligações')) + '</span>';
   }
   function blocoLigacao(c){
-    if (!(c.lead && c.status === 'prospeccao')) return '';
+    if (!(c.lead && stDe(c) === 'prospeccao')) return '';
     var fone = foneWa(c.tel), L = c.lead, t = ligTent(c), sem = ligSemAtend(c);
     var outros = String(L.telefone || '').split(/[,;\/]/).map(function(x){ return x.trim(); }).filter(function(x){ return x && foneWa(x) && foneWa(x) !== fone; });
     var G = L.notaGoogle ? ' no Google, com nota ' + notaG(L.notaGoogle) : ' no Google';
@@ -2061,7 +2109,7 @@
     fechaPopCx();
     sel = id; var c = contato(id);
     if (c.naoLidas){ c.naoLidas = 0; salva(); desenhaNav(); }
-    if (c.status !== aba){ aba = c.status; vaiParaAba(aba, false); }
+    if (stDe(c) !== aba){ aba = stDe(c); vaiParaAba(aba, false); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     convMovel = true; var ib = $('#inbox'); if (ib) ib.classList.add('mostra-conv');
     var f = $('#fio'); if (f){ delete f.dataset.leu; fimConversa(f); }
@@ -2230,13 +2278,13 @@
       if (!t) return;
       if (via === 'wal'){
         window.open('https://wa.me/' + foneWa(c.tel) + '?text=' + encodeURIComponent(t), '_blank', 'noopener');
-        c.msgs.push({de:'eq', txt:t, ts:agoraMs(), fora:'WhatsApp'}); c.status = 'esperando'; salva(); ta.value = '';
+        c.msgs.push({de:'eq', txt:t, ts:agoraMs(), fora:'WhatsApp'}); c.status = stEnvio(c); salva(); ta.value = '';
         desenhaLista(); desenhaConversa(); aviso('Abri o WhatsApp com a mensagem pronta. É só tocar em enviar lá.');
         return;
       }
       var m = {de:'eq', txt:t, ts:agoraMs()};
       if (via){ m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7); m.pend = true; }
-      c.msgs.push(m); c.status = 'esperando';
+      c.msgs.push(m); c.status = stEnvio(c);
       S.msgsCanal[c.canal] = (S.msgsCanal[c.canal] || 0) + 1; salva(); aba = 'entrada';
       desenhaLista(); desenhaConversa();
       if (via){
@@ -2280,7 +2328,7 @@
     var c = contato(cid); if (!c) return Promise.resolve();
     var m = {de:'eq', txt:texto, ts:agoraMs(), pend:true};
     m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7);
-    c.msgs.push(m); c.status = 'esperando'; salva(); aba = 'entrada';
+    c.msgs.push(m); c.status = stEnvio(c); salva(); aba = 'entrada';
     if (sel === cid){ desenhaLista(); desenhaConversa(); }
     return Nuvem.enviarSocial(cid, texto, m.k, 'ig').then(function(){ aviso('Link enviado pelo Instagram.'); }).catch(function(err){
       var cc = contato(cid); if (!cc) return;
@@ -2293,7 +2341,7 @@
     var c = contato(cid); if (!c) return Promise.resolve();
     var m = {de:'eq', txt:(texto ? texto + '\n' : '') + '📎 ' + arq.nome, anexo:{nome:arq.nome, url:Nuvem.urlArquivo(arq)}, ts:agoraMs(), pend:true};
     m.k = 'k' + m.ts.toString(36) + Math.random().toString(36).slice(2, 7);
-    c.msgs.push(m); c.status = 'esperando'; salva(); aba = 'entrada';
+    c.msgs.push(m); c.status = stEnvio(c); salva(); aba = 'entrada';
     if (sel === cid){ desenhaLista(); desenhaConversa(); }
     return Nuvem.enviarArquivo(cid, arq.id, texto, m.k).then(function(){ aviso('<b>' + esc(arq.nome) + '</b> enviado.'); }).catch(function(err){
       var cc = contato(cid); if (!cc) return;
@@ -3429,6 +3477,11 @@
   }
   /* ---------- contatos que parecem a mesma pessoa (sugestão de juntar) ---------- */
   var PAL_GEN = /^(pizzaria|restaurante|lanchonete|hamburgueria|padaria|confeitaria|doceria|studio|estudio|salao|clinica|loja|oficina|mecanica|auto|centro|espaco|casa|buffet|escola|instituto|oficial|aruja|sp|de|da|do|das|dos|e|the|and|a|o|ltda|me|mei|calcados|roupas|moda|doces|paes|bolos|esquadrias|vidracaria|vidros|aluminio|materiais|construcao|deposito|fotografia|terapias|cursos|burguer|burger|pizza|cookies|beauty|hair|pets|pet|eletrica|chaveiro|residencial|odontologia|estetica|podologia|tattoo|kids)$/;
+  function temResposta(c){ return (c.msgs || []).some(function(m){ return m.de === 'cli'; }); }
+  /* Contato que só recebeu a nossa abordagem (nenhuma resposta ainda) fica na Prospecção, não na Entrada. */
+  function stDe(c){ return c.status === 'esperando' && c.prospeccao && !temResposta(c) ? 'prospeccao' : c.status; }
+  function stEnvio(c){ return (c.status === 'prospeccao' || c.prospeccao) && !temResposta(c) ? 'prospeccao' : 'esperando'; }
+  function normTxt(t){ return ' ' + String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'`´]/g, '').replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
   function chaveNome(t){
     return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’'`´]/g, '').replace(/[^a-z0-9 ]+/g, ' ')
       .split(' ').filter(function(w){ return w.length > 1 && !PAL_GEN.test(w); });
@@ -3439,15 +3492,42 @@
     var nao = S.naoJuntar || [], out = [], L = S.contatos.filter(function(c){ return !c.ignorado; });
     var info = L.map(function(c){
       var nomes = chaveNome(c.nome).concat(chaveNome(c.negocio));
-      return {c:c, tel:digitos(c.tel), mail:String(c.email || '').toLowerCase(), ig:String(c.usuario || '').toLowerCase().replace(/^@/, ''),
+      return {c:c, tel:digitos(c.tel), mail:String(c.email || '').toLowerCase(), ig:String(c.usuario || (c.lead && c.lead.insta) || '').toLowerCase().replace(/^@/, ''),
         site:String(c.site || '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, ''),
         nome:generico(c.nome) && !c.negocio ? [] : nomes.filter(function(w, i, a){ return a.indexOf(w) === i; })};
     });
     // palavra que aparece em muitos contatos é de ramo (fotografia, chaveiro, calçados): não identifica ninguém
     var df = {};
     info.forEach(function(x){ x.nome.forEach(function(w){ df[w] = (df[w] || 0) + 1; }); });
+    // abordagem enviada pelo Instagram (contato sem nome): a mensagem cita o nome da empresa do lead importado
+    var jaPar = {};
+    var leadsC = info.filter(function(x){ return x.c.lead && stDe(x.c) === 'prospeccao' && !(x.c.msgs || []).some(function(m){ return m.de !== 'sis'; }); });
+    info.forEach(function(a){
+      var c = a.c; if (!generico(c.nome) || leadsC.indexOf(a) >= 0) return;
+      var T = normTxt((c.msgs || []).filter(function(m){ return m.de === 'eq'; }).map(function(m){ return m.txt; }).join(' '));
+      if (T.length < 8) return;
+      var melhor = null, empate = false;
+      leadsC.forEach(function(b){
+        var toks = chaveNome(b.c.negocio || b.c.nome);
+        for (var k = toks.length; k >= 1; k--){
+          var fr = toks.slice(0, k).join(' ');
+          if (fr.length < 5) break;
+          if (T.indexOf(' ' + fr + ' ') >= 0){
+            if (!melhor || fr.length > melhor.len){ melhor = {b:b, len:fr.length}; empate = false; }
+            else if (fr.length === melhor.len && melhor.b !== b) empate = true;
+            break;
+          }
+        }
+      });
+      if (!melhor || empate) return;
+      var par = [c.id, melhor.b.c.id].sort(function(x, y){ return x - y; }).join('-');
+      if (nao.indexOf(par) >= 0 || (c.naoJuntar || []).indexOf(melhor.b.c.id) >= 0 || (melhor.b.c.naoJuntar || []).indexOf(c.id) >= 0) return;
+      jaPar[par] = 1;
+      out.push({manter:c, outro:melhor.b.c, por:'a mensagem enviada cita ' + (melhor.b.c.negocio || melhor.b.c.nome), par:par, forte:true});
+    });
     for (var i = 0; i < info.length; i++) for (var j = i + 1; j < info.length; j++){
       var a = info[i], b = info[j], par = [a.c.id, b.c.id].sort(function(x, y){ return x - y; }).join('-');
+      if (jaPar[par]) continue;
       if (nao.indexOf(par) >= 0 || (a.c.naoJuntar || []).indexOf(b.c.id) >= 0 || (b.c.naoJuntar || []).indexOf(a.c.id) >= 0) continue;
       var por = '';
       if (a.tel && a.tel === b.tel) por = 'mesmo telefone';
@@ -3539,7 +3619,9 @@
     var m = (A.msgs || []).concat(B.msgs || []).sort(function(x, y){ return (x.ts || 0) - (y.ts || 0); });
     m.push({de:'sis', txt:'Conversa de ' + (B.canal || 'outro canal') + ' juntada a este contato.', ts:agoraMs()});
     var novo = {msgs:m, canais:[A.canal, B.canal].filter(function(v, i, a){ return v && a.indexOf(v) === i; })};
-    ['negocio','tel','email','usuario'].forEach(function(k){ if (!A[k] && B[k]) novo[k] = B[k]; });
+    ['negocio','tel','email','usuario','lead','lig'].forEach(function(k){ if (!A[k] && B[k]) novo[k] = B[k]; });
+    if (!A.usuario && !novo.usuario && B.lead && B.lead.insta) novo.usuario = String(B.lead.insta).replace(/^@/, '');
+    if (!m.some(function(x){ return x.de === 'cli'; }) && (A.prospeccao || B.prospeccao || A.status === 'prospeccao' || B.status === 'prospeccao')){ novo.status = 'prospeccao'; novo.prospeccao = true; }
     if (/^(Instagram|Facebook) \d{4}$/.test(A.nome) && B.nome) novo.nome = B.nome;
     aplica(novo);
   }

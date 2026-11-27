@@ -155,6 +155,7 @@ Modelo: Mega Hair Marcela (nov/2026). Um AbertoCore só, com várias empresas: c
 
 | Data | Mudança |
 | --- | --- |
+| 27 nov 2026 | Largura da lista e do painel do contato ajustável arrastando a borda (salva no navegador, duplo clique volta ao padrão). Abordagem enviada pelo Instagram sem resposta fica na Prospecção; a sugestão de juntar acha o lead pelo @ ou pelo nome da empresa citado na mensagem, e o juntar leva o lead, as ligações e o @ |
 | 27 nov 2026 | Ligação na aba Prospecção: botão Ligar, roteiro, resultados e ordem de contato da lista, sem mudar o funil |
 | 19 nov 2026 | Deploy automático da VPS pelo GitHub Actions; checklist de cliente novo (modelo Mega Hair Marcela) |
 | 18 nov 2026 | AbertoCore com várias empresas: perfil por segmento, convites, ficha do cabelo e manutenções; primeiro cliente (Mega Hair Marcela) |

@@ -122,6 +122,15 @@
   .sep{display:none} /* o nome AbertoCore saiu do topo: a barra que separava dele não é mais necessária */
   .trilho .rot{display:none}
   .voltar-cfg,.cfg-btn{display:none}
+  /* computador: engrenagem de Configurações no canto do topo; botão de novo contato ao lado do título */
+  @media (min-width:761px){
+    .trilho .cfg-rail{display:none}
+    .cfg-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:var(--ink);background:var(--papel);border:1px solid var(--linha2);cursor:pointer}
+    .cfg-btn svg{width:22px;height:22px}
+    .cfg-btn:hover{background:var(--linha)}
+    .cfg-btn[aria-pressed="true"]{background:var(--ceu);border-color:var(--ceu);color:#fff}
+    .topo .tit + .topo-novo{margin-left:2px}
+  }
   .ia-btn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:#B7791F;background:#FFF6E0;border:1px solid #F3D99A;cursor:pointer}
   .ia-btn[hidden]{display:none}
   .ia-btn svg{width:20px;height:20px}
@@ -1382,9 +1391,21 @@
   }
 
   /* ========== CONFIGURAÇÕES (agrupa no celular) ========== */
-  $('#cfgBtn').onclick = function(){ vai(atual === 'config' ? 'mensagens' : 'config'); };
+  $('#cfgBtn').onclick = function(){ vai($('#app').classList.contains('em-cfg') ? 'mensagens' : 'config'); };
   $('#iaTopo').onclick = function(){ vai('mensagens'); };
   $('#topoNovo').onclick = function(){ modalContato(); };
+  // computador: o botão de novo contato fica logo depois do título; no celular continua à direita
+  (function(){
+    var mqN = matchMedia('(min-width:761px)');
+    function poeNovo(){
+      var n = $('#topoNovo'), t = document.querySelector('.topo .tit'), d = document.querySelector('.topo .dir'); if (!n || !t || !d) return;
+      if (mqN.matches){ if (n.previousElementSibling !== t) t.insertAdjacentElement('afterend', n); }
+      else if (n.parentNode !== d) d.insertBefore(n, d.firstChild);
+    }
+    poeNovo();
+    (mqN.addEventListener ? mqN.addEventListener.bind(mqN, 'change') : mqN.addListener.bind(mqN))(poeNovo);
+  })();
+
   $('#iaRail').onclick = function(){ vai('mensagens'); };
   $('#iaRail').setAttribute('aria-label', 'abertodigital · Conversas'); $('#iaTopo').setAttribute('aria-label', 'abertodigital · Conversas');
   var dicaRail = $('#iaRail .dica'); if (dicaRail) dicaRail.textContent = 'abertodigital';

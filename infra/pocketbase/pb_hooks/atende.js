@@ -16,6 +16,32 @@ function cfgAtendimento(app, empresaId) {
   } catch (e) { return {} }
 }
 
+// Espera curta antes de responder, para agrupar mensagens seguidas do cliente numa resposta só.
+// Tempo em segundos em configuracoes.dados.ia.espera (0 = responde na hora; padrão 10; máximo 20,
+// porque a Meta reenvia o webhook se a resposta HTTP demora). Devolve o contato atualizado, ou null
+// se chegou mensagem nova durante a espera (a chamada dela responde) ou se a IA já respondeu.
+const ESPERA_PADRAO = 10, ESPERA_MAX = 20
+function segundosDeEspera(at) {
+  if (at.espera == null || at.espera === "") return ESPERA_PADRAO
+  const n = parseInt(at.espera, 10)
+  return isNaN(n) ? ESPERA_PADRAO : Math.max(0, Math.min(ESPERA_MAX, n))
+}
+function aguardaRajada(app, empresaId, rec) {
+  const seg = segundosDeEspera(cfgAtendimento(app, empresaId))
+  if (!seg) return rec
+  const c0 = ultimaDoCliente(lerDados(rec))
+  if (!c0) return rec
+  try { sleep(seg * 1000) } catch (e) {}
+  const novo = app.findRecordById("contatos", rec.id), d = lerDados(novo), c = ultimaDoCliente(d)
+  if (c && (c.ts || 0) > (c0.ts || 0)) return null
+  if ((d.msgs || []).some((m) => m.de === "ia" && (m.ts || 0) >= (c0.ts || 0))) return null
+  return novo
+}
+function ultimaDoCliente(d) {
+  const ms = (d.msgs || []).filter((m) => m.de === "cli")
+  return ms.length ? ms[ms.length - 1] : null
+}
+
 // Devolve { texto, chamar, motivo } ou null (a IA fica quieta).
 // Guarda no contato por que a IA ficou quieta (aparece na conversa para a equipe).
 function quieta(app, rec, motivo, erro) {
@@ -128,4 +154,4 @@ function registra(app, rec, r, extra) {
   app.save(rec)
 }
 
-module.exports = { decide, registra, cfgAtendimento }
+module.exports = { decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }

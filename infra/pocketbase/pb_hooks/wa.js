@@ -248,6 +248,9 @@ function processaWebhook(app, corpo) {
 // ---------- IA atendendo (quando o menu não respondeu) ----------
 function iaWhatsApp(app, canal, rec) {
   const A = require(`${__hooks}/atende.js`)
+  // agrupa mensagens seguidas: só a chamada da última mensagem responde
+  rec = A.aguardaRajada(app, canal.getString("empresa"), rec)
+  if (!rec) return false
   const r = A.decide(app, canal.getString("empresa"), rec, "WhatsApp")
   if (!r) return false
   let waId = null, erro = null

@@ -336,8 +336,10 @@ function automacaoDM(app, canal, tipo, rec, msg, txt) {
   return !!mid
 }
 
-function iaSocial(app, canal, tipo, rec) {
+function iaSocial(app, canal, tipo, rec, semEspera) {
   const A = require(`${__hooks}/atende.js`)
+  // agrupa mensagens seguidas: só a chamada da última mensagem responde
+  if (!semEspera) { rec = A.aguardaRajada(app, canal.getString("empresa"), rec); if (!rec) return false }
   const r = A.decide(app, canal.getString("empresa"), rec, ROTULO[tipo] === "Facebook" ? "Messenger" : "Instagram")
   if (!r) return false
   const pessoa = rec.getString("social_id").slice(3)

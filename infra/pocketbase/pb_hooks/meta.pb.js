@@ -168,7 +168,7 @@ cronAdd("ia-retenta", "*/4 * * * *", () => {
       if (!ult || ult.de !== "cli" || Date.now() - (ult.ts || 0) > 2 * 3600000 || d.ignorado) return
       const tipo = rec.getString("social_id").slice(0, 3) === "ig:" ? "instagram" : "messenger"
       const canal = M.canalDaEmpresaTipo($app, rec.getString("empresa"), tipo)
-      if (canal) M.iaSocial($app, canal, tipo, rec)
+      if (canal) M.iaSocial($app, canal, tipo, rec, true)
     } catch (e) { $app.logger().warn("ia-retenta: falhou", "erro", String(e)) }
   })
 })

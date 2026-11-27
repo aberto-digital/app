@@ -3666,6 +3666,7 @@
         '<div class="linha-ch" style="margin-bottom:14px"><div><div class="t">Agendar</div><div class="d">Oferece horários livres da agenda</div></div><button class="chave" role="switch" id="iaAg" aria-checked="' + A.agendar + '" aria-label="Agendar"></button></div>' +
         '<div class="duas"><div class="campo"><label for="iaN">Nome do assistente</label><input id="iaN" value="' + esc(A.nome) + '"></div>' +
         '<div class="campo"><label for="iaT">Tom de voz</label><select id="iaT">' + ['Próximo e direto','Formal','Animado'].map(function(t){ return '<option' + (t === A.tom ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
+        '<div class="campo"><label for="iaE">Esperar antes de responder</label><select id="iaE">' + [[0,'Responder na hora'],[5,'5 segundos'],[10,'10 segundos (recomendado)'],[15,'15 segundos'],[20,'20 segundos']].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === (A.espera == null ? 10 : +A.espera) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><div class="dica">Se o cliente manda várias mensagens seguidas, a IA espera esse tempo e responde uma vez só, lendo tudo. Evita respostas repetidas e parece mais natural.</div></div>' +
         '<div class="campo"><label for="iaH">Horário de atendimento</label><input id="iaH" value="' + esc(A.horario) + '"></div>' +
         '<div class="campo"><label for="iaB">Informações do negócio</label><textarea id="iaB" rows="7">' + esc(A.base) + '</textarea><div class="dica">Preços, serviços, horário, endereço, regras ("orçamento só presencial") e perguntas frequentes. A base da planilha, se houver, complementa este texto.</div></div>' +
         '<button class="btn pri" id="iaSalva">Salvar atendimento</button>' +
@@ -3679,7 +3680,7 @@
       '</section></div></div>';
 
     ['iaOn','iaHum','iaAg'].forEach(function(k){ $('#' + k).onclick = function(e){ var b = e.currentTarget, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', v); A[{iaOn:'ativo', iaHum:'humano', iaAg:'agendar'}[k]] = v; salva(); if (k === 'iaOn') aviso('Atendimento com IA ' + (v ? '<b>ligado</b>' : '<b>pausado</b>') + '.'); }; });
-    $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso('Configuração do assistente salva.'); };
+    $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.espera = +$('#iaE').value; A.horario = $('#iaH').value; A.base = $('#iaB').value; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso('Configuração do assistente salva.'); };
 
     function desenhaCon(){
       var st = iaSt || {}, el = $('#iaCon'); if (!el) return;

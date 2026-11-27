@@ -1833,7 +1833,7 @@
       var maxEsp = ib.getBoundingClientRect().width - ow - 360; // a conversa nunca fica menor que 360 px
       return Math.round(Math.max(LARG[k][1], Math.min(LARG[k][2], maxEsp, v)));
     }
-    function poe(k, v, grava){ v = limite(k, v); ib.style.setProperty('--w' + k, v + 'px'); if (grava) largGrava(k, v); return v; }
+    function poe(k, v, grava){ v = limite(k, v); ib.style.setProperty('--w' + k, v + 'px'); if (grava) largGrava(k, v); vaiParaAba(aba, false); return v; } // realinha o carrossel de abas à nova largura
     [['l', '#rzL'], ['d', '#rzD']].forEach(function(x){
       var k = x[0], h = $(x[1]); if (!h) return;
       h.addEventListener('pointerdown', function(e){
@@ -1849,7 +1849,7 @@
         }
         h.addEventListener('pointermove', mexe); h.addEventListener('pointerup', solta); h.addEventListener('pointercancel', solta);
       });
-      h.addEventListener('dblclick', function(){ ib.style.removeProperty('--w' + k); largGrava(k, null); });
+      h.addEventListener('dblclick', function(){ ib.style.removeProperty('--w' + k); largGrava(k, null); vaiParaAba(aba, false); });
       h.addEventListener('keydown', function(e){
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault();
         var atual = parseFloat(getComputedStyle(ib).getPropertyValue('--w' + k)) || LARG[k][0], passo = (e.key === 'ArrowRight' ? 1 : -1) * (k === 'l' ? 1 : -1) * 16;

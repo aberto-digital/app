@@ -577,6 +577,32 @@
   .g6{grid-column:span 6}.g4{grid-column:span 4}.g8{grid-column:span 8}.g12{grid-column:span 12}
   .graf svg{width:100%;height:auto;display:block}
   .graf .leg{font-size:12.5px;color:var(--sec);margin-top:6px}
+  .dash-cab{display:flex;justify-content:flex-end;margin-bottom:-4px}
+  .seg-p{display:inline-flex;background:var(--branco);border:1px solid var(--linha);border-radius:10px;padding:3px;gap:2px}
+  .seg-p button{padding:6px 12px;border-radius:7px;font-size:13px;font-weight:600;color:var(--sec)}
+  .seg-p button[aria-checked="true"]{background:var(--ink);color:#fff}
+  .kpi .n small{font-family:var(--corpo);font-size:13px;font-weight:600;color:var(--sec);margin-left:4px;font-stretch:normal}
+  .kpi-ia .uso-trilho{margin:6px 0 4px}
+  .kpi-ia.quase .uso-trilho span{background:var(--ambar)}
+  .kpi-ia.cheio .uso-trilho span{background:var(--vermelho)}
+  .kpi-ia.cheio .s{color:var(--vermelho);font-weight:600}
+  .lb{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:4px;height:190px;margin-top:12px;align-items:end}
+  .lb-col{display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+  .lb-pilha{display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden;min-height:2px;background:var(--linha)}
+  .lb-pilha span{display:block;min-height:2px}
+  .lb-col:hover .lb-pilha{filter:brightness(1.08)}
+  .lb-rot{height:18px;margin-top:5px;font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:visible}
+  .lb-col.hoje .lb-rot{color:var(--texto);font-weight:700}
+  .lb-eixo{font-size:11.5px;color:var(--muted);margin-top:4px;text-align:right}
+  .lc{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+  .lc-l{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;align-items:center;gap:10px;font-size:13.5px}
+  .lc-n{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  .lc-n .lc-ic{position:static;flex:none;width:20px;height:20px;border-radius:6px;border:0;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800}
+  .lc-n .lc-ic svg{width:13px;height:13px}
+  .lc-t{height:10px;border-radius:5px;background:var(--papel);overflow:hidden}
+  .lc-t span{display:block;height:100%;border-radius:5px}
+  .lc-l b{font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
+  html[data-tema="escuro"] .seg-p button[aria-checked="true"]{background:var(--texto);color:#101A2C}
   .ultimas li{list-style:none;display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linha);font-size:13.5px}
   .ultimas li:last-child{border-bottom:0}
   .ultimas .q{color:var(--sec);margin-left:auto;font-size:12px;white-space:nowrap}
@@ -2620,27 +2646,31 @@
     r.total = r.ia + r.eq + r.bot;
     return r;
   }
-  function conversao(){
+  // conversou = o cliente já mandou mensagem, ou a equipe já avançou o card no funil
+  function conversou(c){ return (c.msgs || []).some(function(m){ return m.de === 'cli'; }) || (c.etapa && c.etapa !== ETAPAS[0]); }
+  function conversao(iniDia){
     var perd = ETAPAS.indexOf(CONFIG.etapaPerda), ganho = ETAPAS.indexOf(CONFIG.etapaGanho);
     var etapas = ETAPAS.filter(function(e, i){ return i !== perd; }), alc = etapas.map(function(){ return 0; });
-    S.contatos.forEach(function(c){
-      if (c.ignorado) return;
+    var base = S.contatos.filter(function(c){ return !c.ignorado && (!iniDia || diaEntrada(c) >= iniDia); });
+    var prosp = base.filter(function(c){ return !conversou(c); }).length;
+    base = base.filter(conversou);
+    base.forEach(function(c){
       var mx = 0, cur = etapas.indexOf(c.etapa);
       if (cur > mx) mx = cur;
       (c.hist || []).forEach(function(h){ var i = etapas.indexOf(h.e); if (i > mx) mx = i; });
       for (var i = 0; i <= mx; i++) alc[i]++;
     });
-    var fech = S.contatos.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).length, perdidos = S.contatos.filter(function(c){ return c.etapa === CONFIG.etapaPerda; }).length;
+    var fech = base.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).length, perdidos = base.filter(function(c){ return c.etapa === CONFIG.etapaPerda; }).length;
     var parados = etapas.map(function(et){
-      var L = S.contatos.filter(function(c){ return c.etapa === et && !c.ignorado; }).map(diasNaEtapa).filter(function(d){ return d !== null; });
+      var L = base.filter(function(c){ return c.etapa === et; }).map(diasNaEtapa).filter(function(d){ return d !== null; });
       return {n:L.length, media:L.length ? Math.round(L.reduce(function(a, b){ return a + b; }, 0) / L.length) : null, parados:L.filter(function(d){ return d >= 7; }).length};
     });
-    return {etapas:etapas, alc:alc, fech:fech, perd:perdidos, ganho:fech + perdidos ? Math.round(fech / (fech + perdidos) * 100) : null, parados:parados, iGanho:etapas.indexOf(ETAPAS[ganho])};
+    return {etapas:etapas, alc:alc, fech:fech, perd:perdidos, ganho:fech + perdidos ? Math.round(fech / (fech + perdidos) * 100) : null, parados:parados, iGanho:etapas.indexOf(ETAPAS[ganho]), prosp:prosp};
   }
-  function painelAtend(){
-    var r = metricasAtend(Date.now() - 30 * 86400000), tot = Math.max(r.total, 1);
+  function painelAtend(tsIni, P){
+    var r = metricasAtend(tsIni || Date.now() - 30 * 86400000), tot = Math.max(r.total, 1);
     var fat = [['ia', 'Agente de IA', 'var(--ambar-ia,#E6A100)'], ['eq', 'Equipe', 'var(--ceu)'], ['bot', 'Chatbot', 'var(--sec)']];
-    return '<section class="painel g6"><h2>Quem respondeu (30 dias)</h2>' +
+    return '<section class="painel g6"><h2>Quem respondeu (' + (P || 30) + ' dias)</h2>' +
       (r.total ? '<div class="qr-barra" role="img" aria-label="' + fat.map(function(f){ return f[1] + ' ' + Math.round(r[f[0]] / tot * 100) + '%'; }).join(', ') + '">' +
         fat.map(function(f){ return r[f[0]] ? '<span style="width:' + (r[f[0]] / tot * 100) + '%;background:' + f[2] + '"></span>' : ''; }).join('') + '</div>' +
         '<div class="qr-leg">' + fat.map(function(f){ return '<span><b style="background:' + f[2] + '"></b>' + f[1] + ' <strong>' + Math.round(r[f[0]] / tot * 100) + '%</strong> <small>' + r[f[0]] + '</small></span>'; }).join('') + '</div>'
@@ -2650,12 +2680,10 @@
       '<div class="dado"><span>Agente de IA</span><b>' + duracao(mediana(r.t.ia)) + '</b></div>' +
       '<div class="dado"><span>Equipe</span><b>' + duracao(mediana(r.t.eq)) + '</b></div>' +
       '<div class="dado"><span>Conversas resolvidas sem humano</span><b>' + (r.conversas ? Math.round(r.semHumano / r.conversas * 100) + '%' : '—') + '</b></div>' +
-      '<div class="dado"><span>Esperando resposta agora</span><b>' + r.aguardando + '</b></div>' +
-      (iaSt && iaSt.uso ? '<div class="dado"><span>Ações de IA neste mês</span><b>' + iaSt.uso.chamadas + (iaSt.franquia ? ' de ' + iaSt.franquia : '') + '</b></div>' : '') +
-      '<div class="leg">Conta a primeira resposta depois de cada mensagem do cliente.</div></section>';
+      '<div class="leg">Conta a primeira resposta depois de cada mensagem do cliente no período.</div></section>';
   }
-  function painelConversao(){
-    var v = conversao(), max = Math.max(v.alc[0], 1);
+  function painelConversao(iniDia){
+    var v = conversao(iniDia), max = Math.max(v.alc[0], 1);
     return '<section class="painel g6"><h2>Funil e conversão</h2><div class="cv">' +
       v.etapas.map(function(et, i){
         var p = v.parados[i];
@@ -2666,7 +2694,8 @@
           '</div>';
       }).join('') + '</div>' +
       '<div class="dado" style="margin-top:10px"><span>Taxa de ganho</span><b>' + (v.ganho === null ? '—' : v.ganho + '%') + ' <small style="font-weight:500;color:var(--sec)">' + v.fech + ' ganhos, ' + v.perd + ' perdidos</small></b></div>' +
-      '<div class="leg">Quantos contatos chegaram a cada etapa e quantos passaram para a seguinte.</div></section>';
+      (v.prosp ? '<div class="dado"><span>Leads em prospecção (ainda não responderam)</span><b>' + v.prosp + '</b></div>' : '') +
+      '<div class="leg">Só contatos que já conversaram' + (iniDia ? ', que entraram no período' : '') + '. Quantos chegaram a cada etapa e quantos passaram para a seguinte.</div></section>';
   }
 
   /* ---------- franquia de IA visível para a empresa ---------- */
@@ -3368,55 +3397,85 @@
     for (var i = 13; i >= 0; i--){ var dia = addDias(-i); var extra = S.contatos.filter(function(c){ return c.criado === dia; }).length; d.push({dia:dia, n:base[13 - i] + extra}); }
     return d;
   }
-  function vDash(){
-    var C = S.contatos;
-    var abertas = C.filter(function(c){ return c.status !== 'finalizado'; }).length;
-    var serie = serieLeads(), sem = serie.slice(7).reduce(function(a, x){ return a + x.n; }, 0), semAnt = serie.slice(0, 7).reduce(function(a, x){ return a + x.n; }, 0);
-    var fech = C.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).length, perd = C.filter(function(c){ return c.etapa === CONFIG.etapaPerda; }).length;
-    var conv = fech + perd ? Math.round(fech / (fech + perd) * 100) : 0;
-    var prev = C.filter(function(c){ return [CONFIG.etapaGanho, CONFIG.etapaPerda].indexOf(c.etapa) < 0; }).reduce(function(a, c){ return a + c.valor; }, 0);
-    var receita = C.filter(function(c){ return c.etapa === CONFIG.etapaGanho; }).reduce(function(a, c){ return a + c.valor; }, 0);
-    var iaResp = C.reduce(function(a, c){ return a + c.msgs.filter(function(m){ return m.de === 'ia'; }).length; }, 0) + 186;
-    var real = dadosReais(), ini30 = Date.now() - 30 * 86400000;
-    var porCanal = null, cardIA = '';
-    if (real){
-      porCanal = {};
-      C.forEach(function(c){ var n = c.msgs.filter(function(m){ return m.de !== 'sis' && m.ts >= ini30; }).length; if (n) porCanal[c.canal] = (porCanal[c.canal] || 0) + n; });
-      var bot = 0, cards = 0, tempos = [];
-      C.forEach(function(c){
-        var espera = null;
-        c.msgs.forEach(function(m){
-          if (m.ts < ini30) return;
-          if (m.de === 'bot') bot++;
-          if (m.de === 'sis' && /^IA atualizou/.test(m.txt)) cards++;
-          if (m.de === 'cli'){ if (espera === null) espera = m.ts; }
-          else if (m.de === 'eq' && espera !== null){ tempos.push(m.ts - espera); espera = null; }
-        });
-      });
-      var med = tempos.length ? tempos.reduce(function(a, b){ return a + b; }, 0) / tempos.length : null;
-      var tTxt = med === null ? 'sem dados ainda' : med < 3600000 ? Math.max(1, Math.round(med / 60000)) + ' min' : (med / 3600000).toFixed(1).replace('.', ',') + ' h';
-      var perg = IA_CHAT.filter(function(m){ return m.de === 'eu' && m.ts >= ini30; }).length;
-      cardIA = '<section class="painel g6"><h2>Atendimento e IA (30 dias)</h2>' +
-        '<div class="dado"><span>Mensagens enviadas pelo chatbot</span><b>' + bot + '</b></div>' +
-        '<div class="dado"><span>Cards atualizados pela IA</span><b>' + cards + '</b></div>' +
-        '<div class="dado"><span>Perguntas ao assistente</span><b>' + perg + '</b></div>' +
-        (iaSt && iaSt.uso ? '<div class="dado"><span>Chamadas à IA neste mês</span><b>' + iaSt.uso.chamadas + '</b></div>' : '') +
-        '<div class="dado"><span>Receita fechada</span><b>' + brl(receita) + '</b></div>';
+  /* ========== DASHBOARD ==========
+     Topo: 4 números (esperando resposta, novos leads, em negociação, uso da IA).
+     Depois: leads por dia (por canal) e por canal; funil e conversão; quem respondeu.
+     O período (7, 30 ou 90 dias) vale para a página toda. */
+  var periodoDash = (function(){ try { var v = +localStorage.getItem('abertocore-dash-p'); return [7, 30, 90].indexOf(v) >= 0 ? v : 30; } catch (e){ return 30; } })();
+  var COR_PROSP = '#A9B2C2';
+  function origemLead(c){ return c.lead ? 'Prospecção' : (c.canal || 'Outro'); }
+  function corOrigem(o){ return o === 'Prospecção' ? COR_PROSP : (CANAIS[o] || {cor:'#6B7585'}).cor; }
+  function leadsNoPeriodo(ini, fim){ return S.contatos.filter(function(c){ var d = diaEntrada(c); return d && d >= ini && d <= fim; }); }
+  function grafLeadsDia(P){
+    var hoje = addDias(0), grupos = [], porSemana = P > 30, passo = porSemana ? 7 : 1, n = Math.ceil(P / passo);
+    for (var g = n - 1; g >= 0; g--){
+      var fim = addDias(-g * passo), ini = addDias(-g * passo - passo + 1);
+      var L = leadsNoPeriodo(ini, fim).filter(function(c){ return !c.lead; }), por = {};
+      L.forEach(function(c){ var o = origemLead(c); por[o] = (por[o] || 0) + 1; });
+      if (!dadosReais()){ var base = [3,5,2,6,4,7,5,3,8,6,4,9,7,5][(n - g) % 14] * passo; por.WhatsApp = (por.WhatsApp || 0) + Math.ceil(base * .5); por.Instagram = (por.Instagram || 0) + Math.floor(base * .5); }
+      grupos.push({ini:ini, fim:fim, por:por, n:Object.keys(por).reduce(function(a, k){ return a + por[k]; }, 0), hoje:fim === hoje});
     }
+    DASH_TOT = {n:0, por:{}};
+    grupos.forEach(function(x){ DASH_TOT.n += x.n; Object.keys(x.por).forEach(function(o){ DASH_TOT.por[o] = (DASH_TOT.por[o] || 0) + x.por[o]; }); });
+    var max = Math.max.apply(null, grupos.map(function(x){ return x.n; }).concat([1]));
+    var ordem = Object.keys(CANAIS).concat(['Prospecção', 'Outro']);
+    var cada = Math.max(1, Math.round(n / 7));
+    return '<div class="lb" style="--n:' + n + '" role="img" aria-label="Novos leads ' + (porSemana ? 'por semana' : 'por dia') + '">' +
+      grupos.map(function(x, k){
+        var tit = (porSemana ? dataCurta(x.ini) + ' a ' + dataCurta(x.fim) : dataCurta(x.fim)) + ': ' + x.n + (x.n === 1 ? ' lead' : ' leads') +
+          ordem.filter(function(o){ return x.por[o]; }).map(function(o){ return '\n' + o + ': ' + x.por[o]; }).join('');
+        return '<div class="lb-col' + (x.hoje ? ' hoje' : '') + '" title="' + esc(tit) + '"><div class="lb-pilha" style="height:' + (x.n / max * 100) + '%">' +
+          ordem.filter(function(o){ return x.por[o]; }).map(function(o){ return '<span style="flex:' + x.por[o] + ';background:' + corOrigem(o) + '"></span>'; }).join('') + '</div>' +
+          '<div class="lb-rot">' + ((n - 1 - k) % cada === 0 ? (x.hoje && !porSemana ? 'hoje' : dataCurta(porSemana ? x.ini : x.fim)) : '') + '</div></div>';
+      }).join('') + '</div><div class="lb-eixo"><span>máx. ' + max + (porSemana ? ' por semana' : ' por dia') + '</span></div>';
+  }
+  var DASH_TOT = {n:0, por:{}}; // totais do gráfico (na demonstração inclui os dados de exemplo)
+  function leadsPorCanal(L, porPronto){
+    var por = porPronto || {}; if (!porPronto) L.forEach(function(c){ var o = origemLead(c); por[o] = (por[o] || 0) + 1; });
+    var ks = Object.keys(por).sort(function(a, b){ return por[b] - por[a]; }), max = Math.max.apply(null, ks.map(function(k){ return por[k]; }).concat([1]));
+    if (!ks.length) return '<div class="vazio peq">Nenhum lead novo no período.</div>';
+    return '<div class="lc">' + ks.map(function(k){
+      return '<div class="lc-l"><span class="lc-n">' + (k === 'Prospecção' ? '<span class="sel lc-ic" style="background:' + COR_PROSP + '">P</span>' : logoCanal(k, 'sel lc-ic')) + esc(k === 'Prospecção' ? 'Prospecção (importados)' : k) + '</span>' +
+        '<span class="lc-t"><span style="width:' + Math.max(por[k] / max * 100, 3) + '%;background:' + corOrigem(k) + '"></span></span><b>' + por[k] + '</b></div>';
+    }).join('') + '</div>';
+  }
+  function kpiUsoIA(){
+    var u, f;
+    if (iaSt && iaSt.uso){ u = iaSt.uso.chamadas || 0; f = iaSt.franquia || 0; }
+    else if (!dadosReais()){ u = 312; f = 3000; }
+    else return kpi('Uso da IA no mês', '—', 'Conecte a IA em Atendimento automático', 'k4');
+    var pc = f ? Math.min(100, Math.round(u / f * 100)) : 0, est = !f ? '' : u >= f ? ' cheio' : pc >= 80 ? ' quase' : '';
+    return '<div class="kpi kpi-ia' + est + '" id="k4"><div class="r">Uso da IA em ' + MESES[new Date().getMonth()] + '</div><div class="n">' + u.toLocaleString('pt-BR') +
+      '<small>' + (f ? ' de ' + f.toLocaleString('pt-BR') : ' ações') + '</small></div>' +
+      (f ? '<div class="uso-trilho" role="progressbar" aria-valuemin="0" aria-valuemax="' + f + '" aria-valuenow="' + u + '" aria-label="Uso da franquia de IA"><span style="width:' + pc + '%"></span></div>' : '') +
+      '<div class="s">' + (!f ? 'Sem limite no plano' : u >= f ? 'Franquia atingida' : pc + '% da franquia do plano') + '</div></div>';
+  }
+  function vDash(){
+    var P = periodoDash, ini = addDias(-(P - 1)), iniAnt = addDias(-(2 * P - 1)), fimAnt = addDias(-P), tsIni = new Date(ini + 'T00:00:00').getTime();
+    var todos = leadsNoPeriodo(ini, HOJE), L = todos.filter(function(c){ return !c.lead; }), LAnt = leadsNoPeriodo(iniAnt, fimAnt).filter(function(c){ return !c.lead; });
+    var importados = todos.length - L.length;
+    var graf = grafLeadsDia(P), demo = !dadosReais();
+    var nL = demo ? DASH_TOT.n : L.length, nAnt = demo ? Math.round(DASH_TOT.n * .86) : LAnt.length;
+    var agora = metricasAtend(0);
+    var C = S.contatos.filter(function(c){ return !c.ignorado; });
+    var abertos = C.filter(function(c){ return conversou(c) && [CONFIG.etapaGanho, CONFIG.etapaPerda, ETAPAS[0]].indexOf(c.etapa) < 0; });
+    var valor = abertos.reduce(function(a, c){ return a + (+c.valor || 0); }, 0);
     var V = $('#vista');
     V.innerHTML = '<div class="dash">' +
-      kpi('Conversas abertas', abertas, naoLidasTotal() + ' sem resposta', 'k1') +
-      kpi('Novos leads (7 dias)', sem, semAnt ? (sem >= semAnt ? '+' : '') + Math.round((sem - semAnt) / semAnt * 100) + '% sobre a semana anterior' : (sem ? 'nenhum na semana anterior' : 'nenhum nas últimas 2 semanas'), 'k2', sem >= semAnt && semAnt > 0) +
-      kpi('Taxa de conversão', conv + '%', fech + (fech === 1 ? ' fechado, ' : ' fechados, ') + perd + (perd === 1 ? ' perdido' : ' perdidos'), 'k3') +
-      kpi('Em negociação', brl(prev), 'Implantação prevista no funil', 'k4') +
-      '<section class="painel g8 graf"><h2>Novos leads por dia</h2>' + grafLeads(serie) + '<div class="leg">Últimos 14 dias, todos os canais.</div></section>' +
-      '<section class="painel g4 graf"><h2>Mensagens por canal</h2>' + grafCanais(porCanal) + '<div class="leg">Últimos 30 dias.</div></section>' +
-      painelConversao() + painelAtend() +
-      (real ? cardIA : '<section class="painel g6"><h2>Vendas</h2>' +
-        '<div class="dado"><span>Receita fechada</span><b>' + brl(receita) + '</b></div>') +
-        '<div class="grupo-t" style="margin-top:14px">Últimas mensagens</div><ul class="ultimas">' +
-        C.slice().sort(function(a, b){ return ultima(b).ts - ultima(a).ts; }).slice(0, 4).map(function(c){ var u = ultima(c); return '<li>' + avatar(c) + '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>' + esc(c.nome) + '</b><br><span style="color:var(--sec)">' + esc(u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ')) + '</span></span><span class="q">' + quando(u.ts) + '</span></li>'; }).join('') +
-        '</ul></section></div>';
+      '<div class="dash-cab g12"><div class="seg-p" role="radiogroup" aria-label="Período">' + [7, 30, 90].map(function(x){ return '<button type="button" role="radio" data-p="' + x + '" aria-checked="' + (x === P) + '">' + x + ' dias</button>'; }).join('') + '</div></div>' +
+      kpi('Esperando resposta agora', agora.aguardando, agora.aguardando ? 'Clientes sem resposta da equipe ou da IA' : 'Ninguém esperando', 'k1') +
+      kpi('Novos leads (' + P + ' dias)', nL, nAnt ? (nL >= nAnt ? '+' : '') + Math.round((nL - nAnt) / nAnt * 100) + '% sobre os ' + P + ' dias anteriores' : (nL ? 'nenhum no período anterior' : 'nenhum no período'), 'k2', nL >= nAnt && nAnt > 0) +
+      kpi('Em negociação', brl(valor), abertos.length + (abertos.length === 1 ? ' negócio aberto' : ' negócios abertos'), 'k3') +
+      kpiUsoIA() +
+      '<section class="painel g8"><h2>Novos leads ' + (P > 30 ? 'por semana' : 'por dia') + '</h2>' + graf + '</section>' +
+      '<section class="painel g4"><h2>Leads por canal</h2>' + leadsPorCanal(L, demo ? DASH_TOT.por : null) + '<div class="leg">Leads que chegaram sozinhos nos últimos ' + P + ' dias.' + (importados ? ' Fora daqui: <b>' + importados + '</b> importados para prospecção.' : '') + '</div></section>' +
+      painelConversao(ini) + painelAtend(tsIni, P) +
+      '</div>';
+    V.querySelector('.seg-p').onclick = function(e){
+      var b = e.target.closest('[data-p]'); if (!b) return;
+      periodoDash = +b.getAttribute('data-p'); try { localStorage.setItem('abertocore-dash-p', String(periodoDash)); } catch (er){}
+      vDash();
+    };
   }
   function kpi(r, n, s, id, up){ return '<div class="kpi" id="' + id + '"><div class="r">' + r + '</div><div class="n">' + n + '</div><div class="s' + (up ? ' up' : '') + '">' + s + '</div></div>'; }
   function grafLeads(serie){

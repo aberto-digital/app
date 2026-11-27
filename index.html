@@ -3619,8 +3619,11 @@
       if (bL) bL.onclick = juntaLote;
       M.querySelectorAll('[data-nao]').forEach(function(b){ b.onclick = function(){ var p = L[+b.getAttribute('data-nao')];
         // fica gravado nos dois contatos (vai para o servidor e vale para a equipe toda)
-        p.manter.naoJuntar = (p.manter.naoJuntar || []).concat([p.outro.id]); p.outro.naoJuntar = (p.outro.naoJuntar || []).concat([p.manter.id]);
-        salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); desenhaSug(); desenhaLista(); }; });
+        // busca os contatos de novo pelo id: uma atualização em segundo plano pode ter trocado os objetos
+        // desde que a janela abriu, e gravar nos antigos perderia o "não é a mesma" no primeiro toque
+        var ma = contato(p.manter.id), ou = contato(p.outro.id);
+        if (ma && ou){ ma.naoJuntar = (ma.naoJuntar || []).concat([ou.id]); ou.naoJuntar = (ou.naoJuntar || []).concat([ma.id]); }
+        salva(); desenhaSug(); desenhaLista(); }; }); // salva() já agenda o envio ao servidor
       atualizaBarra();
     }
     desenhaSug(); M.returnValue = ''; if (!M.open) M.showModal();

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Demonstração</title>
+<meta name="theme-color" content="#101A2C">
+<link rel="icon" href="../icone-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="experiencia.css?v=1">
+</head>
+<body>
+<div class="faixa-demo" id="faixa">Demonstração · <b>nenhum pedido é real</b></div>
+
+<header class="topo">
+  <div class="linha1">
+    <div class="logo" data-logo></div>
+    <div><h1 data-nome></h1><div class="sub" id="sub"></div></div>
+  </div>
+  <div class="titulo" id="titulo"></div>
+  <p class="chamada" id="chamada"></p>
+  <div class="selos" id="selos"></div>
+</header>
+
+<main id="conteudo"></main>
+
+<script src="nichos.js?v=1"></script>
+<script src="marca.js?v=1"></script>
+<script>
+(function(){
+  'use strict';
+  var cfg = Marca.ler(location.search), N = NICHOS[cfg.n], T = N.textos[cfg.l];
+  window.EXP = { cfg: cfg, nicho: N, t: T };
+  Marca.aplica(cfg);
+  document.title = cfg.nome + ' · ' + (cfg.l === 'en' ? 'Demo' : 'Demonstração');
+  if (cfg.l === 'en') document.getElementById('faixa').innerHTML = 'Demo · <b>no order is real</b>';
+  document.getElementById('sub').textContent = T.tipo + (cfg.cidade ? ' · ' + cfg.cidade : '');
+  document.getElementById('titulo').textContent = T.titulo;
+  document.getElementById('chamada').textContent = T.chamada;
+  document.getElementById('selos').innerHTML = (cfg.l === 'en'
+    ? ['⭐ 4.9 on Google', '🛵 ' + T.prazo, '💳 Pix, card or cash']
+    : ['⭐ 4,9 no Google', '🛵 ' + T.prazo, '💳 Pix, cartão ou dinheiro']).map(function(s){ return '<span>' + s + '</span>'; }).join('');
+})();
+</script>
+</body>
+</html>

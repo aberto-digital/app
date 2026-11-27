@@ -1208,11 +1208,13 @@
     IA_CHAT.push(m); IA_CHAT.sort(function(a, b){ return a.ts - b.ts; }); return true;
   }
   function carregaChatIA(){ return Nuvem.ia('GET', '/chat').then(function(j){ IA_CHAT = j.msgs || []; iaChatOk = true; var temLido = false; try { temLido = localStorage.getItem(CH_LIDO) != null; } catch (e){} if (!temLido) iaMarcaLido(); }); }
+  // nome da conversa interna da IA: o que está em Configurações > Nome do assistente
+  function nomeIA(){ var n = S && S.ia && String(S.ia.nome || '').trim(); return n || 'Assistente AbertoCore'; }
   function itemIA(){
     var u = IA_CHAT[IA_CHAT.length - 1], n = sel === 'ia' ? 0 : iaNaoLidas();
     var txt = u ? (u.de === 'eu' ? (u.autor || 'Equipe') + ': ' : '') + u.txt.replace(/\s+/g, ' ') : 'Pergunte sobre clientes, funil e agenda';
     return '<button class="item item-ia" data-ia="1" aria-current="' + (sel === 'ia') + '"><span class="av av-ia">' + ic('ia') + '</span>' +
-      '<span class="mid"><span class="l1"><span class="nome">Assistente AbertoCore</span><span class="hora' + (n ? ' nova' : '') + '">' + (u ? quando(u.ts) : '') + '</span></span>' +
+      '<span class="mid"><span class="l1"><span class="nome">' + esc(nomeIA()) + '</span><span class="hora' + (n ? ' nova' : '') + '">' + (u ? quando(u.ts) : '') + '</span></span>' +
       '<span class="ult' + (n ? ' nova' : '') + '" style="display:block">' + esc(txt) + '</span>' +
       '<span class="l3"><span class="chip ia-int">Interno, só a equipe vê</span>' + (n ? '<span class="cont">' + n + '</span>' : '') + '</span></span></button>';
   }
@@ -1242,7 +1244,7 @@
         (function(){ var n = sugestoesJuntar().length; return n ? '<button type="button" class="chip-ia" data-sugj>🔗 ' + n + (n === 1 ? ' contato repetido para juntar' : ' contatos repetidos para juntar') + '</button>' : ''; })() + '</div>' : '<button class="btn pri peq" id="iaIrCfg">Conectar a IA</button>') + '</div>';
     box.innerHTML = '<div class="conv-topo">' +
         '<button class="voltar" id="voltar" aria-label="Voltar para a lista">' + ic('voltar') + '</button><span class="av av-ia">' + ic('ia') + '</span>' +
-        '<div><div class="nm">Assistente AbertoCore</div><div class="ng">Interno, compartilhado com a equipe</div></div>' +
+        '<div><div class="nm">' + esc(nomeIA()) + '</div><div class="ng">Interno, compartilhado com a equipe</div></div>' +
         '<div class="acoes"><button class="btn peq" id="iaCfg">' + ic('config') + '<span class="txt">Configurar</span></button></div></div>' +
       '<div class="fio" id="fio">' + (IA_CHAT.length ? html : intro + html) + '</div>' +
       '<div class="compor"><form class="linha" id="fIA"><textarea id="texto" rows="1" placeholder="' + (con ? 'Pergunte algo, ex.: quem eu preciso retornar hoje?' : 'Conecte a IA para perguntar') + '" aria-label="Pergunta para o assistente"' + (con ? '' : ' disabled') + '></textarea><button class="envia" aria-label="Enviar"' + (con ? '' : ' disabled') + '>' + ic('enviar') + '</button></form></div>';
@@ -1276,7 +1278,7 @@
   function detalheIA(){
     var box = $('#detalhe'); if (!box) return;
     var st = iaSt || {}, con = st.conectada;
-    box.innerHTML = '<div class="cab"><span class="av av-ia grande">' + ic('ia') + '</span><div class="nm">Assistente AbertoCore</div><div class="ng">' + (con ? 'Conectado ao Gemini' : 'IA não conectada') + '</div></div>' +
+    box.innerHTML = '<div class="cab"><span class="av av-ia grande">' + ic('ia') + '</span><div class="nm">' + esc(nomeIA()) + '</div><div class="ng">' + (con ? 'Conectado ao Gemini' : 'IA não conectada') + '</div></div>' +
       '<div class="campo"><span class="rot">O que ele faz</span><ul class="lista-ia">' +
         '<li>Responde perguntas sobre contatos, funil e agenda</li>' +
         '<li>' + (st.crm_auto ? 'Preenche' : 'Pode preencher') + ' o CRM sozinho a cada 10 minutos</li>' +
@@ -2112,7 +2114,7 @@
       (etqs.length ? '<div class="tt">Etiquetas</div>' + etqs.map(function(e){ return '<label><input type="checkbox" data-etiq value="' + esc(e) + '"' + (etiqSel.indexOf(e) >= 0 ? ' checked' : '') + '><span class="chip etq">' + esc(e) + '</span></label>'; }).join('') : '') +
       (nFil ? '<button type="button" class="btn peq fil-limpa" id="filLimpa">Limpar filtros</button>' : '');
     var q = busca.trim().toLowerCase();
-    var fixo = iaLogado() && (!q || 'assistente abertocore ia'.indexOf(q) >= 0) ? itemIA() : ''; // fixo no topo da Entrada
+    var fixo = iaLogado() && (!q || ('assistente abertocore ia ' + nomeIA().toLowerCase()).indexOf(q) >= 0) ? itemIA() : ''; // fixo no topo da Entrada
     var nSug = sugestoesJuntar().length;
     var avisoSug = nSug ? '<button type="button" class="sug-junta" data-sugj>🔗 <span><b>' + nSug + (nSug === 1 ? ' par de contatos parece' : ' pares de contatos parecem') + ' a mesma pessoa.</b> Revisar e juntar</span></button>' : '';
     ABAS.forEach(function(a){

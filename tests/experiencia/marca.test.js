@@ -65,4 +65,11 @@ t('preço formatado por idioma', () => {
   assert.strictEqual(Marca.preco(12.5, 'en'), '$12.50')
 })
 
+t('cor do texto escolhe o maior contraste (laranja e verde médios usam texto escuro)', () => {
+  assert.strictEqual(Marca.corTexto('#E67E22'), '#101A2C')
+  assert.strictEqual(Marca.corTexto('#27AE60'), '#101A2C')
+  assert.strictEqual(Marca.corTexto('#1ABC9C'), '#101A2C')
+  assert.strictEqual(Marca.corTexto('#B22222'), '#FFFFFF')
+})
+
 console.log(ok + ' testes ok')

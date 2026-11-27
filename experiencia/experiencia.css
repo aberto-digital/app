@@ -22,9 +22,12 @@ button{cursor:pointer;border:0;background:none}
 /* topo */
 .topo{background:var(--cor);color:var(--cor-texto);padding:18px 18px 26px}
 .topo .linha1{display:flex;align-items:center;gap:12px}
-.logo{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;overflow:hidden;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.logo{width:54px;height:54px;border-radius:50%;background:var(--cor);border:2px solid rgba(255,255,255,.95);display:grid;place-items:center;overflow:hidden;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .logo img{width:100%;height:100%;object-fit:cover}
-.logo .ini{font-family:var(--display);font-weight:800;font-size:20px;color:var(--cor)}
+.logo .ini{font-family:var(--display);font-weight:800;font-size:20px;color:var(--cor-texto)}
+/* cores claras: bordas finas para botões e seleção não sumirem no fundo branco */
+.btn,.item .mais,.barra-carrinho,.chat form button,.abas button[aria-selected="true"],.chat .m.cli{box-shadow:inset 0 0 0 1px rgba(16,26,44,.16)}
+.opcoes button[aria-pressed="true"]{border-color:var(--ink)}
 .topo h1{font-family:var(--display);font-size:22px;line-height:1.1;font-weight:800}
 .topo .sub{font-size:13px;opacity:.9}
 .topo .titulo{font-family:var(--display);font-size:26px;font-weight:800;line-height:1.1;margin-top:18px}

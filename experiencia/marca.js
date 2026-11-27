@@ -25,12 +25,15 @@
     };
   }
 
-  // texto escuro sobre cor clara, branco sobre cor escura (luminância relativa)
-  function corTexto(hex) {
+  // escolhe o texto (escuro ou branco) com maior contraste sobre a cor da marca (WCAG)
+  function lum(hex) {
     var h = String(hex || '').replace('#', '');
     var c = [0, 2, 4].map(function (i) { var v = parseInt(h.substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
-    var lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-    return lum > 0.4 ? '#101A2C' : '#FFFFFF';
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function corTexto(hex) {
+    var L = lum(hex), escuro = (L + 0.05) / (lum('#101A2C') + 0.05), branco = 1.05 / (L + 0.05);
+    return escuro > branco ? '#101A2C' : '#FFFFFF';
   }
 
   function iniciais(nome) {

@@ -4,7 +4,11 @@
 // Limites: 30 mensagens por hora por IP, 20 mensagens do cliente por conversa,
 // 12 mensagens de histórico (500 caracteres cada), 40 itens, resposta de até 300 tokens.
 
-const MAX_HORA = 30, MAX_CONVERSA = 20, MAX_MSGS = 12, MAX_TXT = 500, MAX_ITENS = 40, MAX_TOKENS = 300
+const MAX_HORA = 30, MAX_CONVERSA = 20, MAX_MSGS = 12, MAX_TXT = 500, MAX_TOKENS = 300, MAX_DIA = 300
+
+// Cardápio de cada nicho, guardado no servidor: o que o visitante manda NÃO entra na instrução da IA.
+// Precisa ser igual a experiencia/nichos.js (o teste tests/experiencia/ia.test.js confere).
+const MENU = {"pizzaria":[{"cat":"Pizzas","catEn":"Pizzas","pt":"Mussarela","en":"Mozzarella","preco":44.9,"usd":16.9},{"cat":"Pizzas","catEn":"Pizzas","pt":"Calabresa","en":"Pepperoni","preco":49.9,"usd":18.9},{"cat":"Pizzas","catEn":"Pizzas","pt":"Margherita","en":"Margherita","preco":54.9,"usd":19.9},{"cat":"Pizzas","catEn":"Pizzas","pt":"Portuguesa","en":"Ham & egg","preco":52.9,"usd":19.5},{"cat":"Pizzas","catEn":"Pizzas","pt":"Frango com catupiry","en":"Chicken & cream cheese","preco":54.9,"usd":19.9},{"cat":"Doces","catEn":"Desserts","pt":"Pizza de chocolate","en":"Chocolate pizza","preco":42.9,"usd":15.9},{"cat":"Bebidas","catEn":"Drinks","pt":"Refrigerante 2 L","en":"Soda 2 L","preco":14,"usd":3.5},{"cat":"Bebidas","catEn":"Drinks","pt":"Suco natural 500 ml","en":"Fresh juice 16 oz","preco":10,"usd":4.5}],"hamburgueria":[{"cat":"Lanches","catEn":"Burgers","pt":"Smash clássico","en":"Classic smash","preco":29.9,"usd":9.9},{"cat":"Lanches","catEn":"Burgers","pt":"Smash duplo","en":"Double smash","preco":36.9,"usd":12.9},{"cat":"Lanches","catEn":"Burgers","pt":"Bacon burger","en":"Bacon burger","preco":38.9,"usd":13.5},{"cat":"Lanches","catEn":"Burgers","pt":"Chicken crispy","en":"Crispy chicken","preco":32.9,"usd":11.5},{"cat":"Acompanhamentos","catEn":"Sides","pt":"Batata frita","en":"Fries","preco":14.9,"usd":4.5},{"cat":"Acompanhamentos","catEn":"Sides","pt":"Onion rings","en":"Onion rings","preco":18.9,"usd":5.5},{"cat":"Bebidas","catEn":"Drinks","pt":"Refrigerante lata","en":"Canned soda","preco":7,"usd":2.5},{"cat":"Bebidas","catEn":"Drinks","pt":"Milkshake","en":"Milkshake","preco":19.9,"usd":6.5}]}
 
 const PRONTAS = {
   pt: {
@@ -32,11 +36,12 @@ function respostaPronta(n, l) {
 function monta(b) {
   b = b && typeof b === "object" ? b : {}
   const l = idioma(b.l)
-  const nome = txt(b.nome, 80) || (l === "en" ? "the business" : "o negócio")
-  const cidade = txt(b.cidade, 60)
-  const itens = (Array.isArray(b.itens) ? b.itens : []).slice(0, MAX_ITENS)
-    .map((i) => i && typeof i === "object" ? "- " + txt(i.cat, 30) + ": " + txt(i.nome, 60) + (i.preco != null && isFinite(Number(i.preco)) ? " — " + (l === "en" ? "$" : "R$ ") + Number(i.preco).toFixed(2) : "") : "")
-    .filter(Boolean)
+  // nome e cidade: só letras, números, espaço e pontuação simples (nada de quebra de linha ou chaves)
+  const seguro = (v, max) => txt(v, max).replace(/[^A-Za-z0-9À-ÿ .,'&\-]/g, "").trim()
+  const nome = seguro(b.nome, 40) || (l === "en" ? "the business" : "o negócio")
+  const cidade = seguro(b.cidade, 40)
+  const itens = (MENU[nicho(b.n)] || MENU.pizzaria)
+    .map((i) => "- " + (l === "en" ? i.catEn : i.cat) + ": " + (l === "en" ? i.en : i.pt) + " — " + (l === "en" ? "$" + i.usd.toFixed(2) : "R$ " + i.preco.toFixed(2).replace(".", ",")))
   const msgs = (Array.isArray(b.msgs) ? b.msgs : []).filter((m) => m && typeof m === "object").slice(-MAX_MSGS)
   const sistema = l === "en"
     ? [
@@ -65,7 +70,14 @@ function dentroDoLimite(app, ip) {
   if (!v || agora - v.ini > 3600000) v = { ini: agora, n: 0 }
   v.n++
   st.set(k, v)
-  return v.n <= MAX_HORA
+  if (v.n > MAX_HORA) return false
+  // teto diário de todas as demos juntas: protege a chave do Gemini, que é a mesma do atendimento real
+  const dia = new Date(agora - 3 * 3600000).toISOString().slice(0, 10)
+  let g = st.get("lim:exp-dia")
+  if (!g || g.dia !== dia) g = { dia: dia, n: 0 }
+  g.n++
+  st.set("lim:exp-dia", g)
+  return g.n <= MAX_DIA
 }
 
 // Responde a uma mensagem do chat da demo. Nunca lança erro: devolve { texto, limite }.
@@ -85,4 +97,4 @@ function responde(app, b, ip) {
   }
 }
 
-module.exports = { monta, responde, respostaPronta }
+module.exports = { monta, responde, respostaPronta, MENU }

@@ -312,8 +312,10 @@ function alertaSemResposta(app, empresaId) {
   return n
 }
 
+function internaLigada(app, empresaId) { return require(`${__hooks}/atende.js`).recursoLigado(app, empresaId, "interna") }
+
 function rodaCrm(app) {
-  const cfgs = app.findRecordsByFilter("ia_config", "crm_auto = true && api_key != ''", "", 100, 0)
+  const cfgs = app.findRecordsByFilter("ia_config", "crm_auto = true && api_key != ''", "", 100, 0).filter((c) => internaLigada(app, c.getString("empresa")))
   let n = 0
   cfgs.forEach((cfg) => {
     try { if (require(`${__hooks}/atende.js`).recursoLigado(app, cfg.getString("empresa"), "alertas")) alertaSemResposta(app, cfg.getString("empresa")) } catch (e) { app.logger().warn("ia: alerta falhou", "erro", String(e)) }
@@ -404,7 +406,7 @@ function enviaResumoEmail(app, empresaId, res) {
 }
 
 function rodaResumoDia(app) {
-  const cfgs = app.findRecordsByFilter("ia_config", "resumo_dia = true && api_key != ''", "", 100, 0)
+  const cfgs = app.findRecordsByFilter("ia_config", "resumo_dia = true && api_key != ''", "", 100, 0).filter((c) => internaLigada(app, c.getString("empresa")))
   cfgs.forEach((cfg) => {
     try {
       const res = resumoDia(app, cfg)
@@ -623,7 +625,7 @@ function precisaCfg(empresaId) {
 
 module.exports = {
   podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
-  ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, aplicaAnalise, ultimaDoCliente, rodaCrm,
+  ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, internaLigada, aplicaAnalise, ultimaDoCliente, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes, contextoEmpresa, conversa, registraUso,
   urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos, franquia, franquiaDetalhe, iaPausada, avisaFranquias, PACOTES_IA, mesBR, assistir,
 }

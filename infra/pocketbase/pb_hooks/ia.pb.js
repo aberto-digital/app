@@ -64,6 +64,7 @@ routerAdd("POST", "/api/abertocore/ia/perguntar", (e) => {
   const I = require(`${__hooks}/ia.js`)
   const empresaId = e.auth.getString("empresa")
   const cfg = I.precisaCfg(empresaId)
+  if (!I.internaLigada($app, empresaId)) throw new BadRequestError("A IA interna está desligada em Atendimento automático.")
   if (!require(`${__hooks}/atende.js`).recursoLigado($app, empresaId, "assistente")) throw new BadRequestError("O Assistente interno está desligado em Atendimento automático.")
   const p = String((e.requestInfo().body || {}).pergunta || "").trim()
   if (!p) throw new BadRequestError("Escreva uma pergunta.")
@@ -79,6 +80,7 @@ routerAdd("POST", "/api/abertocore/ia/perguntar", (e) => {
 routerAdd("POST", "/api/abertocore/ia/resumo", (e) => {
   const I = require(`${__hooks}/ia.js`)
   const cfg = I.precisaCfg(e.auth.getString("empresa"))
+  if (!I.internaLigada($app, e.auth.getString("empresa"))) throw new BadRequestError("A IA interna está desligada em Atendimento automático.")
   try { return e.json(200, I.resumoDia($app, cfg)) }
   catch (err) { throw new BadRequestError(String(err.message || err)) }
 }, $apis.requireAuth("users"))
@@ -87,6 +89,7 @@ routerAdd("POST", "/api/abertocore/ia/analisar", (e) => {
   const I = require(`${__hooks}/ia.js`)
   const empresaId = e.auth.getString("empresa")
   const cfg = I.precisaCfg(empresaId)
+  if (!I.internaLigada($app, empresaId)) throw new BadRequestError("A IA interna está desligada em Atendimento automático.")
   const localId = parseInt((e.requestInfo().body || {}).contato, 10)
   let rec
   try { rec = $app.findFirstRecordByFilter("contatos", "empresa = {:e} && local_id = {:l}", { e: empresaId, l: localId }) }
@@ -115,6 +118,7 @@ routerAdd("POST", "/api/abertocore/ia/assistir", (e) => {
   const I = require(`${__hooks}/ia.js`)
   const empresaId = e.auth.getString("empresa")
   const cfg = I.precisaCfg(empresaId)
+  if (!I.internaLigada($app, empresaId)) throw new BadRequestError("A IA interna está desligada em Atendimento automático.")
   if (!require(`${__hooks}/atende.js`).recursoLigado($app, empresaId, "ajuda")) throw new BadRequestError("A ajuda da IA na caixa de mensagem está desligada em Atendimento automático.")
   const b = e.requestInfo().body || {}
   const localId = parseInt(b.contato, 10)

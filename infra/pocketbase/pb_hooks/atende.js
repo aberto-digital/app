@@ -10,7 +10,7 @@ function lerDados(rec) {
 function limpa(t, max) { return String(t == null ? "" : t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim().slice(0, max) }
 
 // Interruptores por recurso (configuracoes.dados.ia.<chave>): ligados por padrão; só "false" desliga.
-// Chaves: prospeccao, site, transcrever, assistente, ajuda, alertas.
+// Chaves: prospeccao, site, transcrever, assistente, ajuda, alertas, automacoes (geral das automações do Instagram), interna (geral da IA interna).
 function liga(at, chave) { return !at || at[chave] !== false }
 function recursoLigado(app, empresaId, chave) { return liga(cfgAtendimento(app, empresaId), chave) }
 

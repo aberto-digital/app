@@ -941,7 +941,7 @@
 
 <script src="core/i18n.js?v=6"></script>
 <script src="core/dados.js?v=3"></script>
-<script src="core/nuvem.js?v=16"></script>
+<script src="core/nuvem.js?v=17"></script>
 <script src="core/audio.js?v=1"></script>
 <script src="experiencia/link.js?v=2"></script>
 <script>
@@ -1273,7 +1273,6 @@
     {id:'ajustes', grupo:'config', cat:'Conta', curto:'Conta', nome:'Conta e aparência', ic:'config', sub:'Sua conta, tema e notificações'},
     {id:'produtos', grupo:'config', cat:'Negócio', curto:'Produtos', nome:'Produtos e serviços', ic:'prod', sub:'O que você vende e por quanto'},
     {id:'agendamento', grupo:'config', cat:'Negócio', curto:'Agendamento', nome:'Agendamento online', ic:'agenda', sub:'Página para o cliente marcar horário, com lembretes'},
-    {id:'orcamento', grupo:'config', cat:'Negócio', curto:'Orçamento', nome:'Orçamento online', ic:'prod', sub:'Página para o cliente montar o orçamento com seus produtos e serviços'},
     {id:'assistente', grupo:'config', cat:'Atendimento', curto:'Atendimento', nome:'Atendimento automático', ic:'ia', sub:'Assistente de IA (clientes e equipe) e chatbot de menu'},
     {id:'canais', grupo:'config', cat:'Atendimento', curto:'Canais', nome:'Canais', ic:'canais', sub:'WhatsApp, Instagram, Messenger, e-mail e chat do site', fim:true},
     {id:'leads', grupo:'config', cat:'Vendas', curto:'Leads', nome:'Importar leads', ic:'funil', sub:'Listas de prospecção em Excel ou CSV'},
@@ -1327,7 +1326,7 @@
     var app = $('#app'), emCfg = atual === 'config' || v.grupo === 'config';
     app.classList.toggle('em-cfg', emCfg); app.classList.toggle('na-sub', v.grupo === 'config');
     $('#cfgBtn').setAttribute('aria-pressed', emCfg);
-    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, agendamento:vAgendamento, orcamento:vOrcamento, clientes:vClientes, demos:vDemos})[atual]();
+    ({config:vConfig, mensagens:vMensagens, funil:vFunil, agenda:vAgenda, dashboard:vDash, produtos:vProdutos, assistente:vAtendimento, canais:vCanais, ajustes:vAjustes, leads:vLeads, agendamento:vAgendamento, clientes:vClientes, demos:vDemos})[atual]();
     desenhaMenuCfg();
   }
 
@@ -3025,8 +3024,8 @@
         '<div class="campo"><label for="agInt">Intervalo entre clientes</label><select id="agInt">' + [0,5,10,15,30].map(function(n){ return '<option value="' + n + '"' + (a.intervalo === n ? ' selected' : '') + '>' + (n ? n + ' minutos' : 'Sem intervalo') + '</option>'; }).join('') + '</select></div></div>' +
         '<div class="duas"><div class="campo"><label for="agAnt">Antecedência mínima</label><select id="agAnt">' + [0,1,2,4,12,24,48].map(function(n){ return '<option value="' + n + '"' + (a.antecedenciaH === n ? ' selected' : '') + '>' + (n ? n + (n === 1 ? ' hora' : ' horas') : 'Nenhuma') + '</option>'; }).join('') + '</select></div>' +
         '<div class="campo"><label for="agLim">Agenda aberta para</label><select id="agLim">' + [7,14,30,60,90].map(function(n){ return '<option value="' + n + '"' + (a.limiteDias === n ? ' selected' : '') + '>Próximos ' + n + ' dias</option>'; }).join('') + '</select></div></div></section>' +
-      '<section class="painel"><h2>Serviços na página</h2><p class="nota-bot">Marque o que o cliente pode agendar e quanto tempo leva. Sem nenhum marcado, a página oferece "Atendimento" com ' + a.duracaoPadrao + ' minutos.</p>' +
-        (servs.length ? '<div class="ag-servs">' + servs.map(function(p){ return '<div class="ag-serv"><label><input type="checkbox" data-agp="' + p.id + '"' + (p.agendavel ? ' checked' : '') + '> ' + esc(p.nome) + '</label><select data-agd="' + p.id + '">' + [15,20,30,45,60,90,120,180,240].map(function(n){ return '<option value="' + n + '"' + ((p.dur || a.duracaoPadrao) === n ? ' selected' : '') + '>' + (n < 60 ? n + ' min' : (n / 60) + (n === 60 ? ' hora' : ' horas').replace('.5 horas', 'h30')) + '</option>'; }).join('') + '</select></div>'; }).join('') + '</div>' : '<p class="nota-bot">Cadastre seus serviços em Produtos e serviços.</p>') +
+      '<section class="painel"><h2>Produtos e serviços na página</h2><p class="nota-bot">Escolha como o cliente contrata cada item: <b>agenda horário</b> (dia e hora livres) ou <b>pede orçamento</b> (sem horário). Nos dois casos ele entra no seu Funil como lead. Nome, descrição, foto, preço e estoque vêm do cadastro. Sem nenhum marcado, a página oferece "Atendimento" com ' + a.duracaoPadrao + ' minutos.</p>' +
+        (servs.length ? '<div class="ag-servs">' + servs.map(function(p){ var md = modoOnline(p); return '<div class="ag-serv"><label>' + (p.foto ? '<img class="prod-mini" style="width:28px;height:28px;border-radius:6px" src="' + esc(p.foto) + '" alt="">' : '') + esc(p.nome) + '</label><span style="display:flex;gap:6px"><select data-ago="' + p.id + '">' + [['','Não aparece'],['agenda','Agenda horário'],['orcamento','Pede orçamento']].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === md ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><select data-agd="' + p.id + '"' + (md === 'agenda' ? '' : ' hidden') + '>' + [15,20,30,45,60,90,120,180,240].map(function(n){ return '<option value="' + n + '"' + ((p.dur || a.duracaoPadrao) === n ? ' selected' : '') + '>' + (n < 60 ? n + ' min' : (n / 60) + (n === 60 ? ' hora' : ' horas').replace('.5 horas', 'h30')) + '</option>'; }).join('') + '</select></span></div>'; }).join('') + '</div>' : '<p class="nota-bot">Cadastre seus serviços em Produtos e serviços.</p>') +
       '</section>' +
       '<section class="painel"><h2>Lembretes</h2>' +
         '<div class="grupo-t">Para o cliente</div>' + chips('lc', a.lembretesCliente) +
@@ -3036,6 +3035,7 @@
         '<div class="campo"><label for="agAviso">Recado na confirmação e nos lembretes</label><textarea id="agAviso" rows="2" placeholder="Ex.: Chegue 5 minutos antes. Endereço: Rua..., 123.">' + esc(a.aviso) + '</textarea></div></section>' +
       '<div><button class="btn pri" id="agSalva">Salvar agendamento online</button></div></div>';
     $('#agConf').onclick = function(e){ var b = e.target.closest('[data-c]'); if (!b) return; $$('#agConf button').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); };
+    $$('[data-ago]').forEach(function(x){ x.onchange = function(){ $('[data-agd="' + x.getAttribute('data-ago') + '"]').hidden = x.value !== 'agenda'; }; });
     $('#agAtivo').onclick = function(){ this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true'); };
     $$('[data-dia]').forEach(function(cb){ cb.onchange = function(){ var d = cb.getAttribute('data-dia'); $('[data-ini="' + d + '"]').disabled = $('[data-fim="' + d + '"]').disabled = !cb.checked; }; });
     var logoNovo = a.marca && a.marca.logo || '';
@@ -3065,60 +3065,11 @@
       n.lembretesCliente = $$('[data-lc]').filter(function(x){ return x.checked; }).map(function(x){ return +x.getAttribute('data-lc'); });
       n.lembretesDono = $$('[data-ld]').filter(function(x){ return x.checked; }).map(function(x){ return +x.getAttribute('data-ld'); });
       n.aviso = $('#agAviso').value.trim().slice(0, 400);
-      S.produtos.forEach(function(p){ var cb = $('[data-agp="' + p.id + '"]'), sd = $('[data-agd="' + p.id + '"]'); if (cb){ p.agendavel = cb.checked; p.dur = +sd.value; } });
+      S.produtos.forEach(function(p){ var so = $('[data-ago="' + p.id + '"]'), sd = $('[data-agd="' + p.id + '"]'); if (so){ p.agendavel = so.value === 'agenda'; p.orcavel = so.value === 'orcamento'; p.dur = +sd.value; } });
       if (n.ativo && !Object.keys(n.dias).length){ aviso('Marque pelo menos um dia de atendimento.'); return; }
       S.agenda = n; salva();
       aviso(n.ativo ? 'Agendamento online <b>ligado</b>. Compartilhe o link com seus clientes.' : 'Agendamento online salvo (desligado).');
       vAgendamento();
-    };
-  }
-  /* ========== ORÇAMENTO ONLINE ========== */
-  function orcCfg(){
-    var o = Object.assign({ativo:false, slug:'', titulo:'', aviso:'', mostrarPrecos:true}, S.orcamento || {});
-    if (!o.slug) o.slug = agCfg().slug;
-    return o;
-  }
-  function linkOrcamento(o){ return 'https://app.abertodigital.com/orcamento/?e=' + encodeURIComponent(o.slug); }
-  function vOrcamento(){
-    var o = orcCfg(), logado = window.Nuvem && Nuvem.logado && Nuvem.logado(), tec = !logado || ehAgencia();
-    var lista = S.produtos.filter(function(p){ return p.ativo !== false; });
-    var marcados = lista.filter(function(p){ return p.orcavel; }).length;
-    $('#vista').innerHTML = '<div class="ajustes ag-cfg">' +
-      '<section class="painel"><div class="linha-ch"><div><h2 style="margin:0">Orçamento online</h2><div class="nota-bot">Uma página para o cliente escolher entre os seus produtos e serviços, ver os valores e pedir o orçamento. O pedido cai no Funil como novo contato, com a lista na conversa.</div></div>' +
-        '<button class="chave" role="switch" id="orAtivo" aria-checked="' + !!o.ativo + '" aria-label="Orçamento online ligado"></button></div>' +
-        (tec ? '<div class="campo" style="margin-top:14px"><label for="orSlug">Endereço da sua página</label><div class="ag-link"><span>app.abertodigital.com/orcamento/?e=</span><input id="orSlug" value="' + esc(o.slug) + '" autocomplete="off"></div></div>'
-          : '<div class="campo" style="margin-top:14px"><label>Endereço da sua página</label><div class="link-conv" data-sem-traducao>' + esc(linkOrcamento(o).replace(/^https:\/\//, '')) + '</div></div>') +
-        '<div class="bts-l"><button class="btn" id="orCopia" type="button">Copiar link</button><a class="btn" id="orAbre" target="_blank" rel="noopener" href="' + esc(linkOrcamento(o)) + '">Abrir página</a></div>' +
-        (logado ? '' : '<p class="aviso-dup" style="margin-top:12px">Na demonstração a página não recebe pedidos. Entre na sua conta para ativar.</p>') +
-        (o.ativo && !marcados ? '<p class="aviso-dup" style="margin-top:12px">Nenhum produto está marcado abaixo. A página abre vazia.</p>' : '') +
-      '</section>' +
-      '<section class="painel"><h2>O que aparece na página</h2><p class="nota-bot">Marque os produtos e serviços que o cliente pode pedir. Nome, descrição, foto, preço e estoque vêm do cadastro em Produtos e serviços.</p>' +
-        (lista.length ? '<div class="ag-servs">' + lista.map(function(p){
-          return '<div class="ag-serv"><label><input type="checkbox" data-orp="' + p.id + '"' + (p.orcavel ? ' checked' : '') + '> ' + (p.foto ? '<img class="prod-mini" style="width:28px;height:28px;border-radius:6px;vertical-align:middle;margin-right:6px" src="' + esc(p.foto) + '" alt="">' : '') + esc(p.nome) + '</label><span class="nota-bot">' + (p.setup == null ? 'Sob consulta' : p.setup === 0 ? 'Grátis' : brl(p.setup)) + (p.mensal ? ' + ' + brl(p.mensal) + '/mês' : '') + (p.estoque != null ? ' · estoque ' + p.estoque : '') + '</span></div>';
-        }).join('') + '</div><div class="bts-l"><button class="btn" id="orTodos" type="button">Marcar todos</button><button class="btn" id="orNenhum" type="button">Desmarcar todos</button></div>' : '<p class="nota-bot">Cadastre seus produtos e serviços em Produtos e serviços.</p>') +
-        '<div class="linha-ch" style="margin-top:14px"><div><div class="t">Mostrar preços na página</div><div class="d">Desligado, o cliente vê só nome e descrição e você responde com o valor</div></div><button class="chave" role="switch" id="orPrecos" aria-checked="' + (o.mostrarPrecos !== false) + '" aria-label="Mostrar preços"></button></div>' +
-      '</section>' +
-      '<section class="painel"><h2>Textos</h2>' +
-        '<div class="campo"><label for="orTit">Título da página</label><input id="orTit" value="' + esc(o.titulo) + '" placeholder="Monte seu orçamento"></div>' +
-        '<div class="campo"><label for="orAviso">Recado ao enviar o pedido</label><textarea id="orAviso" rows="2" placeholder="Ex.: Respondemos em até 1 dia útil.">' + esc(o.aviso) + '</textarea></div></section>' +
-      '<div><button class="btn pri" id="orSalva">Salvar orçamento online</button></div></div>';
-    $('#orAtivo').onclick = function(){ this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true'); };
-    $('#orPrecos').onclick = function(){ this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true'); };
-    function linkAtual(){ return tec ? linkOrcamento({slug:slugify($('#orSlug').value) || o.slug}) : linkOrcamento(o); }
-    if (tec) $('#orSlug').oninput = function(){ $('#orAbre').href = linkAtual(); };
-    $('#orCopia').onclick = function(){ var l = linkAtual(); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', l); }); };
-    if ($('#orTodos')){ $('#orTodos').onclick = function(){ $$('[data-orp]').forEach(function(x){ x.checked = true; }); }; $('#orNenhum').onclick = function(){ $$('[data-orp]').forEach(function(x){ x.checked = false; }); }; }
-    $('#orSalva').onclick = function(){
-      var n = Object.assign({}, S.orcamento || {});
-      n.ativo = $('#orAtivo').getAttribute('aria-checked') === 'true';
-      n.mostrarPrecos = $('#orPrecos').getAttribute('aria-checked') === 'true';
-      n.slug = tec ? (slugify($('#orSlug').value) || o.slug) : o.slug;
-      n.titulo = $('#orTit').value.trim().slice(0, 80); n.aviso = $('#orAviso').value.trim().slice(0, 400);
-      S.produtos.forEach(function(p){ var cb = $('[data-orp="' + p.id + '"]'); if (cb) p.orcavel = cb.checked; });
-      if (n.ativo && !S.produtos.some(function(p){ return p.orcavel && p.ativo !== false; })){ aviso('Marque pelo menos um produto ou serviço para a página.'); return; }
-      S.orcamento = n; salva();
-      aviso(n.ativo ? 'Orçamento online <b>ligado</b>. Compartilhe o link com seus clientes.' : 'Orçamento online salvo (desligado).');
-      vOrcamento();
     };
   }
   function evOnline(e){ return e && e.online; }
@@ -3597,7 +3548,7 @@
       '<table class="tb-prod' + (BELEZA ? ' so-preco' : '') + '"><thead><tr><th>Nome</th><th>Tipo</th><th>' + (BELEZA ? 'Preço' : 'Implantação') + '</th><th>Mensalidade</th><th>Ativo</th><th><span class="sr">Excluir</span></th></tr></thead><tbody>' +
       S.produtos.map(function(p){
         return '<tr' + (p.destaque ? ' class="destaque"' : '') + '><td><div class="prod-n">' + (p.foto ? '<img class="prod-mini" src="' + esc(p.foto) + '" alt="">' : '') + '<div><button data-ed="' + p.id + '" style="font-weight:700;text-align:left">' + esc(p.nome) + '</button><div class="ds">' + esc(p.ds) + '</div>' +
-          ((p.orcavel || p.agendavel || p.estoque != null) ? '<div class="prod-sel">' + (p.orcavel ? '<span>Orçamento online</span>' : '') + (p.agendavel ? '<span>Agendamento online</span>' : '') + (p.estoque != null ? '<span' + (p.estoque === 0 ? ' class="zero"' : '') + '>Estoque ' + p.estoque + '</span>' : '') + '</div>' : '') + '</div></div></td><td>' + p.tipo + '</td>' +
+          ((p.orcavel || p.agendavel || p.estoque != null) ? '<div class="prod-sel">' + (p.orcavel ? '<span>Online: orçamento</span>' : '') + (p.agendavel ? '<span>Online: agenda</span>' : '') + (p.estoque != null ? '<span' + (p.estoque === 0 ? ' class="zero"' : '') + '>Estoque ' + p.estoque + '</span>' : '') + '</div>' : '') + '</div></div></td><td>' + p.tipo + '</td>' +
           '<td class="num" data-l="' + (BELEZA ? 'Preço' : 'Implantação') + '">' + (p.setup == null ? (BELEZA ? 'Sob avaliação' : 'Sob consulta') : p.setup === 0 ? 'Grátis' : brl(p.setup)) + '</td><td class="num" data-l="Mensalidade">' + (p.mensal === 0 ? '-' : brl(p.mensal)) + '</td>' +
           '<td><button class="chave" role="switch" aria-checked="' + p.ativo + '" data-at="' + p.id + '" aria-label="Ativar ' + esc(p.nome) + '"></button></td>' +
           '<td class="td-del"><button class="btn-del" data-del="' + p.id + '" aria-label="Excluir ' + esc(p.nome) + '" title="Excluir">' + ic('x') + '</button></td></tr>';
@@ -3633,6 +3584,7 @@
       fr.readAsDataURL(file);
     });
   }
+  function modoOnline(p){ return p.agendavel ? 'agenda' : p.orcavel ? 'orcamento' : ''; }
   function modalProduto(id){
     var p = id ? S.produtos.filter(function(x){ return x.id === id; })[0] : {nome:'', tipo:BELEZA ? 'Serviço' : 'Pacote', setup:null, mensal:null, ds:'', ativo:true};
     var M = $('#modal'), foto = p.foto || '';
@@ -3645,19 +3597,20 @@
       '<div class="campo"><label for="pD">O que inclui</label><textarea id="pD" rows="3">' + esc(p.ds) + '</textarea></div>' +
       '<div class="campo"><label>Foto <span class="nota-bot">(aparece nas páginas públicas)</span></label><div class="ag-marca"><div class="prod-foto" id="pFotoBox">' + (foto ? '<img src="' + esc(foto) + '" alt="">' : '<span>Sem foto</span>') + '</div>' +
         '<div class="bts-l" style="margin:0"><label class="btn" for="pFoto">Enviar foto</label><input type="file" id="pFoto" accept="image/png,image/jpeg,image/webp" hidden><button class="btn" type="button" id="pFotoTira"' + (foto ? '' : ' hidden') + '>Remover</button></div></div></div>' +
-      '<div class="duas"><div class="campo"><label for="pEst">Estoque <span class="nota-bot">(vazio = sem controle)</span></label><input id="pEst" type="number" min="0" step="1" placeholder="Sem controle" value="' + (p.estoque == null ? '' : p.estoque) + '"></div>' +
-      '<label style="display:flex;gap:8px;align-items:center;font-size:13.5px;align-self:end;padding-bottom:10px"><input type="checkbox" id="pOrc"' + (p.orcavel ? ' checked' : '') + '> Disponível no orçamento online</label></div>' +
-      '<div class="duas"><label style="display:flex;gap:8px;align-items:center;font-size:13.5px"><input type="checkbox" id="pAg"' + (p.agendavel ? ' checked' : '') + '> Cliente pode agendar online</label>' +
-      '<div class="campo" style="margin:0"><label for="pDur">Duração</label><select id="pDur">' + [15,20,30,45,60,90,120,180,240].map(function(n){ return '<option value="' + n + '"' + ((p.dur || 60) === n ? ' selected' : '') + '>' + n + ' min</option>'; }).join('') + '</select></div></div>' +
+      '<div class="campo"><label for="pEst">Estoque <span class="nota-bot">(vazio = sem controle; zerado, some da página)</span></label><input id="pEst" type="number" min="0" step="1" placeholder="Sem controle" value="' + (p.estoque == null ? '' : p.estoque) + '"></div>' +
+      '<div class="duas"><div class="campo" style="margin:0"><label for="pOn">Na página online do cliente</label><select id="pOn">' + [['','Não aparece'],['agenda','Cliente agenda horário'],['orcamento','Cliente pede orçamento (sem horário)']].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === modoOnline(p) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="campo" style="margin:0" id="pDurBox"><label for="pDur">Duração</label><select id="pDur">' + [15,20,30,45,60,90,120,180,240].map(function(n){ return '<option value="' + n + '"' + ((p.dur || 60) === n ? ' selected' : '') + '>' + n + ' min</option>'; }).join('') + '</select></div></div>' +
       '<div class="bts">' + (id ? '<button class="btn perigo" value="excluir" formnovalidate style="margin-right:auto">' + ic('x') + 'Excluir</button>' : '') + '<button class="btn" value="cancelar" formnovalidate>Cancelar</button><button class="btn pri" value="ok">Salvar</button></div></form>';
+    function durVis(){ $('#pDurBox').style.visibility = $('#pOn').value === 'agenda' ? 'visible' : 'hidden'; }
+    $('#pOn').onchange = durVis; durVis();
     $('#pFoto').onchange = function(){ lerFotoProduto(this.files[0]).then(function(u){ foto = u; $('#pFotoBox').innerHTML = '<img src="' + u + '" alt="">'; $('#pFotoTira').hidden = false; }, function(er){ aviso(esc(er.message)); }); };
     $('#pFotoTira').onclick = function(){ foto = ''; $('#pFotoBox').innerHTML = '<span>Sem foto</span>'; this.hidden = true; };
     M.onclose = function(){
       if (M.returnValue === 'excluir'){ M.onclose = null; excluiProduto(id); return; }
       if (M.returnValue === 'ok'){
         function num(v){ return v === '' ? null : +v; }
-        p.nome = $('#pN').value.trim(); p.tipo = $('#pT').value; p.setup = num($('#pS').value); p.mensal = num($('#pM').value); p.ds = $('#pD').value.trim(); p.agendavel = $('#pAg').checked; p.dur = +$('#pDur').value;
-        p.foto = foto || undefined; p.estoque = num($('#pEst').value); p.orcavel = $('#pOrc').checked;
+        p.nome = $('#pN').value.trim(); p.tipo = $('#pT').value; p.setup = num($('#pS').value); p.mensal = num($('#pM').value); p.ds = $('#pD').value.trim(); p.dur = +$('#pDur').value;
+        p.foto = foto || undefined; p.estoque = num($('#pEst').value); p.agendavel = $('#pOn').value === 'agenda'; p.orcavel = $('#pOn').value === 'orcamento';
         if (!id){ p.id = S.prox.p++; S.produtos.push(p); }
         salva(); aviso('<b>' + esc(p.nome) + '</b> salvo.'); vProdutos();
       }

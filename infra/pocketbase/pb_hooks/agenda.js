@@ -79,17 +79,25 @@ function fotoServico(f) {
   if (/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(f) && f.length <= 160000) return f
   return /^https:\/\/[^\s"'<>]+$/.test(f) && f.length <= 500 ? f : ""
 }
+// serviços da página: produtos marcados para agendar (modo "agenda") ou para pedir orçamento (modo "orcamento", sem horário)
 function servicos(app, empresaId, ag) {
   const L = app.findRecordsByFilter("produtos", "empresa = {:e}", "local_id", 0, 0, { e: empresaId })
   const out = []
   L.forEach((r) => {
     const d = W.lerDados(r)
-    if (d.ativo === false || !d.agendavel) return
-    out.push({ id: r.getInt("local_id"), nome: d.nome || r.getString("nome"), dur: Math.max(10, parseInt(d.dur, 10) || ag.duracaoPadrao || 60), preco: d.setup == null ? null : d.setup, ds: String(d.ds || "").slice(0, 300), foto: fotoServico(d.foto) })
+    if (d.ativo === false || (!d.agendavel && !d.orcavel)) return
+    const est = d.estoque === null || d.estoque === undefined || d.estoque === "" ? null : Math.max(0, parseInt(d.estoque, 10) || 0)
+    if (est === 0) return
+    const num = (v) => (v === null || v === undefined || v === "" || !isFinite(Number(v)) || Number(v) < 0 ? null : Number(v))
+    out.push({
+      id: r.getInt("local_id"), nome: d.nome || r.getString("nome"), modo: d.agendavel ? "agenda" : "orcamento", tipo: String(d.tipo || "").slice(0, 30),
+      dur: Math.max(10, parseInt(d.dur, 10) || ag.duracaoPadrao || 60), preco: num(d.setup), mensal: num(d.mensal), ds: String(d.ds || "").slice(0, 300), foto: fotoServico(d.foto),
+    })
   })
-  if (!out.length) out.push({ id: 0, nome: ag.titulo || "Atendimento", dur: ag.duracaoPadrao || 60, preco: null, ds: "", foto: "" })
+  if (!out.length) out.push({ id: 0, nome: ag.titulo || "Atendimento", modo: "agenda", tipo: "", dur: ag.duracaoPadrao || 60, preco: null, mensal: null, ds: "", foto: "" })
   return out
 }
+function brl(v) { const p = Number(v || 0).toFixed(2).split("."); return "R$ " + p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + p[1] }
 function min(h) { const p = String(h || "0:0").split(":"); return (+p[0] || 0) * 60 + (+p[1] || 0) }
 function hhmm(m) { return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0") }
 function agoraSP() { return new Date(Date.now() + FUSO * 3600000) } // usar getUTC*
@@ -182,4 +190,4 @@ function jaEnviou(app, empresaId, chave) {
 }
 function antecedenciaTxt(m) { return m >= 1440 && m % 1440 === 0 ? (m / 1440 === 1 ? "amanhã" : "em " + m / 1440 + " dias") : m >= 60 && m % 60 === 0 ? "em " + m / 60 + (m === 60 ? " hora" : " horas") : "em " + m + " minutos" }
 
-module.exports = { PADRAO, cfg, porSlug, porDominio, limpaDominio, marcaPublica, linkAgenda, nomeEmpresa, servicos, horarios, diasLivres, proximoEventoId, token, dataBonita, linkCancelar, emailCliente, whatsCliente, jaEnviou, antecedenciaTxt, tsDe, hojeSP, addDias, min, hhmm }
+module.exports = { brl, PADRAO, cfg, porSlug, porDominio, limpaDominio, marcaPublica, linkAgenda, nomeEmpresa, servicos, horarios, diasLivres, proximoEventoId, token, dataBonita, linkCancelar, emailCliente, whatsCliente, jaEnviou, antecedenciaTxt, tsDe, hojeSP, addDias, min, hhmm }

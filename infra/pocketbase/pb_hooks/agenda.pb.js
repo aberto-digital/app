@@ -67,6 +67,7 @@ routerAdd("POST", "/api/agenda/{slug}/reservar", (e) => {
   if (!b.consentimento) throw new BadRequestError("Marque a autorização para receber a confirmação e os lembretes.")
   const sv = A.servicos($app, r.empresaId, r.ag).filter((s) => s.id === (parseInt(b.servico, 10) || 0))[0]
   if (!sv) throw new BadRequestError("Escolha o serviço.")
+  if (sv.modo === "orcamento") throw new BadRequestError("Esse item é por orçamento, sem horário.")
   const data = String(b.data || ""), hora = String(b.hora || "")
   if (A.horarios($app, r.empresaId, r.ag, data, sv.dur).indexOf(hora) < 0) throw new BadRequestError("Esse horário acabou de ser ocupado. Escolha outro.")
   const status = r.ag.confirmacao === "manual" ? "pendente" : "confirmado"
@@ -101,6 +102,41 @@ routerAdd("POST", "/api/agenda/{slug}/reservar", (e) => {
     (r.ag.aviso ? "\n\n" + r.ag.aviso : "") + "\n\nPrecisa desmarcar? " + A.linkCancelar(resp.token, r.ag))
   S.avisaEquipe($app, r.empresaId, (status === "pendente" ? "Pedido de horário para confirmar: " : "Novo agendamento online: ") + nome + ", " + sv.nome + ", " + quando + " (" + tel + ").", resp.contato)
   return e.json(200, { ok: true, status: status, token: resp.token, servico: sv.nome, data: data, hora: hora, quando: quando, empresa: emp.nome })
+})
+
+// item por orçamento (sem horário): vira lead no funil com o pedido na conversa
+routerAdd("POST", "/api/agenda/{slug}/orcar", (e) => {
+  const A = require(`${__hooks}/agenda.js`)
+  const S = require(`${__hooks}/site.js`)
+  const b = e.requestInfo().body || {}
+  if (b.site_url) return e.json(200, { ok: true }) // armadilha para robôs
+  const r = A.porSlug($app, e.request.pathValue("slug"))
+  if (!r) throw new NotFoundError("Agenda não encontrada.")
+  S.limita($app, "orcar|" + e.realIP(), 6, 3600000)
+  const nome = S.limpa(b.nome, 120), tel = S.telefone(b.whatsapp), email = S.limpa(b.email, 160).toLowerCase(), obs = S.limpa(b.obs, 600)
+  if (!nome || !tel) throw new BadRequestError("Preencha seu nome e WhatsApp.")
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new BadRequestError("Confira o e-mail.")
+  if (!b.consentimento) throw new BadRequestError("Marque a autorização para receber o retorno.")
+  const sv = A.servicos($app, r.empresaId, r.ag).filter((s) => s.id === (parseInt(b.servico, 10) || 0) && s.modo === "orcamento")[0]
+  if (!sv) throw new BadRequestError("Escolha o serviço.")
+  const emp = A.nomeEmpresa($app, r.empresaId)
+  const valor = [sv.preco ? A.brl(sv.preco) : "", sv.mensal ? A.brl(sv.mensal) + "/mês" : ""].filter(Boolean).join(" + ")
+  let resp = {}
+  $app.runInTransaction((tx) => {
+    let c = S.acharPorTelefone(tx, r.empresaId, tel), novo = false
+    if (!c) { c = S.novoContato(tx, r.empresaId, { nome: nome, tel: tel, canal: "WhatsApp", origem: "Agendamento online" }); novo = true }
+    const linhas = ["Pediu orçamento online: " + sv.nome + (valor ? " (" + valor + ")" : "") + "."]
+    if (email) linhas.push("E-mail: " + email)
+    if (obs) linhas.push("Observação: " + obs)
+    const dc = S.chegou(c, linhas.join("\n"))
+    if (email && !dc.email) { dc.email = email; c.set("dados", dc) }
+    tx.save(c)
+    resp = { contato: c.getInt("local_id"), novo: novo }
+  })
+  if (email) A.emailCliente($app, r.empresaId, email, "Recebemos seu pedido · " + emp.nome,
+    "Olá, " + nome.split(" ")[0] + "!\n\nRecebemos seu pedido de orçamento para " + sv.nome + ". Em breve entramos em contato." + (r.ag.aviso ? "\n\n" + r.ag.aviso : ""))
+  S.avisaEquipe($app, r.empresaId, "Novo pedido de orçamento online: " + nome + ", " + sv.nome + " (" + tel + ").", resp.contato)
+  return e.json(200, { ok: true, servico: sv.nome, empresa: emp.nome })
 })
 
 routerAdd("GET", "/api/agenda/reserva", (e) => {

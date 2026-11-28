@@ -4115,7 +4115,7 @@
       var ok = $('#ckImpOk'); if (ok) ok.onclick = function(){
         var urls = $('#ckUrl').value.split(/\s+/).filter(Boolean); if (!urls.length){ aviso('Cole o link de pelo menos uma aba.'); return; }
         if (ocupado) return; ocupado = true; ok.disabled = true; ok.textContent = 'Importando…';
-        api('POST', '/importar', {urls:urls}).then(function(j){ ocupado = false; var c = j.importados || {}; aviso('Importado: <b>' + (c.afirmacao || 0) + '</b> afirmações, <b>' + (c.argumento || 0) + '</b> argumentos, <b>' + (c.aprendizado || 0) + '</b> aprendizados.'); return recarrega(); }).catch(function(err){ erro(err); ok.disabled = false; ok.textContent = 'Importar'; });
+        api('POST', '/importar', {urls:urls}).then(function(j){ ocupado = false; var c = j.importados || {}; var falta = []; if (!c.argumento) falta.push('Argumentos'); if (!c.aprendizado) falta.push('Aprendizados'); aviso('Importado: <b>' + (c.afirmacao || 0) + '</b> afirmações, <b>' + (c.argumento || 0) + '</b> argumentos, <b>' + (c.aprendizado || 0) + '</b> aprendizados.' + (c.repetidas ? ' <b>' + c.repetidas + '</b> link(s) devolveram a mesma aba de outro link: essa aba não está publicada em CSV.' : '') + (falta.length && c.repetidas ? ' Faltou: ' + falta.join(' e ') + '.' : '')); return recarrega(); }).catch(function(err){ erro(err); ok.disabled = false; ok.textContent = 'Importar'; });
       };
       var f = $('#ckForm');
       if (f){

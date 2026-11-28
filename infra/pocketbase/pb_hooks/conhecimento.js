@@ -51,7 +51,7 @@ function importaPlanilha(app, empresaId, urls, quem) {
     if (r.getString("tipo") === "aprendizado") existentes["aprendizado:" + norm(r.getString("texto")).slice(0, 80)] = r
     else if (r.getString("codigo")) existentes[r.getString("tipo") + ":" + r.getString("codigo")] = r
   })
-  const cont = { afirmacao: 0, argumento: 0, aprendizado: 0, ignoradas: 0 }
+  const cont = { afirmacao: 0, argumento: 0, aprendizado: 0, ignoradas: 0, repetidas: 0, notas: 0 }
   const vistos = []
   urls.forEach((u) => {
     const res = $http.send({ url: u, method: "GET", timeout: 20 })
@@ -72,7 +72,7 @@ function importaPlanilha(app, empresaId, urls, quem) {
     else if (iLic >= 0 && iO >= 0) tipo = "aprendizado"
     else { cont.ignoradas++; return }
     const sig = tipo + "|" + rows.slice(0, 3).join("|")
-    if (vistos.indexOf(sig) >= 0) return // aba não publicada: o Google devolve a mesma de novo
+    if (vistos.indexOf(sig) >= 0) { cont.repetidas++; return } // aba não publicada: o Google devolve a mesma de novo
     vistos.push(sig)
     rows.slice(1).forEach((r, n) => {
       const v = (i) => (i >= 0 && r[i] != null ? String(r[i]).trim() : "")
@@ -87,6 +87,8 @@ function importaPlanilha(app, empresaId, urls, quem) {
         codigo = ""
       }
       if (!texto) return
+      // linha de observação no fim da aba (sem ID e sem "Pode usar?"): não é afirmação
+      if (tipo === "afirmacao" && !codigo && !v(iPode)) { cont.notas++; return }
       let rec = tipo === "aprendizado" ? existentes["aprendizado:" + norm(texto).slice(0, 80)] : (codigo ? existentes[tipo + ":" + codigo] : null)
       if (!rec) { rec = new Record(col); rec.set("empresa", empresaId); rec.set("tipo", tipo); rec.set("codigo", codigo.slice(0, 20)) }
       rec.set("status", status); rec.set("texto", texto.slice(0, 3000)); rec.set("quando", quando.slice(0, 400))

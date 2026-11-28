@@ -28,13 +28,13 @@
   </section>
   <div class="resumo" id="resumo" aria-live="polite"></div>
   <button class="btn" id="conf" type="button" style="margin-top:14px;width:100%" data-pt="Confirmar agendamento" data-en="Confirm booking">Confirmar agendamento</button>
-  <div class="ok" id="ok" role="status"><h2 data-pt="Horário reservado!" data-en="You're booked!">Horário reservado!</h2><p id="okt"></p><p class="note" data-pt="Na versão real, este horário entra na agenda do AbertoCore e a IA envia o lembrete no WhatsApp." data-en="In the real version this slot lands in the AbertoCore calendar and the AI sends the WhatsApp reminder.">Na versão real, este horário entra na agenda do AbertoCore e a IA envia o lembrete no WhatsApp.</p></div>
+  <div class="ok" id="ok" role="status"><h2 data-pt="Horário reservado!" data-en="You're booked!">Horário reservado!</h2><p id="okt"></p><p class="note" data-pt="Agora veja como a Amanda recebe este agendamento no AbertoCore." data-en="Now see how Amanda receives this booking in AbertoCore.">Agora veja como a Amanda recebe este agendamento no AbertoCore.</p><a class="btn" id="ver" href="#" data-pt="Ver no AbertoCore" data-en="See in AbertoCore">Ver no AbertoCore</a></div>
 </main>
 <a class="ia" href="../#contato" data-pt="💬 Falar com a IA" data-en="💬 Chat with the AI">💬 Falar com a IA</a>
 <script src="../idioma.js"></script>
 <script>
 (function(){
-  var S=[{pt:'Alongamento em gel',en:'Gel extensions',p:120},{pt:'Manutenção do alongamento',en:'Extension refill',p:85},{pt:'Esmaltação em gel',en:'Gel polish',p:55},{pt:'Tratamento para unhas roídas',en:'Care for bitten nails',p:95}];
+  var S=[{pt:'Alongamento em gel',en:'Gel extensions',p:120,dur:150},{pt:'Manutenção do alongamento',en:'Extension refill',p:85,dur:120},{pt:'Esmaltação em gel',en:'Gel polish',p:55,dur:75},{pt:'Tratamento para unhas roídas',en:'Care for bitten nails',p:95,dur:120}];
   var H=['09:00','10:30','13:00','14:30','16:00','17:30'];
   var st={s:null,d:null,h:null}, $=function(i){return document.getElementById(i)};
   function L(){return window.DemoLang()}
@@ -51,8 +51,15 @@
   }
   $('conf').onclick=function(){
     if(st.s==null||st.d==null||st.h==null||!$('nome').value.trim()){$('resumo').innerHTML='<p>'+(L()==='en'?'Fill in service, day, time and name.':'Preencha serviço, dia, horário e nome.')+'</p>';return}
-    $('okt').textContent=$('nome').value.trim()+' · '+S[st.s][L()]+' · '+fmt(D[st.d])+' · '+H[st.h];
+    var nome=$('nome').value.trim(), tel=$('tel').value.trim()||'(843) 000-0000', x=D[st.d], iso=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+    var cfg={m:'agendamento',n:'estetica',nome:'Amanda Belas Unhas',logo:'',cor:'#B07A6E',cidade:'Goose Creek',l:L()};
+    var est={cfg:cfg,agendamento:{num:102,servico:{id:'demo',nome:S[st.s][L()],dur:S[st.s].dur,preco:S[st.s].p,img:'💅'},prof:{id:'amanda',nome:'Amanda'},dia:iso,hora:H[st.h],cliente:{nome:nome,tel:tel},sinal:{valor:0,forma:'local',pago:false},ts:Date.now()},chat:[]};
+    try{sessionStorage.setItem('abertocore-experiencia',JSON.stringify(est))}catch(e){}
+    var q=new URLSearchParams({m:'agendamento',n:'estetica',nome:cfg.nome,cor:cfg.cor,cidade:cfg.cidade,l:L()});
+    var url='../../../experiencia/painel.html?'+q.toString();
+    $('okt').textContent=nome+' · '+S[st.s][L()]+' · '+fmt(D[st.d])+' · '+H[st.h];
     $('ok').style.display='block';$('ok').scrollIntoView({behavior:'smooth'});
+    $('ver').href=url;setTimeout(function(){location.href=url},3500);
   };
   document.addEventListener('idioma',desenha);
   desenha();

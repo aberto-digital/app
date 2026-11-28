@@ -48,6 +48,7 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 .nota b{color:var(--texto)}
 @media(max-width:860px){.vis,.pl{grid-template-columns:1fr}.p .ds{min-height:0}}
 </style>
+<style>.reg,.rg{display:none}</style>
 </head>
 <body>
 <div class="w">
@@ -69,7 +70,7 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 <div class="pl" id="pl"></div>
 <p class="nota" id="nota"></p>
 </div>
-<script src="../precos.js?v=1"></script>
+<script src="../precos.js?v=2"></script>
 <script>
 (function(){
   var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';

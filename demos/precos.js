@@ -12,5 +12,9 @@
   function ler(){var r=null;try{r=new URLSearchParams(location.search).get('r')}catch(e){}if(r!=='br'&&r!=='us'){try{r=localStorage.getItem(KEY)}catch(e){}}return r==='br'||r==='us'?r:'us'}
   function grava(r){try{localStorage.setItem(KEY,r)}catch(e){}}
   function fmt(v,r){var P=PRECOS[r];return P.moeda+' '+v.toLocaleString(P.loc,{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})}
+  /* O seletor de região é só do Julio: fica escondido para quem recebe o link. ?admin=1 liga (e lembra), ?admin=0 desliga. */
+  (function(){var a=null;try{a=new URLSearchParams(location.search).get('admin')}catch(e){}
+    try{if(a==='1')localStorage.setItem('demo-admin','1');else if(a==='0')localStorage.removeItem('demo-admin');if(localStorage.getItem('demo-admin')==='1')document.documentElement.classList.add('adm')}catch(e){if(a==='1')document.documentElement.classList.add('adm')}
+    var s=document.createElement('style');s.textContent='.reg,.rg{display:none!important}html.adm .reg{display:inline-flex!important}html.adm .rg{display:flex!important}';document.head.appendChild(s)})();
   window.Regiao={PRECOS:PRECOS,ler:ler,grava:grava,fmt:fmt};
 })();

@@ -52,20 +52,20 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 </head>
 <body>
 <div class="w">
-<div class="topo"><div>AbertoCore</div><a id="rever" href="../apresentacao/">Rever a apresentação</a></div>
+<div class="topo"><div>AbertoCore</div><a id="rever" href="../apresentacao/"></a></div>
 <p class="eyebrow" id="eb"></p>
 <h1 id="tit"></h1>
 <p class="lead" id="lead"></p>
 <div class="vis">
- <div><b>O site</b>Uma página bonita, com galeria, depoimentos e idioma duplo.</div>
- <div><b>O atendimento</b>Autoatendimento, escolha de canal, sinal e lembretes.</div>
- <div><b>O painel</b>Agenda, conversas, clientes e funil no AbertoCore.</div>
+ <div><b id="v1t"></b><span id="v1"></span></div>
+ <div><b id="v2t"></b><span id="v2"></span></div>
+ <div><b id="v3t"></b><span id="v3"></span></div>
 </div>
 <div class="reg" role="group" aria-label="Região" id="reg"><button type="button" data-r="us">EUA · US$</button><button type="button" data-r="br">Brasil · R$</button></div>
 <div class="seg" role="group" aria-label="Plano de contratação" id="seg">
- <button data-m="0" aria-pressed="false">Mensal</button>
- <button data-m="0.15" aria-pressed="false">6 meses <small>−15%</small></button>
- <button data-m="0.30" aria-pressed="true">12 meses <small>−30%</small></button>
+ <button data-m="0" aria-pressed="false" id="s0"></button>
+ <button data-m="0.15" aria-pressed="false" id="s6"></button>
+ <button data-m="0.30" aria-pressed="true" id="s12"></button>
 </div>
 <div class="pl" id="pl"></div>
 <p class="nota" id="nota"></p>
@@ -75,29 +75,40 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 (function(){
   var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';
   var nome=n==='ibraim'?'Ibraim':'Amanda';
-  document.getElementById('rever').href='../apresentacao/?n='+n;
-  document.getElementById('eb').textContent='Proposta para '+nome;
-  document.getElementById('tit').textContent='Isso que você acabou de usar, funcionando no seu negócio.';
-  document.getElementById('lead').textContent='Escolha o plano que acompanha o tamanho do seu atendimento. Dá para começar menor e subir depois, sem refazer nada.';
-  var P=[
-   {n:'Start',d:'O básico bem feito para ser encontrado.',l:['Perfil no Google otimizado e verificado','Site de 1 página com botão de WhatsApp','Domínio .com.br no 1º ano e hospedagem','1 alteração por mês'],prazo:'7 dias úteis'},
-   {n:'Presença',d:'Para atender melhor e se organizar.',l:['Tudo do Start','Logo e identidade visual','WhatsApp Business com catálogo e respostas rápidas','AbertoCore com WhatsApp e até 2 usuários','Chatbot de menu e assistente de IA interno','Funil, agenda e lembrete de retorno'],prazo:'15 dias úteis'},
-   {n:'Completo',d:'A experiência inteira que você acabou de ver.',l:['Tudo do Presença','Atendimento com IA 24h: responde, qualifica e agenda','Instagram, Facebook e e-mail na mesma caixa','Agendamento ou orçamento online no seu site','Usuários ilimitados e e-mail com seu domínio','Painel de resultados e ajustes sob medida'],prazo:'30 dias úteis',rec:true}
-  ];
+  var EN=n==='amanda'&&q.get('l')==='en',A=n==='amanda',$=function(i){return document.getElementById(i)};
+  if(EN)document.documentElement.lang='en';
+  var T=EN?{rever:'Back to the presentation',eb:'Proposal for '+nome,tit:'What you just saw, running in your nail studio.',lead:'Pick the plan that fits how many clients you handle. You can start small and move up later without redoing anything.',
+    v:[['The site','Your client finds you, checks your work and books right there.'],['The conversation','Replies instantly, confirms the time and collects the deposit.'],['The panel','Calendar, chats, clients and funnel in one place.']],
+    s0:'Monthly',s6:'6 months <small>−15%</small>',s12:'12 months <small>−30%</small>',rec:'Recommended',mo:'/mo',ant:'/mo',imp:' setup · ready in ',cta:'Get ',
+    pl:[['Start','The essentials, done well, so you can be found.',['Optimized, verified Google profile','One-page site with a WhatsApp button','Domain for the first year and hosting','1 change per month'],'7 business days'],
+        ['Presença','To serve better and get organized.',['Everything in Start','Logo and visual identity','WhatsApp Business with catalog and quick replies','AbertoCore with WhatsApp and up to 2 users','Menu chatbot and internal AI assistant','Funnel, calendar and return reminders'],'15 business days'],
+        ['Completo','The full experience you just went through.',['Everything in Presence','24/7 AI assistant: answers, qualifies and books','Instagram, Facebook and email in one inbox','Online booking on your site','Unlimited users and email on your domain','Results dashboard and custom tweaks'],'30 business days']],
+    nm:{Start:'Start',Presença:'Presence',Completo:'Complete'}}
+  :{rever:'Rever a apresentação',eb:'Proposta para '+nome,tit:'Do jeito que você acabou de ver, funcionando no seu '+(A?'studio.':'estúdio.'),lead:'Escolha o plano pelo tamanho do seu atendimento. Dá para começar menor e subir depois, sem refazer nada.',
+    v:[['O site',(A?'Sua cliente te encontra, confere o trabalho e já agenda.':'Seu cliente te encontra, confere o trabalho e já pede o orçamento.')],['O atendimento','Responde na hora, confirma o horário e cobra o sinal.'],['O painel','Agenda, conversas, clientes e funil num lugar só.']],
+    s0:'Mensal',s6:'6 meses <small>−15%</small>',s12:'12 meses <small>−30%</small>',rec:'Recomendado',mo:'/mês',ant:'/mês',imp:' de implantação · pronto em ',cta:'Quero o ',
+    pl:[['Start','O básico bem feito para ser encontrado.',['Perfil no Google otimizado e verificado','Site de 1 página com botão de WhatsApp','Domínio .com.br no 1º ano e hospedagem','1 alteração por mês'],'7 dias úteis'],
+        ['Presença','Para atender melhor e se organizar.',['Tudo do Start','Logo e identidade visual','WhatsApp Business com catálogo e respostas rápidas','AbertoCore com WhatsApp e até 2 usuários','Chatbot de menu e assistente de IA interno','Funil, agenda e lembrete de retorno'],'15 dias úteis'],
+        ['Completo','A experiência inteira que você acabou de ver.',['Tudo do Presença','Atendimento com IA 24h: responde, qualifica e agenda','Instagram, Facebook e e-mail na mesma caixa',(A?'Agendamento':'Orçamento')+' online no seu site','Usuários ilimitados e e-mail com seu domínio','Painel de resultados e ajustes sob medida'],'30 dias úteis']],
+    nm:{Start:'Start',Presença:'Presença',Completo:'Completo'}};
+  $('rever').textContent=T.rever;$('eb').textContent=T.eb;$('tit').textContent=T.tit;$('lead').textContent=T.lead;
+  T.v.forEach(function(v,i){$('v'+(i+1)+'t').textContent=v[0];$('v'+(i+1)).textContent=v[1]});
+  $('s0').textContent=T.s0;$('s6').innerHTML=T.s6;$('s12').innerHTML=T.s12;
+  var P=T.pl.map(function(x,i){return {n:x[0],d:x[1],l:x[2],prazo:x[3],rec:i===2}});
   var desc=0.30;
   var rg=window.Regiao.ler();function brl(v){return window.Regiao.fmt(v,rg)}
   function desenha(){
     document.getElementById('pl').innerHTML=P.map(function(p){
       var pr=window.Regiao.PRECOS[rg].pacotes[p.n],m=Math.round(pr.m*(1-desc)*100)/100;
-      var msg='Oi! Vi a demonstração da AbertoCore para '+nome+' e quero o plano '+p.n+' ('+window.Regiao.PRECOS[rg].rot+')'+(desc?' ('+(desc===.3?'12':'6')+' meses)':' (mensal)')+'.';
-      return '<div class="p'+(p.rec?' rec':'')+'">'+(p.rec?'<span class="tag">Recomendado</span>':'')+'<h3>'+p.n+'</h3><p class="ds">'+p.d+'</p><div class="ant">'+(desc?brl(pr.m)+'/mês':'')+'</div><div class="pre">'+brl(m)+'<small> /mês</small></div><p class="imp"><b>'+brl(pr.i)+'</b> de implantação · pronto em '+p.prazo+'</p><ul>'+p.l.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul><a class="cta" href="https://wa.me/5511991233627?text='+encodeURIComponent(msg)+'">Quero o '+p.n+'</a></div>';
+      var nmP=T.nm[p.n],msg=EN?'Hi! I saw the AbertoCore demo for '+nome+' and I want the '+nmP+' plan ('+(desc?(desc===.3?'12':'6')+' months':'monthly')+').':'Oi! Vi a demonstração da AbertoCore para '+nome+' e quero o plano '+p.n+' ('+window.Regiao.PRECOS[rg].rot+')'+(desc?' ('+(desc===.3?'12':'6')+' meses)':' (mensal)')+'.';
+      return '<div class="p'+(p.rec?' rec':'')+'">'+(p.rec?'<span class="tag">'+T.rec+'</span>':'')+'<h3>'+nmP+'</h3><p class="ds">'+p.d+'</p><div class="ant">'+(desc?brl(pr.m)+T.ant:'')+'</div><div class="pre">'+brl(m)+'<small> '+T.mo+'</small></div><p class="imp"><b>'+brl(pr.i)+'</b>'+T.imp+p.prazo+'</p><ul>'+p.l.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul><a class="cta" href="https://wa.me/5511991233627?text='+encodeURIComponent(msg)+'">'+T.cta+nmP+'</a></div>';
     }).join('');
-    document.getElementById('nota').innerHTML='<b>Como funciona o desconto:</b> nos planos de 6 e 12 meses o desconto vale em toda a mensalidade. Se cancelar antes do prazo, paga a diferença do desconto já recebido. No plano mensal não há fidelidade. '+(rg==='br'?'Valores em reais; a implantação é paga uma vez, por Pix ou boleto.':'Valores em dólar; a implantação é paga uma vez (50% na assinatura e 50% na entrega), por Stripe, PayPal ou Zelle.')+(window.Regiao.PRECOS[rg].iaExtra?' Quando o uso de IA passar da franquia do plano, há pacotes extras a partir de '+brl(window.Regiao.PRECOS[rg].iaExtra)+'.':'')+'';
+    document.getElementById('nota').innerHTML=EN?'<b>How the discount works:</b> on the 6 and 12 month plans the discount applies to the whole monthly fee. If you cancel early, you pay back the discount received. The monthly plan has no commitment. '+(rg==='br'?'Prices in reais; setup is paid once, by Pix or bank slip.':'Prices in US dollars; setup is paid once (50% at signing and 50% at delivery) by Stripe, PayPal or Zelle.')+(window.Regiao.PRECOS[rg].iaExtra?' If your AI usage goes past the plan allowance, extra packs start at '+brl(window.Regiao.PRECOS[rg].iaExtra)+'.':''):'<b>Como funciona o desconto:</b> nos planos de 6 e 12 meses o desconto vale em toda a mensalidade. Se cancelar antes do prazo, paga a diferença do desconto já recebido. No plano mensal não há fidelidade. '+(rg==='br'?'Valores em reais; a implantação é paga uma vez, por Pix ou boleto.':'Valores em dólar; a implantação é paga uma vez (50% na assinatura e 50% na entrega), por Stripe, PayPal ou Zelle.')+(window.Regiao.PRECOS[rg].iaExtra?' Quando o uso de IA passar da franquia do plano, há pacotes extras a partir de '+brl(window.Regiao.PRECOS[rg].iaExtra)+'.':'');
   }
   document.getElementById('seg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;desc=+b.dataset.m;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b)});desenha()});
   function marca(){[].forEach.call(document.querySelectorAll('#reg button'),function(b){b.setAttribute('aria-pressed',b.dataset.r===rg)})}
   document.getElementById('reg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;rg=b.dataset.r;window.Regiao.grava(rg);try{var u=new URL(location.href);u.searchParams.set('r',rg);history.replaceState(null,'',u)}catch(x){}marca();desenha()});
-  document.getElementById('rever').href='../apresentacao/?n='+n+'&r='+rg;marca();
+  $('rever').href='../apresentacao/?n='+n+'&r='+rg+(EN?'&l=en':'');marca();
   desenha();
 })();
 </script>

@@ -212,7 +212,7 @@
   .abas button[aria-selected="true"]{background:var(--branco);color:var(--ink);box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .abas small{font-size:11px;background:var(--ceu);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
   .itens{overflow:auto;flex:1}
-  .ptr{display:none}
+  .ptr,.faixa-fix{display:none}
   /* carregar mais ao chegar no fim da lista */
   .mais-rod{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 14px 22px;color:var(--sec);font-size:13px;font-weight:600}
   .mais-rod .spin{display:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--linha2);border-top-color:var(--ceu);animation:ptr-gira .7s linear infinite}
@@ -930,15 +930,24 @@
     .carrossel{flex:none;align-items:flex-start;overflow-y:hidden}
     .carrossel .pane{overflow:visible;overscroll-behavior-y:auto}
     .carrossel .pane:not(.ativa){max-height:100dvh;overflow:hidden}
+    /* faixa do grupo (Para responder, Aguardando retorno, Ligar...) fica fixa no topo ao rolar. O sticky nativo não funciona
+       dentro do carrossel horizontal, então uma cópia da faixa atual é fixada no topo da lista. */
+    .faixa-fix{display:block;position:sticky;top:0;height:0;z-index:4}
+    .faixa-fix .div-lista{position:absolute;top:0;left:0;right:0;display:none}
+    .faixa-fix.on .div-lista{display:flex}
     /* puxar para atualizar */
     .ptr{display:flex;align-items:center;justify-content:center;gap:8px;height:0;overflow:hidden;color:var(--sec);font-size:13px;font-weight:600;background:var(--branco)}
     .ptr:not(.puxando){transition:height .22s cubic-bezier(.2,.8,.2,1)}
     .ptr .ptr-ic{width:18px;height:18px;border-radius:50%;border:2px solid var(--linha2);border-top-color:var(--ceu);transition:transform .15s}
     .ptr[data-e="solte"] .ptr-ic{transform:rotate(180deg)}
     .ptr[data-e="carregando"] .ptr-ic{animation:ptr-gira .7s linear infinite}
-    .app:has(.inbox.mostra-conv) .topo,.app:has(.inbox.mostra-conv) .trilho{display:none}
-    .app:has(.inbox.mostra-conv) .principal{padding-top:0}
-    .inbox.mostra-conv .conv-topo{padding-top:calc(8px + env(safe-area-inset-top))}
+    /* Dentro da conversa o topo do app fica só como uma faixa fixa do tamanho da barra de status (sem conteúdo).
+       Sem nenhum elemento fixo no topo, o iOS aplica o efeito de borda translúcida e embaça o nome do cliente. */
+    .app:has(.inbox.mostra-conv) .trilho{display:none}
+    .app:has(.inbox.mostra-conv) .topo{height:max(env(safe-area-inset-top),1px);padding:0;border-bottom:0;overflow:hidden}
+    .app:has(.inbox.mostra-conv) .topo>*{display:none}
+    .app:has(.inbox.mostra-conv) .principal{padding-top:max(env(safe-area-inset-top),1px)}
+    .inbox.mostra-conv .conv-topo{padding-top:8px}
     .inbox.mostra-conv .compor{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
     dialog:has(.arq-modal),dialog:has(.rr-modal){width:100vw;max-width:100vw}
     .conv-quem{gap:9px}
@@ -1964,6 +1973,7 @@
         '<div class="ptr" id="ptr" role="status" aria-live="polite" data-e="idle"><span class="ptr-ic" aria-hidden="true"></span><span class="ptr-tx"></span></div>' +
         '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
         '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar conversas"></button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
+        '<div class="faixa-fix" id="faixaFix" aria-hidden="true"></div>' +
         '<div class="itens carrossel" id="itens">' + ABAS.map(function(a){ return '<div class="pane" data-pane="' + a[0] + '"></div>'; }).join('') + '</div>' +
       '</section>' +
       '<section class="conversa" id="conversa" aria-label="Conversa"></section>' +
@@ -2022,12 +2032,22 @@
   }
   /* ---- rolagem da lista (celular: a lista toda rola; computador: cada aba rola sozinha) ---- */
   function restauraPos(todas){
-    if (ehMovel()){ var l = $('.lista'); if (l) l.scrollTop = posLista[aba] || 0; }
+    if (ehMovel()){ var l = $('.lista'); if (l){ l.scrollTop = posLista[aba] || 0; atualizaFaixa(); } }
     else if (todas) ABAS.forEach(function(a){ var p = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (p) p.scrollTop = posLista[a[0]] || 0; });
+  }
+  /* Copia para a faixa fixa o grupo que está no topo da lista (o último que já passou do topo). */
+  function atualizaFaixa(){
+    var f = $('#faixaFix'), lis = $('.lista'); if (!f || !lis) return;
+    var atual = null, topo = lis.getBoundingClientRect().top;
+    if (ehMovel()) $$('.pane.ativa .div-lista', lis).forEach(function(b){ if (b.getBoundingClientRect().top <= topo + 1) atual = b; });
+    if (!atual){ f.classList.remove('on'); return; }
+    var h = atual.outerHTML; if (f._h !== h){ f.innerHTML = h; f._h = h; }
+    f.classList.add('on');
   }
   function aoRolarLista(el){
     var k = el.classList.contains('pane') ? el.getAttribute('data-pane') : aba;
     posLista[k] = el.scrollTop;
+    atualizaFaixa();
     if (el.scrollHeight - el.clientHeight - el.scrollTop < 500) carregaMais(k);
   }
   /* Mostra mais conversas quando a rolagem chega perto do fim. */
@@ -2267,7 +2287,7 @@
           '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
       var mostradas = lim - resto;
       if (L.length > mostradas) pane.insertAdjacentHTML('beforeend', '<div class="mais-rod" data-mais="' + a[0] + '"><span class="spin" aria-hidden="true"></span><button type="button" class="btn peq" data-mais-btn>Mostrar mais conversas (' + (L.length - mostradas) + ')</button></div>');
-      pane.scrollTop = y; if (lisEl) lisEl.scrollTop = yl;
+      pane.scrollTop = y; if (lisEl){ lisEl.scrollTop = yl; atualizaFaixa(); }
       var sj = pane.querySelector('[data-sugj]'); if (sj) sj.onclick = modalSugJuntar;
     });
   }

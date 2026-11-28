@@ -451,7 +451,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
       var x=cx+r*Math.cos(ang)-tw/2,y=cy+r*Math.sin(ang)-th/2+wob;
       t.style.transform='translate('+x+'px,'+y+'px) scale('+(1-.6*ek)+')';t.style.opacity=ek>.82?Math.max(0,1-(ek-.82)/.14):1;t.style.filter=ek>.8?'blur('+((ek-.8)*20)+'px)':'none'});
     var ep=ease(cl((p-.12)/.42));
-    nu.style.transform='translate(-50%,-50%) scale('+(.84+.16*ep)+')';nu.style.opacity=.38+.62*ep;nu.style.filter='blur('+((1-ep)*5)+'px)';
+    var SZ=Math.max(1,mob()?Math.min(W*.8/268,H*.62/470,1.7):Math.min(W*.76/800,H*.58/360,2.6));nu.style.transform='translate(-50%,-50%) scale('+((.84+.16*ep)*SZ)+')';nu.style.opacity=.38+.62*ep;nu.style.filter='blur('+((1-ep)*5)+'px)';
     [].forEach.call(nu.querySelectorAll('[data-r]'),function(r){var i=+r.dataset.r;r.style.setProperty('--o',cl((ep-.15-i*.15)/.3).toFixed(3))});
     ce.classList.toggle('junto',p>.35);
     ticking=false}

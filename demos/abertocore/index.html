@@ -111,6 +111,32 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
 .cmp-b{display:flex;align-items:center;gap:14px;padding:4px 12px 12px;color:var(--sec)}
 .cmp-b .env{margin-left:auto;width:38px;height:38px;border-radius:50%;background:#E7EBF2;color:#101A2C;display:grid;place-items:center}
 .cmp-b .env svg{width:17px;height:17px}
+
+/* painel, agenda e ficha, no visual do app real */
+.dash{grid-column:2/-1;padding:22px 22px 90px;overflow:auto;background:var(--papel);display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-content:start}
+.dash .cab{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dash .cab h1{font:800 24px var(--display)}
+.seg-p{display:flex;gap:2px;background:var(--sup2);border-radius:10px;padding:3px}.seg-p button{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--sec)}.seg-p button[aria-checked=true]{background:var(--ceu);color:#fff}
+.kpi{grid-column:span 3;background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:15px 17px}
+.kpi .r{font-size:13px;color:var(--sec);font-weight:600}.kpi .n{font:800 2.1rem/1.1 var(--display);font-stretch:85%;margin:4px 0 2px}.kpi .n small{font:600 13px var(--corpo);color:var(--sec);margin-left:4px}.kpi .s{font-size:12.5px;color:var(--sec)}.kpi .s.up{color:#7CDCA6;font-weight:600}
+.kpi .tri{height:6px;border-radius:99px;background:var(--sup2);margin:8px 0 4px;overflow:hidden}.kpi .tri i{display:block;height:100%;background:var(--ceu);border-radius:99px}
+.pn2{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:16px 18px}
+.pn2 h2{font:700 15px var(--corpo);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.g8{grid-column:span 8}.g4{grid-column:span 4}.g6{grid-column:span 6}
+.dash svg{width:100%;height:auto;display:block}.dash .leg{font-size:12px;color:var(--sec);margin-top:8px}
+.atd{display:grid;grid-template-columns:1fr 1fr;gap:10px}.atd div{background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:12px}.atd b{display:block;font:800 1.5rem var(--display)}.atd small{color:var(--sec);font-size:12px}
+.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.dia-col{background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:8px;min-height:190px;min-width:0}
+.dia-col.hoje{border-color:var(--ceu)}.dia-col .d{font-size:11px;color:var(--sec);text-transform:uppercase;font-weight:700}.dia-col .nn{font:800 18px var(--display);margin-bottom:6px}
+.dia-col .e{display:block;font-size:11px;border-radius:8px;padding:5px 6px;margin-bottom:4px;background:rgba(47,111,237,.16);color:#9DBBFF;line-height:1.25}.dia-col .e b{display:block;color:var(--texto);font-size:11.5px}.dia-col .e.nv{background:rgba(255,176,32,.2);color:#FFCF6B;box-shadow:0 0 0 1px rgba(255,176,32,.5)}
+.ag2{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;align-items:start}
+.ag2 .col2{display:grid;gap:14px}
+.fu{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--linha)}.fu:first-of-type{border-top:0}.fu .av{width:34px;height:34px;font-size:12px}.fu b{font-size:13.5px;display:block}.fu small{color:var(--sec);font-size:12px}
+.on-l{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--linha);font-size:13px}.on-l:first-of-type{border-top:0}.on-l span:last-child{color:var(--sec);text-align:right}
+.tl{list-style:none;margin:0;padding:0}.tl li{position:relative;padding:0 0 12px 18px;font-size:12.5px;color:var(--sec)}.tl li:before{content:"";position:absolute;left:3px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--ceu)}.tl li:after{content:"";position:absolute;left:6.5px;top:15px;bottom:-2px;width:1px;background:var(--linha2)}.tl li:last-child:after{display:none}.tl b{color:var(--texto);display:block;font-size:13px}
+.fch{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px}.fch small{display:block;color:var(--muted);font-size:11px;font-weight:600}.fch div{min-width:0}
+.col .tot{font-weight:600;color:var(--muted)}.card .vl{float:right;font-weight:700;color:var(--sec)}
+@media (max-width:760px){.dash{grid-column:auto;display:grid;grid-template-columns:1fr 1fr;height:100%;padding:16px}.kpi{grid-column:span 1;padding:12px 13px}.kpi .n{font-size:1.6rem}.g8,.g4,.g6,.ag2{grid-column:1/-1}.ag2{grid-template-columns:1fr}.semana{grid-template-columns:1fr 1fr}.dia-col{min-height:0}.dash .cab{flex-wrap:wrap}}
 @media (max-width:760px){
   html,body{height:100%;overflow:hidden;background:var(--branco)}
   body{font-size:14.5px}
@@ -145,7 +171,7 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
   .app.m-det .painel{display:block;height:100dvh;border:0;padding-top:0}
   .sheet-x{display:flex;align-items:center;gap:10px;position:sticky;top:-18px;margin:-18px -18px 14px;padding:calc(12px + env(safe-area-inset-top)) 12px 12px;background:var(--branco);border-bottom:1px solid var(--linha);font-weight:700;z-index:2}
   .sheet-x .voltar-m{margin-left:-6px}
-  .agenda,.funil{height:100%;overflow:auto;padding:16px}.funil{flex-direction:column}.col{min-width:0;width:100%}
+  .agenda,.funil,.dash{height:100%;overflow:auto;padding:16px 16px 24px}.funil{flex-direction:column}.col{min-width:0;width:100%}
   .rodape{display:none}
   .toast{bottom:78px}body[data-m=m-conv] .toast,body[data-m=m-det] .toast{bottom:auto;top:72px}
   .app.m-conv ~ .faixa-m,.app.m-det ~ .faixa-m{display:none}
@@ -187,6 +213,15 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
     {id:'o2',nome:'Camila R.',canal:'whatsapp',txt:t('Tem horário para fineline sábado?','Any fine line slots Saturday?'),tag:'Lead',etapa:t('Novo contato','New contact'),h:'08:05'},
     {id:'o3',nome:'Diego S.',canal:'site',txt:t('Aprovado, pode marcar.','Approved, go ahead and book.'),tag:t('Cliente','Client'),etapa:t('Proposta enviada','Quote sent'),h:t('ontem','yesterday')}
   ];
+
+  var DIAS=en?['Sun','Mon','Tue','Wed','Thu','Fri','Sat']:['dom','seg','ter','qua','qui','sex','sáb'];
+  function colNovo(){var d=String(I.dia||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');var m={dom:0,sun:0,seg:1,mon:1,ter:2,tue:2,qua:3,wed:3,qui:4,thu:4,sex:5,fri:5,sab:6,sat:6};var k=d.slice(0,3),w=m[k];var hj=new Date().getDay();if(w==null)return 3;var diff=(w-hj+7)%7;return diff===0?7:diff}
+  var VAL=function(){return ag?+I.valor||120:Math.round(((+I.de||0)+(+I.ate||0))/2)||1800};
+  var FICHA=ag?[[t('Serviço','Service'),I.servico],[t('Próxima manutenção','Next refill'),t('em 3 semanas','in 3 weeks')],[t('Preferências','Preferences'),t('formato amendoado, cores nude','almond shape, nude tones')],[t('Alergias','Allergies'),t('nenhuma informada','none reported')]]
+    :[[t('Pedido','Request'),I.servico],[t('Faixa estimada','Estimate'),usd(I.de||0)+'–'+usd(I.ate||0)],[t('Referências','References'),t('enviadas pelo formulário','sent in the form')],[t('Alergias','Allergies'),t('a confirmar na consulta','to confirm at consult')]];
+  function hist(){var h=[[ag?t('Agendamento feito no site','Booked on the website'):t('Pedido de orçamento no site','Quote request on the website'),hora(S.ts)],[t('IA confirmou por '+CANAL[C.canal].n,'AI confirmed via '+CANAL[C.canal].n),hora(S.ts+2000)]];
+    if(P.forma==='cartao'||P.status==='confirmado')h.push([t('Sinal de '+usd(P.valor)+' recebido','Deposit of '+usd(P.valor)+' received'),t('agora','now')]);else if(P.forma==='zelle')h.push([t('Sinal de '+usd(P.valor)+' por Zelle aguardando você','Zelle deposit of '+usd(P.valor)+' waiting on you'),t('pendente','pending')]);
+    h.push([t('Lembrete automático agendado','Automatic reminder scheduled'),t('1 dia antes','1 day before')]);return '<ul class="tl">'+h.map(function(x){return '<li><b>'+x[0]+'</b>'+x[1]+'</li>'}).join('')+'</ul>'}
   function conf(){
     var nome=C.nome.split(' ')[0];
     if(ag)return t('Oi, '+nome+'! Seu horário na '+N.nome+' está confirmado: '+I.servico+', '+I.dia+' às '+I.hora+'. Você vai receber um lembrete antes.','Hi '+nome+'! Your appointment at '+N.nome+' is confirmed: '+I.servico+', '+I.dia+' at '+I.hora+'. You will get a reminder before.');
@@ -209,7 +244,7 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
     return {tx:t('Sinal aguardando','Deposit pending'),tg:'a'};
   }
   function rail(){return '<nav class="rail" aria-label="Menu"><img class="logo" alt="AbertoCore" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 96 96\'%3E%3Crect width=\'96\' height=\'96\' rx=\'24\' fill=\'%231E3050\'/%3E%3Cpath d=\'M24 74V46a24 24 0 0 1 48 0V74Z\' fill=\'%23FFB020\'/%3E%3Cpath d=\'M33 74V46.5a15 15 0 0 1 30 0V74Z\' fill=\'%232F6FED\'/%3E%3Cpath d=\'M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z\' fill=\'%231E3050\'/%3E%3C/svg%3E">'+
-    [['conversas','conversas',t('Conversas','Chats')],['funil','funil',t('Funil','Funnel')],['agenda','agenda',t('Agenda','Calendar')],['x','painel',t('Painel','Dashboard')],['x','cfg',t('Configurações','Settings')]].map(function(x){return '<button data-v="'+x[0]+'" aria-label="'+x[2]+'" '+(vista===x[0]?'aria-current="page"':'')+'>'+ic(x[1])+(x[1]==='conversas'?'<span class="bolha">'+(1+outros.length)+'</span>':'')+'</button>'}).join('')+'</nav>'}
+    [['conversas','conversas',t('Conversas','Chats')],['funil','funil',t('Funil','Funnel')],['agenda','agenda',t('Agenda','Calendar')],['painel','painel',t('Painel','Dashboard')],['x','cfg',t('Configurações','Settings')]].map(function(x){return '<button data-v="'+x[0]+'" aria-label="'+x[2]+'" '+(vista===x[0]?'aria-current="page"':'')+'>'+ic(x[1])+(x[1]==='conversas'?'<span class="bolha">'+(1+outros.length)+'</span>':'')+'</button>'}).join('')+'</nav>'}
   function lista(){
     var st=statusSinal();
     var novo='<button class="item" data-s="novo" aria-selected="'+(sel==='novo')+'"><div class="av">'+ini(C.nome)+''+bdg(C.canal)+'</div><div class="it-t"><div class="it-n">'+esc(C.nome)+'<small>'+hora(S.ts)+'</small></div><div class="it-p">'+esc(ag?t('Novo agendamento · '+I.dia+' '+I.hora,'New booking · '+I.dia+' '+I.hora):t('Novo orçamento · '+I.servico,'New quote · '+I.servico))+'</div><div class="tags"><span class="tag">Lead</span><span class="tag">'+t('Novo contato','New contact')+'</span><span class="tag '+st.tg+'">'+st.tx+'</span></div></div><span class="nao">1</span></button>';
@@ -231,6 +266,8 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
     return '<aside class="painel"><div class="sheet-x"><button class="voltar-m" data-b="conv" aria-label="'+t('Voltar','Back')+'"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>'+t('Detalhes do contato','Contact details')+'</div><div class="perfil"><div class="av">'+ini(C.nome)+''+bdg(C.canal)+'</div><h2>'+esc(C.nome)+'</h2><div class="sub">'+esc(N.nome)+' · '+CANAL[C.canal].n+'</div><div class="sub">'+esc(C.telefone||C.contato)+'</div></div>'+
       '<div class="bts"><span class="bt">✏️ '+t('Editar','Edit')+'</span><span class="bt">✕ '+t('Ignorar','Ignore')+'</span><span class="bt">'+t('Arquivar','Archive')+'</span></div>'+
       '<div class="lb">'+t('Contato salvo','Saved contact')+'</div><div class="pag">'+contatoHtml().join('<br>')+'<br><small style="color:var(--sec)">'+t('Prefere receber por ','Prefers replies on ')+CANAL[C.canal].n+'</small></div>'+
+      '<div class="lb">'+(ag?t('Ficha da cliente','Client record'):t('Ficha do cliente','Client record'))+'</div><div class="pag"><div class="fch">'+FICHA.map(function(f){return '<div><small>'+f[0]+'</small>'+esc(f[1])+'</div>'}).join('')+'</div></div>'+
+      '<div class="lb">'+t('Histórico','History')+'</div><div class="pag">'+hist()+'</div>'+
       '<div class="lb">'+t('Classificação','Type')+'</div><div class="seg"><span class="on">Lead</span><span>'+t('Cliente','Client')+'</span></div>'+
       '<div class="lb">'+t('Etapa do funil','Funnel stage')+'</div><div class="campo">'+etapa+'</div>'+
       '<div class="dois"><div><div class="lb">'+t('Valor ($)','Value ($)')+'</div><div class="campo">'+(ag?I.valor:Math.round((I.de+I.ate)/2))+'</div></div><div><div class="lb">'+t('Próximo retorno','Next follow-up')+'</div><div class="campo">'+esc(ag?I.dia:t('amanhã','tomorrow'))+'</div></div></div>'+pg+
@@ -238,21 +275,49 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
       '<div class="pri">📅 '+t('Agendar compromisso','Schedule appointment')+'</div></aside>';
   }
   function agenda(){
-    var ex=ag?[[t('Sáb 28/11','Sat 11/28'),'18:00','Fernanda R.',t('Design de sobrancelhas','Brows')],[t('Seg 30/11','Mon 11/30'),'11:00','Patrícia L.',t('Esmaltação em gel','Gel polish')]]:[[t('Sex 04/12','Fri 12/04'),'14:00','Lucas P.',t('Sessão · fechamento de braço','Session · full sleeve')]];
-    return '<section class="agenda"><h1>'+t('Agenda da semana','This week')+'</h1><p class="sub" style="color:var(--sec)">⏰ '+t('Lembretes automáticos ligados: 1 dia antes e 2 horas antes.','Automatic reminders on: 1 day and 2 hours before.')+'</p>'+
-      ex.map(function(e){return '<div class="dd">'+e[0]+'</div><div class="ev"><span class="h">'+e[1]+'</span><div><b>'+e[2]+'</b><small>'+e[3]+'</small></div></div>'}).join('')+
-      (ag?'<div class="dd">'+esc(I.dia)+'</div><div class="ev novo"><span class="h">'+I.hora+'</span><div><b>'+esc(C.nome)+'</b><small>'+esc(I.servico)+' · '+CANAL[C.canal].n+' · '+statusSinal().tx+'</small></div></div>':'<div class="dd">'+t('A definir','To be set')+'</div><div class="ev novo"><span class="h">–</span><div><b>'+esc(C.nome)+'</b><small>'+esc(I.servico)+' · '+t('aguardando proposta','waiting for quote')+'</small></div></div>')+'</section>';
+    var hoje=new Date(),nv=colNovo(),dias=[];
+    for(var i=0;i<7;i++){var d=new Date(hoje.getTime()+i*864e5);dias.push(d)}
+    var ev=ag?{1:[['18:00','Fernanda R.',t('Design de sobrancelhas','Brows')]],3:[['11:00','Patrícia L.',t('Esmaltação em gel','Gel polish')]],5:[['15:30','Marina L.',t('Manutenção','Refill')]]}:{2:[['14:00','Lucas P.',t('Sessão · braço','Session · sleeve')]],5:[['10:00','Camila R.',t('Fineline','Fine line')]]};
+    var colN=Math.min(nv,6);
+    var sem=dias.map(function(d,i){var es=(ev[i]||[]).map(function(e){return '<span class="e"><b>'+e[0]+' · '+e[1]+'</b>'+e[2]+'</span>'}).join('');
+      if(i===colN&&ag)es+='<span class="e nv"><b>'+I.hora+' · '+esc(C.nome)+'</b>'+esc(I.servico)+'</span>';
+      return '<div class="dia-col'+(i===0?' hoje':'')+'"><div class="d">'+(i===0?t('hoje','today'):DIAS[d.getDay()])+'</div><div class="nn">'+d.getDate()+'</div>'+es+'</div>'}).join('');
+    var lado='<section class="pn2"><h2>'+t('Agendamento online','Online booking')+' <span class="tag v">'+t('ativo','on')+'</span></h2><div class="on-l"><span>'+t('Página','Page')+'</span><span>'+esc(N.nome)+' · /agendamento</span></div><div class="on-l"><span>'+t('Lembretes','Reminders')+'</span><span>'+t('1 dia e 2 horas antes','1 day and 2 hours before')+'</span></div><div class="on-l"><span>'+t('Sinal','Deposit')+'</span><span>'+t('cartão ou Zelle','card or Zelle')+'</span></div></section>'+
+      '<section class="pn2"><h2>'+(ag?t('Manutenções','Refills'):t('Retornos combinados','Follow-ups'))+'</h2><div class="fu"><div class="av">'+(ag?'J':'D')+'</div><div><b>'+(ag?'Juliana S.':'Diego S.')+'</b><small>'+(ag?t('manutenção em 3 semanas','refill due in 3 weeks'):t('retoque em 30 dias','touch-up in 30 days'))+'</small></div></div><div class="fu"><div class="av">'+ini(C.nome)+'</div><div><b>'+esc(C.nome)+'</b><small>'+t('retorno automático depois do atendimento','automatic follow-up after the visit')+'</small></div></div></section>';
+    var lista=ag?'':'<div class="ev novo"><span class="h">–</span><div><b>'+esc(C.nome)+'</b><small>'+esc(I.servico)+' · '+t('aguardando proposta','waiting for quote')+'</small></div></div>';
+    return '<section class="dash"><div class="cab"><h1>'+t('Agenda','Calendar')+'</h1><span class="tag a">⏰ '+t('lembretes automáticos ligados','automatic reminders on')+'</span></div><section class="pn2" style="grid-column:1/-1"><h2>'+t('Próximos 7 dias','Next 7 days')+'</h2><div class="semana">'+sem+'</div>'+(ag?'':'<div style="margin-top:12px">'+lista+'</div>')+'</section><div class="ag2" style="grid-column:1/-1"><div class="col2">'+lado.split('</section>')[0]+'</section></div><div class="col2">'+lado.split('</section>').slice(1).join('</section>')+'</div></div></section>';
+  }
+  function dash(){
+    var P=dPer,m=P===7?1:P===30?3.4:9,tx=function(n){return Math.round(n*m)};
+    var base=[2,4,1,3,5,2,3],ser=[];var n=P===7?7:14;for(var i=0;i<n;i++)ser.push((base[i%7]+(i>6?1:0))%5+1);ser[n-1]+=1;
+    var W=640,H=210,pd={l:26,r:6,t:12,b:26},mx=Math.max.apply(null,ser)+2,bw=(W-pd.l-pd.r)/n,g='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+t('Novos leads','New leads')+'">';
+    for(var q=0;q<=mx;q+=Math.ceil(mx/4)){var y=H-pd.b-q/mx*(H-pd.t-pd.b);g+='<line x1="'+pd.l+'" x2="'+(W-pd.r)+'" y1="'+y+'" y2="'+y+'" stroke="var(--linha)"/><text x="'+(pd.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="var(--muted)">'+q+'</text>'}
+    ser.forEach(function(v,i){var h=v/mx*(H-pd.t-pd.b),x=pd.l+i*bw+bw*.18,w=bw*.64,yy=H-pd.b-h,h0=i===n-1;g+='<rect x="'+x+'" y="'+yy+'" width="'+w+'" height="'+h+'" rx="4" fill="'+(h0?'#FFB020':'#2F6FED')+'"/>';if(h0||i%2===0)g+='<text x="'+(x+w/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="'+(h0?'var(--texto)':'var(--muted)')+'">'+(h0?t('hoje','today'):(n-1-i)+'d')+'</text>'});g+='</svg>';
+    var can=[['WhatsApp',tx(9),'#1FAF5A'],['Instagram',tx(6),'#C13584'],['Site',tx(5)+1,'#2F6FED'],[t('E-mail','Email'),tx(2),'#5B6678']].sort(function(a,b){return b[1]-a[1]});
+    var cm=Math.max(can[0][1],1),cs='<svg viewBox="0 0 320 '+(can.length*44)+'">'+can.map(function(c,i){var w=c[1]/cm*260,y=i*44;return '<text x="0" y="'+(y+13)+'" font-size="12.5" fill="var(--sec)" font-weight="600">'+c[0]+'</text><rect x="0" y="'+(y+19)+'" width="'+Math.max(w,4)+'" height="14" rx="4" fill="'+c[2]+'"/><text x="'+(w+7)+'" y="'+(y+31)+'" font-size="12.5" fill="var(--texto)" font-weight="700">'+c[1]+'</text>'}).join('')+'</svg>';
+    var et=ag?[t('Novo contato','New contact'),t('Qualificado','Qualified'),t('Agendado','Booked'),t('Atendido','Seen'),t('Recorrente','Repeat')]:[t('Novo orçamento','New quote'),t('Qualificado','Qualified'),t('Proposta enviada','Quote sent'),t('Fechado','Closed'),t('Retoque','Touch-up')];
+    var ct=[tx(24),tx(17),tx(11),tx(8),tx(4)],cx=ct[0],fs='<svg viewBox="0 0 480 200" style="max-width:520px">'+et.map(function(e,i){var w=Math.max(ct[i]/cx*280,6),x=130+(280-w)/2,y=i*40;return '<text x="0" y="'+(y+24)+'" font-size="12.5" fill="var(--sec)" font-weight="600">'+e+'</text><rect x="'+x+'" y="'+(y+8)+'" width="'+w+'" height="24" rx="5" fill="'+['#2F6FED','#4A86F2','#FFB020','#1F9D55','#8A5BD6'][i]+'"/><text x="476" y="'+(y+25)+'" text-anchor="end" font-size="12.5" fill="var(--texto)" font-weight="700">'+ct[i]+(i?' ('+Math.round(ct[i]/cx*100)+'%)':'')+'</text>'}).join('')+'</svg>';
+    var neg=VAL()*3+(ag?420:5200);
+    return '<section class="dash"><div class="cab"><h1>'+t('Painel','Dashboard')+'</h1><div class="seg-p" role="radiogroup">'+[7,30,90].map(function(x){return '<button data-p="'+x+'" role="radio" aria-checked="'+(x===P)+'">'+x+' '+t('dias','days')+'</button>'}).join('')+'</div></div>'+
+      '<div class="kpi"><div class="r">'+t('Esperando resposta agora','Waiting for a reply')+'</div><div class="n">0</div><div class="s">'+t('A IA respondeu todo mundo','The AI replied to everyone')+'</div></div>'+
+      '<div class="kpi"><div class="r">'+t('Novos leads ('+P+' dias)','New leads ('+P+' days)')+'</div><div class="n">'+(tx(22)+1)+'</div><div class="s up">+18% '+t('sobre os '+P+' dias anteriores','vs the previous '+P+' days')+'</div></div>'+
+      '<div class="kpi"><div class="r">'+t('Em negociação','In negotiation')+'</div><div class="n">'+usd(neg.toLocaleString(en?'en-US':'pt-BR'))+'</div><div class="s">'+(ag?'6':'4')+' '+t('negócios abertos','open deals')+'</div></div>'+
+      '<div class="kpi"><div class="r">'+t('Uso da IA no mês','AI usage this month')+'</div><div class="n">'+tx(312)+'<small>/ 2.000</small></div><div class="tri"><i style="width:'+Math.min(100,tx(312)/20)+'%"></i></div><div class="s">'+t('respostas da IA no plano','AI replies on your plan')+'</div></div>'+
+      '<section class="pn2 g8"><h2>'+t('Novos leads por dia','New leads per day')+'</h2>'+g+'</section>'+
+      '<section class="pn2 g4"><h2>'+t('Leads por canal','Leads by channel')+'</h2>'+cs+'<div class="leg">'+t('Leads que chegaram sozinhos no período.','Leads that came in on their own.')+'</div></section>'+
+      '<section class="pn2 g8"><h2>'+t('Funil de conversão','Conversion funnel')+'</h2>'+fs+'</section>'+
+      '<section class="pn2 g4"><h2>'+t('Atendimento','Support')+'</h2><div class="atd"><div><b>1 min</b><small>'+t('tempo médio de resposta','average reply time')+'</small></div><div><b>82%</b><small>'+t('respondido pela IA','answered by AI')+'</small></div><div><b>'+tx(31)+'</b><small>'+t('agendamentos pelo site','bookings via the site')+'</small></div><div><b>96%</b><small>'+t('comparecimento','show rate')+'</small></div></div></section></section>';
   }
   function funil(){
     var cols=ag?[t('Novo contato','New contact'),t('Agendado','Booked'),t('Pós-atendimento','After visit')]:[t('Novo orçamento','New quote'),t('Proposta enviada','Quote sent'),t('Fechado','Closed')];
-    var nc='<div class="card novo"><b>'+esc(C.nome)+'</b><br>'+esc(I.servico)+'<br><span class="tag '+statusSinal().tg+'">'+statusSinal().tx+'</span></div>';
+    var nc='<div class="card novo"><span class="vl">'+usd(VAL())+'</span><b>'+esc(C.nome)+'</b><br>'+esc(I.servico)+'<br><span class="tag '+statusSinal().tg+'">'+statusSinal().tx+'</span></div>';
     var out=[[outros[1],1],[outros[0],0],[outros[2],2]];
-    return '<section class="funil">'+cols.map(function(c,i){var cards=(i===(ag?1:0)?nc:'')+outros.filter(function(o,k){return (ag?[0,1,2][k]:[1,0,2][k])===i&&!(i===(ag?1:0)&&false)}).map(function(o){return '<div class="card"><b>'+o.nome+'</b><br>'+o.txt+'</div>'}).join('');return '<div class="col"><h3>'+c+'</h3>'+cards+'</div>'}).join('')+'</section>';
+    return '<section class="funil">'+cols.map(function(c,i){var cards=(i===(ag?1:0)?nc:'')+outros.filter(function(o,k){return (ag?[0,1,2][k]:[1,0,2][k])===i&&!(i===(ag?1:0)&&false)}).map(function(o){return '<div class="card"><span class="vl">'+usd(ag?[80,120,90][+o.id.slice(1)-1]:[1800,350,2400][+o.id.slice(1)-1])+'</span><b>'+o.nome+'</b><br>'+o.txt+'</div>'}).join('');return '<div class="col"><h3>'+c+'</h3>'+cards+'</div>'}).join('')+'</section>';
   }
-  var TIT={conversas:t('Conversas','Chats'),funil:t('Funil','Funnel'),agenda:t('Agenda','Calendar')};
+  var dPer=7;var TIT={conversas:t('Conversas','Chats'),funil:t('Funil','Funnel'),agenda:t('Agenda','Calendar'),painel:t('Painel','Dashboard')};
   function desenha(){
     var h=rail();
-    if(vista==='conversas')h+=lista()+conversa()+painel();else if(vista==='agenda')h+=agenda();else h+=funil();
+    if(vista==='conversas')h+=lista()+conversa()+painel();else if(vista==='agenda')h+=agenda();else if(vista==='painel')h+=dash();else h+=funil();
     var ap=document.getElementById('app');ap.innerHTML=h;
     ap.className='app '+(vista==='conversas'?(det?'m-det':aberta?'m-conv':'m-lista'):'m-'+vista);
     document.getElementById('tbt').textContent=TIT[vista];document.body.setAttribute('data-m',ap.className.split(' ')[1]);
@@ -260,6 +325,7 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
     document.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){var v=b.getAttribute('data-v');if(v==='x'){aviso(t('Disponível no AbertoCore completo.','Available in the full AbertoCore.'));return}vista=v;aberta=false;det=false;desenha()}});
     document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){sel=b.getAttribute('data-s');aberta=true;desenha()}});
     document.querySelectorAll('[data-b]').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-b');if(k==='lista'){aberta=false;det=false}else if(k==='det')det=true;else det=false;desenha()}});
+    document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){dPer=+b.getAttribute('data-p');desenha()}});
     var cf=document.getElementById('conf');if(cf)cf.onclick=function(){P.status='confirmado';S.sinal=P;try{sessionStorage.setItem('abertocore-sim',JSON.stringify(S))}catch(e){}desenha();aviso(t('Recebimento confirmado. A IA avisou a cliente por '+CANAL[C.canal].n+'.','Receipt confirmed. The AI notified the client via '+CANAL[C.canal].n+'.'))};
   }
   function aviso(x){var e=document.getElementById('toast');e.textContent=x;e.hidden=false;setTimeout(function(){e.hidden=true},4200)}

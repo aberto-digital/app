@@ -327,6 +327,7 @@
   .cab-via .via:hover{color:var(--ceu)}
   .cab-via .via svg{width:15px;height:15px;flex:none}
   .cab-via .via span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cab-prio{margin-top:8px}.cab-prio .chip{font-size:12px}
   .cab-via .via.goo{color:var(--sec);cursor:default}.cab-via .via.goo small{font-size:12px}
   .cab-via .via.ig svg{color:var(--ig)}.cab-via .via.wa svg{color:var(--wa)}
   .det-juntar{width:100%;justify-content:center;margin-top:18px}
@@ -1666,8 +1667,7 @@
     function linha(r, v){ return v ? '<div class="dado"><span>' + r + '</span><span>' + esc(v) + '</span></div>' : ''; }
     var dt = String(L.capturado || ''), m = dt.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) dt = m[3] + '/' + m[2] + '/' + m[1];
     var fonte = [L.fonte, dt].filter(Boolean).join(' \u00b7 ');
-    var rows = linha('Prioridade', L.prioridade ? L.prioridade + (L.score ? ' \u00b7 score ' + L.score : '') : '') + linha('Ramo', L.ramo) +
-      (siteValido(c.site) || siteValido(L.site) ? '' : linha('Site', L.site)) + linha('Seguidores', L.seguidores) + linha('Fonte', fonte);
+    var rows = linha('Ramo', L.ramo) + linha('Seguidores', L.seguidores) + linha('Fonte', fonte);
     return rows ? '<div class="lead-bloco"><div class="grupo-t">Dados do lead</div>' + rows + '</div>' : '';
   }
   function secImportLeads(){
@@ -3011,7 +3011,8 @@
     var end = c.endereco || [ld.endereco, ld.bairro, ld.cidade && ld.uf ? ld.cidade + '/' + ld.uf : ld.cidade].filter(Boolean).join(', ');
     if (end) via('end', 'pin', endCurto(end) || end, 'https://www.google.com/maps/search/' + encodeURIComponent((c.negocio || '') + ' ' + end));
     if (ld.notaGoogle) L.push('<span class="via goo" title="Nota no Google">\u2605 ' + esc(notaG(ld.notaGoogle)) + (ld.avalGoogle ? ' <small>(' + esc(ld.avalGoogle) + ')</small>' : '') + '</span>');
-    return L.length ? '<div class="cab-via">' + L.join('') + '</div>' : '';
+    var pr = ld.prioridade ? '<div class="cab-prio"><span class="chip pri-lead p' + esc(String(ld.prioridade).toLowerCase()) + '" title="Prioridade do lead">Prioridade ' + esc(ld.prioridade) + (ld.score ? ' \u00b7 score ' + esc(ld.score) : '') + '</span></div>' : '';
+    return (L.length ? '<div class="cab-via">' + L.join('') + '</div>' : '') + pr;
   }
   function desenhaDetalhe(){
     if (sel === 'ia') return detalheIA();

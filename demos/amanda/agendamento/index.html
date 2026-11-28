@@ -29,6 +29,10 @@
     <div class="op" id="canal" style="margin-bottom:10px"></div>
     <label for="tel" id="tel-rot"></label><input id="tel" autocomplete="off">
   </section>
+  <section class="passo"><h3 data-pt="5. Sinal para garantir o horário" data-en="5. Deposit to secure your spot">5. Sinal para garantir o horário</h3>
+    <div class="op" id="pag" style="margin-bottom:10px"></div><p class="note" id="pag-info" style="margin:0" aria-live="polite"></p>
+    <label id="zl" hidden style="display:block;margin-top:8px"><input type="checkbox" id="zok" style="width:auto;margin:0 6px 0 0"><span data-pt="Já enviei o Zelle" data-en="I have sent the Zelle">Já enviei o Zelle</span></label>
+  </section>
   <div class="resumo" id="resumo" aria-live="polite"></div>
   <button class="btn" id="conf" type="button" style="margin-top:14px;width:100%" data-pt="Confirmar agendamento" data-en="Confirm booking">Confirmar agendamento</button>
   <div class="ok" id="ok" role="status"><h2 data-pt="Horário reservado!" data-en="You're booked!">Horário reservado!</h2><p id="okt"></p><p class="note" data-pt="Agora veja como a Amanda recebe este agendamento no AbertoCore." data-en="Now see how Amanda receives this booking in AbertoCore.">Agora veja como a Amanda recebe este agendamento no AbertoCore.</p><a class="btn" id="ver" href="#" data-pt="Ver no AbertoCore" data-en="See in AbertoCore">Ver no AbertoCore</a></div>
@@ -40,7 +44,7 @@
 (function(){
   var S=[{pt:'Alongamento em gel',en:'Gel extensions',p:120,dur:150},{pt:'Manutenção do alongamento',en:'Extension refill',p:85,dur:120},{pt:'Esmaltação em gel',en:'Gel polish',p:55,dur:75},{pt:'Tratamento para unhas roídas',en:'Care for bitten nails',p:95,dur:120}];
   var H=['09:00','10:30','13:00','14:30','16:00','17:30'];
-  var st={s:null,d:null,h:null,c:'whatsapp'}, KEY='demo-cliente-amanda', $=function(i){return document.getElementById(i)};
+  var SINAL=30, st={s:null,d:null,h:null,c:'whatsapp',p:'cartao'}, KEY='demo-cliente-amanda', $=function(i){return document.getElementById(i)};
   function L(){return window.DemoLang()}
   function dias(){var o=[],d=new Date();for(var i=1;o.length<6;i++){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+i);if(x.getDay()===0)continue;o.push(x)}return o}
   var D=dias();
@@ -53,6 +57,10 @@
     var C=window.Perfil.CANAIS;$('canal').innerHTML='';C.forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c[L()];b.setAttribute('aria-pressed',st.c===c.id?'true':'false');b.onclick=function(){st.c=c.id;desenha()};$('canal').appendChild(b)});
     var cc=window.Perfil.canal(st.c);$('tel-rot').textContent=cc.rot[L()];$('tel').type=cc.tipo;$('tel').placeholder=cc.ph;
     perfil();
+    var PG=[['cartao',L()==='en'?'Card':'Cartão'],['zelle','Zelle'],['local',L()==='en'?'Pay on site':'Pagar no local']];
+    $('pag').innerHTML='';PG.forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=x[1];b.setAttribute('aria-pressed',st.p===x[0]?'true':'false');b.onclick=function(){st.p=x[0];desenha()};$('pag').appendChild(b)});
+    var en=L()==='en';$('zl').hidden=st.p!=='zelle';
+    $('pag-info').textContent=st.p==='cartao'?(en?'Pay the $'+SINAL+' deposit by card on the secure Stripe page (simulated in this demo).':'Pague o sinal de $'+SINAL+' por cartão na página segura do Stripe (simulado nesta demonstração).'):st.p==='zelle'?(en?'Send $'+SINAL+' by Zelle to pagamentos@amandabelasunhas.com (sample) and tick the box. Amanda confirms receipt manually.':'Envie $'+SINAL+' por Zelle para pagamentos@amandabelasunhas.com (exemplo) e marque a caixa. A Amanda confirma o recebimento manualmente.'):(en?'No deposit now. You pay at the studio.':'Sem sinal agora. Você paga no estúdio.');
     var r=$('resumo'),ok=st.s!=null&&st.d!=null&&st.h!=null;
     r.innerHTML=ok?'<p><b>'+S[st.s][L()]+'</b> · $'+S[st.s].p+'</p><p>'+fmt(D[st.d])+' · '+H[st.h]+'</p>':'<p>'+(L()==='en'?'Choose service, day and time to see the summary.':'Escolha serviço, dia e horário para ver o resumo.')+'</p>';
   }
@@ -67,14 +75,13 @@
   }
   $('conf').onclick=function(){
     if(st.s==null||st.d==null||st.h==null||!$('nome').value.trim()){$('resumo').innerHTML='<p>'+(L()==='en'?'Fill in service, day, time and name.':'Preencha serviço, dia, horário e nome.')+'</p>';return}
+    if(st.p==='zelle'&&!$('zok').checked){$('resumo').innerHTML='<p>'+(L()==='en'?'Tick the box after sending the Zelle.':'Marque a caixa depois de enviar o Zelle.')+'</p>';return}
     var nome=$('nome').value.trim(), tel0=$('tel').value.trim()||window.Perfil.canal(st.c).ph, tel=window.Perfil.canal(st.c).id==='whatsapp'?tel0:window.Perfil.canal(st.c).pt+' · '+tel0, x=D[st.d], iso=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
-    var cfg={m:'agendamento',n:'estetica',nome:'Amanda Belas Unhas',logo:'',cor:'#B07A6E',cidade:'Goose Creek',l:L()};
-    var est={cfg:cfg,agendamento:{num:102,servico:{id:'demo',nome:S[st.s][L()],dur:S[st.s].dur,preco:S[st.s].p,img:'💅'},prof:{id:'amanda',nome:'Amanda'},dia:iso,hora:H[st.h],cliente:{nome:nome,tel:tel},sinal:{valor:0,forma:'local',pago:false},ts:Date.now()},chat:[]};
+    var S0={negocio:{nome:'Amanda Belas Unhas',tipo:'agendamento',l:L(),volta:'../',cor:'#B07A6E'},cliente:{nome:nome,canal:st.c,contato:tel0},item:{servico:S[st.s][L()],dia:fmt(D[st.d]),hora:H[st.h],valor:S[st.s].p},sinal:{valor:SINAL,forma:st.p,status:st.p==='zelle'?'aguardando':st.p==='cartao'?'pago':'local'},ts:Date.now()};
+    try{sessionStorage.setItem('abertocore-sim',JSON.stringify(S0))}catch(e){}
     var old=window.Perfil.ler(KEY)||{hist:[]};old.hist=(old.hist||[]).concat([{servico:S[st.s][L()],dia:fmt(D[st.d]),hora:H[st.h]}]).slice(-10);
     window.Perfil.grava(KEY,{nome:nome,canal:st.c,contato:tel0,hist:old.hist});
-    try{sessionStorage.setItem('abertocore-experiencia',JSON.stringify(est))}catch(e){}
-    var q=new URLSearchParams({m:'agendamento',n:'estetica',nome:cfg.nome,cor:cfg.cor,cidade:cfg.cidade,l:L()});
-    var url='../../../experiencia/painel.html?'+q.toString();
+    var url='../../abertocore/index.html';
     $('okt').textContent=nome+' · '+S[st.s][L()]+' · '+fmt(D[st.d])+' · '+H[st.h];
     $('ok').style.display='block';$('ok').scrollIntoView({behavior:'smooth'});
     $('ver').href=url;setTimeout(function(){location.href=url},3500);

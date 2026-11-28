@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>AbertoCore · Demonstração</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z' fill='%231E3050'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>(function(){try{var t=localStorage.getItem('abertocore-tema');if(!t)t='escuro';document.documentElement.setAttribute('data-tema',t)}catch(e){document.documentElement.setAttribute('data-tema','escuro')}})()</script>
+<style>
+/* Mesmos tokens e tema do app AbertoCore (index.html). Escuro por padrão, como no app. */
+:root{--ink:#101A2C;--navy:#1E3050;--ambar:#FFB020;--ceu:#2F6FED;--papel:#F6F7F9;--branco:#fff;--texto:#101A2C;--sec:#5B6678;--muted:#8A93A6;--linha:#E2E6ED;--linha2:#D5DAE3;--verde:#1F9D55;--vermelho:#D64545;--wa:#1FAF5A;--ig:#C13584;--em:#5B6678;--sup2:#EEF1F6;--display:"Archivo",system-ui,sans-serif;--corpo:Inter,system-ui,sans-serif;--raio:14px}
+html[data-tema="escuro"]{color-scheme:dark;--papel:#0D131D;--branco:#161E2B;--texto:#E7EBF2;--sec:#A2ACBE;--muted:#7F8AA0;--linha:#243044;--linha2:#2F3B52;--sup2:#1C2636;--sup3:#223047}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--corpo);color:var(--texto);background:var(--papel);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+button:focus-visible,a:focus-visible{outline:2px solid var(--ceu);outline-offset:2px}
+.app{display:grid;grid-template-columns:64px 340px minmax(0,1fr) 320px;height:100%}
+.rail{background:#0F1624;border-right:1px solid var(--linha);display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0}
+html:not([data-tema="escuro"]) .rail{background:#fff}
+.rail .logo{width:40px;height:40px;margin-bottom:8px}
+.rail button{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--sec);font-size:20px}
+.rail button[aria-current="page"]{background:var(--ceu);color:#fff}
+.lista{background:var(--branco);border-right:1px solid var(--linha);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topo{padding:14px 16px;border-bottom:1px solid var(--linha)}
+.topo h1{font:800 22px var(--display);letter-spacing:-.01em}
+.topo p{font-size:12px;color:var(--sec)}
+.demo{font-size:11px;font-weight:700;color:#8A5A00;background:#FFF4DA;border:1px solid #F5D98F;padding:2px 8px;border-radius:99px;display:inline-block;margin-top:6px}
+html[data-tema="escuro"] .demo{background:#2E2410;border-color:#5A4614;color:#F5D98F}
+.abas{display:flex;gap:6px;padding:10px 12px}
+.abas span{padding:6px 12px;border-radius:10px;font-size:13px;font-weight:600;color:var(--sec)}
+.abas .on{background:var(--sup2);color:var(--texto)}
+.itens{overflow:auto;flex:1}
+.item{display:flex;gap:12px;padding:12px 14px;width:100%;text-align:left;border-left:3px solid transparent}
+.item[aria-selected="true"]{background:rgba(47,111,237,.14);border-left-color:var(--ceu)}
+.av{width:40px;height:40px;border-radius:50%;background:var(--sup2);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none;position:relative;color:var(--sec)}
+.av i{position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;border:2px solid var(--branco)}
+.it-t{min-width:0;flex:1}
+.it-n{font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.it-n small{font-weight:500;color:var(--muted);font-size:11px}
+.it-p{font-size:12.5px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tags{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:600;padding:1px 8px;border-radius:6px;background:rgba(47,111,237,.16);color:#8DB4FF}
+html:not([data-tema="escuro"]) .tag{color:#1D4FBF}
+.tag.v{background:rgba(31,157,85,.18);color:#7CDCA6}.tag.a{background:rgba(255,176,32,.18);color:#FFCF6B}.tag.r{background:rgba(214,69,69,.2);color:#FF9C9C}
+html:not([data-tema="escuro"]) .tag.v{color:#14693A}html:not([data-tema="escuro"]) .tag.a{color:#8A5A00}html:not([data-tema="escuro"]) .tag.r{color:#A12626}
+.nao{background:var(--ceu);color:#fff;border-radius:99px;font-size:11px;font-weight:700;min-width:20px;height:20px;display:grid;place-items:center;padding:0 6px}
+.conversa{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
+.conv-topo{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--branco);border-bottom:1px solid var(--linha)}
+.conv-topo .nm{font-weight:700;font-size:16px}.conv-topo .ng{font-size:13px;color:var(--sec)}
+.fio{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:10px}
+.dia{align-self:center;font-size:12px;color:var(--sec);border:1px solid var(--linha);border-radius:99px;padding:3px 12px;background:var(--branco)}
+.m{max-width:78%;padding:10px 14px;border-radius:14px;font-size:14px;background:var(--branco);border:1px solid var(--linha)}
+.m.eq{align-self:flex-end;background:#2B4A8F;border-color:#2B4A8F;color:#fff}
+.m.cli{align-self:flex-start}
+.m.ia{align-self:flex-end;background:#2E2410;border:1px solid #5A4614;color:#F5D98F}
+html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;color:#5A4614}
+.m.nota{align-self:center;font-size:12px;color:var(--sec);background:transparent;border:1px dashed var(--linha2);max-width:92%}
+.m b.sel{display:inline-block;font-size:11px;margin-bottom:2px;opacity:.85}
+.resp{margin:12px 18px;border:1px solid var(--linha);border-radius:14px;background:var(--branco);padding:10px 14px;color:var(--muted);font-size:14px}
+.painel{background:var(--branco);border-left:1px solid var(--linha);overflow:auto;padding:18px}
+.painel .perfil{text-align:center}
+.painel .perfil .av{width:64px;height:64px;margin:0 auto 8px;font-size:22px;color:var(--texto)}
+.painel h2{font:700 17px var(--corpo)}
+.painel .sub{font-size:13px;color:var(--sec)}
+.bts{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:12px 0;border-top:1px solid var(--linha);padding-top:12px}
+.bt{border:1px solid var(--linha2);border-radius:10px;padding:6px 12px;font-size:13px;font-weight:600}
+.lb{font-size:12px;font-weight:700;color:var(--sec);margin:14px 0 6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sup2);border-radius:10px;padding:3px}
+.seg span{text-align:center;padding:7px;border-radius:8px;font-size:13px;font-weight:600;color:var(--sec)}
+.seg .on{background:var(--ceu);color:#fff}
+.campo{border:1px solid var(--linha2);border-radius:10px;padding:10px 12px;font-size:14px;background:var(--papel)}
+.dois{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pri{display:block;width:100%;background:var(--ceu);color:#fff;border-radius:12px;padding:12px;font-weight:700;margin-top:16px;text-align:center}
+.pag{border:1px solid var(--linha2);border-radius:12px;padding:12px;background:var(--papel);font-size:13px}
+.pag b{font-size:14px}
+.ok{background:var(--verde);color:#fff;border-radius:10px;padding:10px;font-weight:700;width:100%;margin-top:10px}
+.agenda{grid-column:2/-1;padding:22px;overflow:auto;background:var(--papel)}
+.agenda h1{font:800 24px var(--display);margin-bottom:4px}
+.agenda .dd{margin:16px 0 6px;font-weight:700;font-size:13px;color:var(--sec)}
+.ev{display:flex;gap:14px;background:var(--branco);border:1px solid var(--linha);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.ev.novo{border-color:var(--ceu);box-shadow:0 0 0 2px rgba(47,111,237,.25)}
+.ev .h{font-weight:700;min-width:54px}
+.ev small{display:block;color:var(--sec)}
+.funil{grid-column:2/-1;padding:22px;overflow:auto;background:var(--papel);display:flex;gap:14px;align-items:flex-start}
+.col{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:12px;min-width:240px;flex:1}
+.col h3{font-size:13px;color:var(--sec);margin-bottom:10px;display:flex;justify-content:space-between}
+.card{background:var(--papel);border:1px solid var(--linha);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px}
+.card.novo{border-color:var(--ceu)}
+.rodape{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:9}
+.rodape a{flex:1;text-align:center;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--linha2);background:var(--branco);color:var(--texto)}
+.rodape a.cta{background:var(--ceu);border-color:var(--ceu);color:#fff}
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#0F1624;color:#fff;border:1px solid var(--linha2);border-radius:99px;padding:8px 16px;font-size:13px;font-weight:600;z-index:10}
+.mob{display:none}
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{display:block;height:auto;padding-bottom:84px}
+  .rail{flex-direction:row;justify-content:space-around;position:sticky;top:0;z-index:5;padding:8px}
+  .rail .logo{display:none}
+  .lista{border-right:0;border-bottom:1px solid var(--linha)}
+  .itens{max-height:260px}
+  .conversa{min-height:360px}
+  .fio{max-height:420px}
+  .painel{border-left:0;border-top:1px solid var(--linha)}
+  .agenda,.funil{padding:16px}.funil{flex-direction:column}.col{min-width:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" hidden></div>
+<div class="app" id="app"></div>
+<div class="rodape"><a id="volta" href="#"></a><a class="cta" id="quero" href="#"></a></div>
+<script>
+/* Simulador do AbertoCore para as demonstrações. Lê o pedido guardado pelas páginas de agendamento/orçamento
+   (sessionStorage 'abertocore-sim') e mostra como o dono recebe: Conversas, Agenda e Funil, no visual do app. */
+(function(){
+  var raw=null;try{raw=JSON.parse(sessionStorage.getItem('abertocore-sim')||'null')}catch(e){}
+  var S=raw||{negocio:{nome:'Seu negócio',tipo:'agendamento',l:'pt',volta:'../',cor:'#2F6FED'},cliente:{nome:'Cliente de exemplo',canal:'whatsapp',contato:'(843) 000-0000'},item:{servico:'Serviço de exemplo',dia:'',hora:'10:00',valor:80},sinal:{valor:30,forma:'local',status:'local'},ts:Date.now()};
+  var N=S.negocio,C=S.cliente,I=S.item,P=S.sinal,en=N.l==='en',ag=N.tipo==='agendamento';
+  function t(pt,e){return en?e:pt}
+  var CANAL={whatsapp:{n:'WhatsApp',c:'var(--wa)'},instagram:{n:'Instagram',c:'var(--ig)'},email:{n:t('E-mail','Email'),c:'var(--em)'},site:{n:'Site',c:'var(--ceu)'}};
+  var vista='conversas',sel='novo';
+  var usd=function(v){return '$'+v};
+  function ini(n){return n.split(' ').map(function(p){return p[0]}).slice(0,2).join('').toUpperCase()}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function hora(ts){return new Date(ts).toLocaleTimeString(en?'en-US':'pt-BR',{hour:'2-digit',minute:'2-digit'})}
+  var outros=ag?[
+    {id:'o1',nome:'Fernanda R.',canal:'whatsapp',txt:t('Tem horário sábado de manhã?','Any openings Saturday morning?'),tag:t('Lead','Lead'),etapa:t('Novo contato','New contact'),h:'09:12'},
+    {id:'o2',nome:'Patrícia L.',canal:'instagram',txt:t('Quanto fica o alongamento?','How much for extensions?'),tag:'Lead',etapa:t('Qualificado','Qualified'),h:'08:40'},
+    {id:'o3',nome:'Juliana S.',canal:'site',txt:t('Amei o resultado, obrigada!','Loved the result, thank you!'),tag:t('Cliente','Client'),etapa:t('Pós-atendimento','After visit'),h:t('ontem','yesterday')}
+  ]:[
+    {id:'o1',nome:'Lucas P.',canal:'instagram',txt:t('Quero fechar o braço em preto e cinza.','I want a black and grey sleeve.'),tag:'Lead',etapa:t('Qualificado','Qualified'),h:'09:30'},
+    {id:'o2',nome:'Camila R.',canal:'whatsapp',txt:t('Tem horário para fineline sábado?','Any fine line slots Saturday?'),tag:'Lead',etapa:t('Novo contato','New contact'),h:'08:05'},
+    {id:'o3',nome:'Diego S.',canal:'site',txt:t('Aprovado, pode marcar.','Approved, go ahead and book.'),tag:t('Cliente','Client'),etapa:t('Proposta enviada','Quote sent'),h:t('ontem','yesterday')}
+  ];
+  function conf(){
+    var nome=C.nome.split(' ')[0];
+    if(ag)return t('Oi, '+nome+'! Seu horário na '+N.nome+' está confirmado: '+I.servico+', '+I.dia+' às '+I.hora+'. Você vai receber um lembrete antes.','Hi '+nome+'! Your appointment at '+N.nome+' is confirmed: '+I.servico+', '+I.dia+' at '+I.hora+'. You will get a reminder before.');
+    return t('Oi, '+nome+'! Recebi o seu pedido: '+I.servico+'. A faixa estimada é '+usd(I.de)+' a '+usd(I.ate)+'. O '+N.dono+' vai ver as referências e responde com o valor final e os horários.','Hi '+nome+'! I got your request: '+I.servico+'. The estimate is '+usd(I.de)+' to '+usd(I.ate)+'. '+N.dono+' will review the references and reply with the final price and times.');
+  }
+  function msgs(){
+    var l=[{k:'dia',txt:t('Hoje','Today')},
+      {k:'cli',txt:ag?t('Agendamento feito pelo site: '+I.servico+', '+I.dia+' às '+I.hora+'.','Booked on the website: '+I.servico+', '+I.dia+' at '+I.hora+'.'):t('Pedido de orçamento pelo site: '+I.servico+'. '+(I.resumo||''),'Quote request from the website: '+I.servico+'. '+(I.resumo||'')),ts:S.ts},
+      {k:'ia',txt:conf(),ts:S.ts+2000,sel:t('Assistente de IA · enviada por '+CANAL[C.canal].n,'AI assistant · sent via '+CANAL[C.canal].n)}];
+    if(P.forma==='zelle'&&P.status==='aguardando')l.push({k:'nota',txt:t('Sinal de '+usd(P.valor)+' por Zelle informado pela cliente. Confirme quando o valor aparecer na sua conta.','Client reported a '+usd(P.valor)+' Zelle deposit. Confirm once it shows in your account.')});
+    if(P.forma==='cartao')l.push({k:'nota',txt:t('Sinal de '+usd(P.valor)+' pago por cartão (Stripe). Confirmado automaticamente.','Deposit of '+usd(P.valor)+' paid by card (Stripe). Confirmed automatically.')});
+    if(P.status==='confirmado')l.push({k:'ia',txt:t('Recebemos o seu sinal de '+usd(P.valor)+'. Obrigada, '+C.nome.split(' ')[0]+'! Seu horário está garantido.','We received your '+usd(P.valor)+' deposit. Thank you, '+C.nome.split(' ')[0]+'! Your spot is secured.'),ts:Date.now(),sel:t('Assistente de IA · enviada por '+CANAL[C.canal].n,'AI assistant · sent via '+CANAL[C.canal].n)});
+    return l;
+  }
+  function statusSinal(){
+    if(P.forma==='local')return {tx:t('Pagar no local','Pay on site'),tg:'a'};
+    if(P.forma==='cartao'||P.status==='confirmado')return {tx:t('Sinal pago','Deposit paid'),tg:'v'};
+    return {tx:t('Sinal aguardando','Deposit pending'),tg:'a'};
+  }
+  function rail(){return '<nav class="rail" aria-label="Menu"><img class="logo" alt="AbertoCore" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 96 96\'%3E%3Crect width=\'96\' height=\'96\' rx=\'24\' fill=\'%231E3050\'/%3E%3Cpath d=\'M24 74V46a24 24 0 0 1 48 0V74Z\' fill=\'%23FFB020\'/%3E%3Cpath d=\'M33 74V46.5a15 15 0 0 1 30 0V74Z\' fill=\'%232F6FED\'/%3E%3Cpath d=\'M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z\' fill=\'%231E3050\'/%3E%3C/svg%3E">'+
+    [['conversas','💬',t('Conversas','Chats')],['funil','⏳',t('Funil','Funnel')],['agenda','📅',t('Agenda','Calendar')]].map(function(x){return '<button data-v="'+x[0]+'" aria-label="'+x[2]+'" '+(vista===x[0]?'aria-current="page"':'')+'>'+x[1]+'</button>'}).join('')+'</nav>'}
+  function lista(){
+    var st=statusSinal();
+    var novo='<button class="item" data-s="novo" aria-selected="'+(sel==='novo')+'"><div class="av">'+ini(C.nome)+'<i style="background:'+CANAL[C.canal].c+'"></i></div><div class="it-t"><div class="it-n">'+esc(C.nome)+'<small>'+hora(S.ts)+'</small></div><div class="it-p">'+esc(ag?t('Novo agendamento · '+I.dia+' '+I.hora,'New booking · '+I.dia+' '+I.hora):t('Novo orçamento · '+I.servico,'New quote · '+I.servico))+'</div><div class="tags"><span class="tag">Lead</span><span class="tag">'+t('Novo contato','New contact')+'</span><span class="tag '+st.tg+'">'+st.tx+'</span></div></div><span class="nao">1</span></button>';
+    var ou=outros.map(function(o){return '<button class="item" data-s="'+o.id+'" aria-selected="'+(sel===o.id)+'"><div class="av">'+ini(o.nome)+'<i style="background:'+CANAL[o.canal].c+'"></i></div><div class="it-t"><div class="it-n">'+o.nome+'<small>'+o.h+'</small></div><div class="it-p">'+CANAL[o.canal].n+' · '+o.txt+'</div><div class="tags"><span class="tag">'+o.tag+'</span><span class="tag">'+o.etapa+'</span></div></div></button>'}).join('');
+    return '<section class="lista"><div class="topo"><h1>'+t('Conversas','Chats')+'</h1><p>WhatsApp, Instagram, '+t('e-mail e site numa caixa só','email and website in one inbox')+'</p><span class="demo">'+t('Demonstração · nada aqui é real','Demo · nothing here is real')+'</span></div><div class="abas"><span class="on">'+t('Entrada','Inbox')+' <b>'+(1+outros.length)+'</b></span><span>'+t('Prospecção','Prospecting')+'</span></div><div class="itens">'+novo+ou+'</div></section>';
+  }
+  function conversa(){
+    if(sel!=='novo'){var o=outros.filter(function(x){return x.id===sel})[0];return '<section class="conversa"><div class="conv-topo"><div class="av">'+ini(o.nome)+'</div><div><div class="nm">'+o.nome+'</div><div class="ng">'+N.nome+' · '+CANAL[o.canal].n+'</div></div></div><div class="fio"><div class="m cli">'+o.txt+'</div></div><div class="resp">'+t('Escreva sua resposta (/ atalhos)','Write your reply (/ shortcuts)')+'</div></section>'}
+    return '<section class="conversa"><div class="conv-topo"><div class="av">'+ini(C.nome)+'<i style="background:'+CANAL[C.canal].c+'"></i></div><div><div class="nm">'+esc(C.nome)+'</div><div class="ng">'+esc(N.nome)+' · '+CANAL[C.canal].n+' · '+esc(C.contato)+'</div></div></div><div class="fio">'+
+      msgs().map(function(m){if(m.k==='dia')return '<span class="dia">'+m.txt+'</span>';return '<div class="m '+m.k+'">'+(m.sel?'<b class="sel">✨ '+m.sel+'</b><br>':'')+esc(m.txt)+'</div>'}).join('')+'</div><div class="resp">'+t('Escreva sua resposta (/ atalhos)','Write your reply (/ shortcuts)')+'</div></section>';
+  }
+  function painel(){
+    if(sel!=='novo'){var o=outros.filter(function(x){return x.id===sel})[0];return '<aside class="painel"><div class="perfil"><div class="av">'+ini(o.nome)+'</div><h2>'+o.nome+'</h2><div class="sub">'+CANAL[o.canal].n+'</div></div><div class="lb">'+t('Classificação','Type')+'</div><div class="seg"><span class="on">Lead</span><span>'+t('Cliente','Client')+'</span></div><div class="lb">'+t('Etapa do funil','Funnel stage')+'</div><div class="campo">'+o.etapa+'</div></aside>'}
+    var etapa=ag?t('Agendado','Booked'):t('Novo orçamento','New quote');
+    var pg='';
+    if(P.forma==='zelle')pg='<div class="lb">'+t('Sinal','Deposit')+'</div><div class="pag"><b>'+usd(P.valor)+' · Zelle</b><br>'+(P.status==='confirmado'?t('Recebimento confirmado por você.','Receipt confirmed by you.'):t('A cliente informou o envio. Aguardando você conferir na conta.','Client reported sending it. Waiting for you to check your account.'))+(P.status==='confirmado'?'':'<button class="ok" id="conf">'+t('Confirmar recebimento','Confirm receipt')+'</button>')+'</div>';
+    else if(P.forma==='cartao')pg='<div class="lb">'+t('Sinal','Deposit')+'</div><div class="pag"><b>'+usd(P.valor)+' · '+t('Cartão (Stripe)','Card (Stripe)')+'</b><br>'+t('Pago e confirmado automaticamente.','Paid and confirmed automatically.')+'</div>';
+    else pg='<div class="lb">'+t('Sinal','Deposit')+'</div><div class="pag"><b>'+t('Pagar no local','Pay on site')+'</b><br>'+t('Sem sinal antecipado.','No upfront deposit.')+'</div>';
+    return '<aside class="painel"><div class="perfil"><div class="av">'+ini(C.nome)+'<i style="background:'+CANAL[C.canal].c+'"></i></div><h2>'+esc(C.nome)+'</h2><div class="sub">'+esc(N.nome)+' · '+CANAL[C.canal].n+'</div><div class="sub">'+esc(C.contato)+'</div></div>'+
+      '<div class="bts"><span class="bt">✏️ '+t('Editar','Edit')+'</span><span class="bt">✕ '+t('Ignorar','Ignore')+'</span><span class="bt">'+t('Arquivar','Archive')+'</span></div>'+
+      '<div class="lb">'+t('Classificação','Type')+'</div><div class="seg"><span class="on">Lead</span><span>'+t('Cliente','Client')+'</span></div>'+
+      '<div class="lb">'+t('Etapa do funil','Funnel stage')+'</div><div class="campo">'+etapa+'</div>'+
+      '<div class="dois"><div><div class="lb">'+t('Valor ($)','Value ($)')+'</div><div class="campo">'+(ag?I.valor:Math.round((I.de+I.ate)/2))+'</div></div><div><div class="lb">'+t('Próximo retorno','Next follow-up')+'</div><div class="campo">'+esc(ag?I.dia:t('amanhã','tomorrow'))+'</div></div></div>'+pg+
+      (ag?'<div class="lb">'+t('Compromisso','Appointment')+'</div><div class="pag"><b>'+esc(I.servico)+'</b><br>'+esc(I.dia)+' · '+I.hora+'</div>':'<div class="lb">'+t('Respostas do formulário','Form answers')+'</div><div class="pag">'+esc(I.resumo||'')+'</div>')+
+      '<div class="pri">📅 '+t('Agendar compromisso','Schedule appointment')+'</div></aside>';
+  }
+  function agenda(){
+    var ex=ag?[[t('Sáb 28/11','Sat 11/28'),'18:00','Fernanda R.',t('Design de sobrancelhas','Brows')],[t('Seg 30/11','Mon 11/30'),'11:00','Patrícia L.',t('Esmaltação em gel','Gel polish')]]:[[t('Sex 04/12','Fri 12/04'),'14:00','Lucas P.',t('Sessão · fechamento de braço','Session · full sleeve')]];
+    return '<section class="agenda"><h1>'+t('Agenda da semana','This week')+'</h1><p class="sub" style="color:var(--sec)">⏰ '+t('Lembretes automáticos ligados: 1 dia antes e 2 horas antes.','Automatic reminders on: 1 day and 2 hours before.')+'</p>'+
+      ex.map(function(e){return '<div class="dd">'+e[0]+'</div><div class="ev"><span class="h">'+e[1]+'</span><div><b>'+e[2]+'</b><small>'+e[3]+'</small></div></div>'}).join('')+
+      (ag?'<div class="dd">'+esc(I.dia)+'</div><div class="ev novo"><span class="h">'+I.hora+'</span><div><b>'+esc(C.nome)+'</b><small>'+esc(I.servico)+' · '+CANAL[C.canal].n+' · '+statusSinal().tx+'</small></div></div>':'<div class="dd">'+t('A definir','To be set')+'</div><div class="ev novo"><span class="h">–</span><div><b>'+esc(C.nome)+'</b><small>'+esc(I.servico)+' · '+t('aguardando proposta','waiting for quote')+'</small></div></div>')+'</section>';
+  }
+  function funil(){
+    var cols=ag?[t('Novo contato','New contact'),t('Agendado','Booked'),t('Pós-atendimento','After visit')]:[t('Novo orçamento','New quote'),t('Proposta enviada','Quote sent'),t('Fechado','Closed')];
+    var nc='<div class="card novo"><b>'+esc(C.nome)+'</b><br>'+esc(I.servico)+'<br><span class="tag '+statusSinal().tg+'">'+statusSinal().tx+'</span></div>';
+    var out=[[outros[1],1],[outros[0],0],[outros[2],2]];
+    return '<section class="funil">'+cols.map(function(c,i){var cards=(i===(ag?1:0)?nc:'')+outros.filter(function(o,k){return (ag?[0,1,2][k]:[1,0,2][k])===i&&!(i===(ag?1:0)&&false)}).map(function(o){return '<div class="card"><b>'+o.nome+'</b><br>'+o.txt+'</div>'}).join('');return '<div class="col"><h3>'+c+'</h3>'+cards+'</div>'}).join('')+'</section>';
+  }
+  function desenha(){
+    var h=rail();
+    if(vista==='conversas')h+=lista()+conversa()+painel();else if(vista==='agenda')h+=agenda();else h+=funil();
+    document.getElementById('app').innerHTML=h;
+    document.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){vista=b.getAttribute('data-v');desenha()}});
+    document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){sel=b.getAttribute('data-s');desenha()}});
+    var cf=document.getElementById('conf');if(cf)cf.onclick=function(){P.status='confirmado';S.sinal=P;try{sessionStorage.setItem('abertocore-sim',JSON.stringify(S))}catch(e){}desenha();aviso(t('Recebimento confirmado. A IA avisou a cliente por '+CANAL[C.canal].n+'.','Receipt confirmed. The AI notified the client via '+CANAL[C.canal].n+'.'))};
+  }
+  function aviso(x){var e=document.getElementById('toast');e.textContent=x;e.hidden=false;setTimeout(function(){e.hidden=true},4200)}
+  document.getElementById('volta').textContent='← '+t('Voltar ao site','Back to site');document.getElementById('volta').href=N.volta||'../';
+  document.getElementById('quero').textContent=t('Quero isso no meu negócio','I want this for my business');document.getElementById('quero').href='https://wa.me/5511991233627?text='+encodeURIComponent(t('Oi! Testei a demonstração da '+N.nome+' e quero isso no meu negócio.','Hi! I tried the '+N.nome+' demo and want this for my business.'));
+  document.title='AbertoCore · '+N.nome;
+  desenha();
+  aviso((ag?'📅 ':'📝 ')+t(ag?'Novo agendamento':'Novo orçamento',ag?'New booking':'New quote request')+' · '+C.nome);
+})();
+</script>
+</body>
+</html>

@@ -1414,7 +1414,7 @@
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
   var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '', respSel = '', etiqSel = [], tipoSel = [], etapaSel = [];
   /* Lista de conversas: posição de rolagem e quantas conversas aparecem, por aba (sobrevivem a abrir uma conversa e a redesenhar a tela). */
-  var PAG = 30, posLista = {entrada:0, prospeccao:0, finalizado:0}, limLista = {entrada:PAG, prospeccao:PAG, finalizado:PAG}, maisCarregando = {}, atualizandoLista = false;
+  var PAG = 30, posLista = {entrada:0, prospeccao:0, finalizado:0}, limLista = {entrada:PAG, prospeccao:PAG, finalizado:PAG}, maisCarregando = {}, atualizandoLista = false, travaAba = 0;
   function ehMovel(){ return matchMedia('(max-width:760px)').matches; }
   var anexoPend = null; // {cid, arq}: PDF gerado esperando o Julio enviar pela caixa de mensagem (WhatsApp e e-mail)
 
@@ -1974,7 +1974,11 @@
     ligaLargura();
     $('#busca').addEventListener('input', function(e){ busca = e.target.value; limLista = {entrada:PAG, prospeccao:PAG, finalizado:PAG}; desenhaLista(); });
     $('#itens').addEventListener('click', function(e){ if (e.target.closest('#vazioNovo')) modalContato(); });
-    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaAbas(); restauraPos(); vaiParaAba(aba, true); } });
+    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){
+      aba = b.getAttribute('data-a'); travaAba = Date.now() + 500; desenhaAbas(); restauraPos();
+      vaiParaAba(aba, false); // direto, sem animação: com listas grandes a animação travava no meio e a aba marcada não era a exibida
+      setTimeout(function(){ vaiParaAba(aba, false); }, 520);
+    } });
     var bf = $('#btnFiltro'), pf = $('#popFiltro');
     bf.onclick = function(e){ e.stopPropagation(); var abre = pf.hidden; pf.hidden = !abre; bf.setAttribute('aria-expanded', abre); };
     pf.addEventListener('click', function(e){ e.stopPropagation(); });
@@ -1996,6 +2000,7 @@
       if (e.target === itens){
         clearTimeout(tCar);
         tCar = setTimeout(function(){
+          if (Date.now() < travaAba) return; // troca por toque na aba: quem manda é o toque, não a posição no meio do caminho
           var i = Math.round(itens.scrollLeft / Math.max(itens.clientWidth, 1)), a = (ABAS[i] || ABAS[0])[0];
           if (a !== aba){ aba = a; desenhaAbas(); restauraPos(); }
         }, 60);

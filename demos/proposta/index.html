@@ -23,6 +23,7 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 .vis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}
 .vis div{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:16px;font-size:14px;color:var(--sec)}
 .vis b{display:block;color:var(--texto);font:700 16px var(--display);margin-bottom:4px}
+.reg{display:inline-flex;gap:6px;margin:36px 14px -6px 0;vertical-align:top}.reg button{padding:8px 14px;border-radius:99px;border:1px solid var(--linha);font-weight:700;font-size:.85rem;color:var(--sec)}.reg button[aria-pressed=true]{background:var(--ambar);border-color:var(--ambar);color:#241700}
 .seg{display:inline-flex;background:var(--card);border:1px solid var(--linha);border-radius:12px;padding:4px;margin:36px 0 20px}
 .seg button{padding:9px 16px;border-radius:9px;font-weight:600;font-size:14px;color:var(--sec)}
 .seg button[aria-pressed=true]{background:var(--ceu);color:#fff}
@@ -59,6 +60,7 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
  <div><b>O atendimento</b>Autoatendimento, escolha de canal, sinal e lembretes.</div>
  <div><b>O painel</b>Agenda, conversas, clientes e funil no AbertoCore.</div>
 </div>
+<div class="reg" role="group" aria-label="Região" id="reg"><button type="button" data-r="us">EUA · US$</button><button type="button" data-r="br">Brasil · R$</button></div>
 <div class="seg" role="group" aria-label="Plano de contratação" id="seg">
  <button data-m="0" aria-pressed="false">Mensal</button>
  <button data-m="0.15" aria-pressed="false">6 meses <small>−15%</small></button>
@@ -67,6 +69,7 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 <div class="pl" id="pl"></div>
 <p class="nota" id="nota"></p>
 </div>
+<script src="../precos.js?v=1"></script>
 <script>
 (function(){
   var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';
@@ -76,21 +79,24 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
   document.getElementById('tit').textContent='Isso que você acabou de usar, funcionando no seu negócio.';
   document.getElementById('lead').textContent='Escolha o plano que acompanha o tamanho do seu atendimento. Dá para começar menor e subir depois, sem refazer nada.';
   var P=[
-   {n:'Start',i:650,m:49,d:'O básico bem feito para ser encontrado.',l:['Perfil no Google otimizado e verificado','Site de 1 página com botão de WhatsApp','Domínio .com.br no 1º ano e hospedagem','1 alteração por mês'],prazo:'7 dias úteis'},
-   {n:'Presença',i:1650,m:150,d:'Para atender melhor e se organizar.',l:['Tudo do Start','Logo e identidade visual','WhatsApp Business com catálogo e respostas rápidas','AbertoCore com WhatsApp e até 2 usuários','Chatbot de menu e assistente de IA interno','Funil, agenda e lembrete de retorno'],prazo:'15 dias úteis'},
-   {n:'Completo',i:3500,m:450,d:'A experiência inteira que você acabou de ver.',l:['Tudo do Presença','Atendimento com IA 24h: responde, qualifica e agenda','Instagram, Facebook e e-mail na mesma caixa','Agendamento ou orçamento online no seu site','Usuários ilimitados e e-mail com seu domínio','Painel de resultados e ajustes sob medida'],prazo:'30 dias úteis',rec:true}
+   {n:'Start',d:'O básico bem feito para ser encontrado.',l:['Perfil no Google otimizado e verificado','Site de 1 página com botão de WhatsApp','Domínio .com.br no 1º ano e hospedagem','1 alteração por mês'],prazo:'7 dias úteis'},
+   {n:'Presença',d:'Para atender melhor e se organizar.',l:['Tudo do Start','Logo e identidade visual','WhatsApp Business com catálogo e respostas rápidas','AbertoCore com WhatsApp e até 2 usuários','Chatbot de menu e assistente de IA interno','Funil, agenda e lembrete de retorno'],prazo:'15 dias úteis'},
+   {n:'Completo',d:'A experiência inteira que você acabou de ver.',l:['Tudo do Presença','Atendimento com IA 24h: responde, qualifica e agenda','Instagram, Facebook e e-mail na mesma caixa','Agendamento ou orçamento online no seu site','Usuários ilimitados e e-mail com seu domínio','Painel de resultados e ajustes sob medida'],prazo:'30 dias úteis',rec:true}
   ];
   var desc=0.30;
-  function brl(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})}
+  var rg=window.Regiao.ler();function brl(v){return window.Regiao.fmt(v,rg)}
   function desenha(){
     document.getElementById('pl').innerHTML=P.map(function(p){
-      var m=Math.round(p.m*(1-desc)*100)/100;
-      var msg='Oi! Vi a demonstração da AbertoCore para '+nome+' e quero o plano '+p.n+(desc?' ('+(desc===.3?'12':'6')+' meses)':' (mensal)')+'.';
-      return '<div class="p'+(p.rec?' rec':'')+'">'+(p.rec?'<span class="tag">Recomendado</span>':'')+'<h3>'+p.n+'</h3><p class="ds">'+p.d+'</p><div class="ant">'+(desc?brl(p.m)+'/mês':'')+'</div><div class="pre">'+brl(m)+'<small> /mês</small></div><p class="imp"><b>'+brl(p.i)+'</b> de implantação · pronto em '+p.prazo+'</p><ul>'+p.l.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul><a class="cta" href="https://wa.me/5511991233627?text='+encodeURIComponent(msg)+'">Quero o '+p.n+'</a></div>';
+      var pr=window.Regiao.PRECOS[rg].pacotes[p.n],m=Math.round(pr.m*(1-desc)*100)/100;
+      var msg='Oi! Vi a demonstração da AbertoCore para '+nome+' e quero o plano '+p.n+' ('+window.Regiao.PRECOS[rg].rot+')'+(desc?' ('+(desc===.3?'12':'6')+' meses)':' (mensal)')+'.';
+      return '<div class="p'+(p.rec?' rec':'')+'">'+(p.rec?'<span class="tag">Recomendado</span>':'')+'<h3>'+p.n+'</h3><p class="ds">'+p.d+'</p><div class="ant">'+(desc?brl(pr.m)+'/mês':'')+'</div><div class="pre">'+brl(m)+'<small> /mês</small></div><p class="imp"><b>'+brl(pr.i)+'</b> de implantação · pronto em '+p.prazo+'</p><ul>'+p.l.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul><a class="cta" href="https://wa.me/5511991233627?text='+encodeURIComponent(msg)+'">Quero o '+p.n+'</a></div>';
     }).join('');
-    document.getElementById('nota').innerHTML='<b>Como funciona o desconto:</b> nos planos de 6 e 12 meses o desconto vale em toda a mensalidade. Se cancelar antes do prazo, paga a diferença do desconto já recebido. No plano mensal não há fidelidade. Valores em reais; a implantação é paga uma vez, por Pix ou boleto. O custo de uso de IA, quando passar da franquia do plano, tem pacotes extras a partir de R$ 39.';
+    document.getElementById('nota').innerHTML='<b>Como funciona o desconto:</b> nos planos de 6 e 12 meses o desconto vale em toda a mensalidade. Se cancelar antes do prazo, paga a diferença do desconto já recebido. No plano mensal não há fidelidade. '+(rg==='br'?'Valores em reais; a implantação é paga uma vez, por Pix ou boleto.':'Valores em dólar; a implantação é paga uma vez (50% na assinatura e 50% na entrega), por Stripe, PayPal ou Zelle.')+(window.Regiao.PRECOS[rg].iaExtra?' Quando o uso de IA passar da franquia do plano, há pacotes extras a partir de '+brl(window.Regiao.PRECOS[rg].iaExtra)+'.':'')+'';
   }
   document.getElementById('seg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;desc=+b.dataset.m;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b)});desenha()});
+  function marca(){[].forEach.call(document.querySelectorAll('#reg button'),function(b){b.setAttribute('aria-pressed',b.dataset.r===rg)})}
+  document.getElementById('reg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;rg=b.dataset.r;window.Regiao.grava(rg);try{var u=new URL(location.href);u.searchParams.set('r',rg);history.replaceState(null,'',u)}catch(x){}marca();desenha()});
+  document.getElementById('rever').href='../apresentacao/?n='+n+'&r='+rg;marca();
   desenha();
 })();
 </script>

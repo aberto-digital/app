@@ -19,7 +19,8 @@ html,body{height:100%}
 body{font-family:var(--corpo);color:var(--texto);background:var(--papel);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 button:focus-visible,a:focus-visible{outline:2px solid var(--ceu);outline-offset:2px}
-.app{display:grid;grid-template-columns:64px 340px minmax(0,1fr) 320px;height:100%}
+.app{display:grid;grid-template-columns:64px 340px minmax(0,1fr) 320px;height:calc(100% - 68px)}
+.rail button{position:relative}.rail .bolha{position:absolute;top:1px;right:1px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--ambar);color:#241700;font-size:10px;font-weight:800;display:grid;place-items:center}
 .rail{background:#0F1624;border-right:1px solid var(--linha);display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0}
 html:not([data-tema="escuro"]) .rail{background:#fff}
 .rail .logo{width:40px;height:40px;margin-bottom:8px}
@@ -38,7 +39,7 @@ html[data-tema="escuro"] .demo{background:#2E2410;border-color:#5A4614;color:#F5
 .item{display:flex;gap:12px;padding:12px 14px;width:100%;text-align:left;border-left:3px solid transparent}
 .item[aria-selected="true"]{background:rgba(47,111,237,.14);border-left-color:var(--ceu)}
 .av{width:40px;height:40px;border-radius:50%;background:var(--sup2);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none;position:relative;color:var(--sec)}
-.av i{position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;border:2px solid var(--branco)}
+.av i{display:none}.av .x{position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;border:2px solid var(--branco)}
 .it-t{min-width:0;flex:1}
 .it-n{font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:8px}
 .it-n small{font-weight:500;color:var(--muted);font-size:11px}
@@ -96,24 +97,69 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
 .rodape a.cta{background:var(--ceu);border-color:var(--ceu);color:#fff}
 .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#0F1624;color:#fff;border:1px solid var(--linha2);border-radius:99px;padding:8px 16px;font-size:13px;font-weight:600;z-index:10}
 .mob{display:none}
-@media (max-width:900px){
-  body{overflow:auto}
-  .app{display:block;height:auto;padding-bottom:84px}
-  .rail{flex-direction:row;justify-content:space-around;position:sticky;top:0;z-index:5;padding:8px}
+.tbm,.faixa-m,.voltar-m,.det-btn,.sheet-x{display:none}
+.rail svg,.tbm svg,.cmp svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.sec-h{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:var(--sup2);color:var(--sec);font-size:13px;font-weight:700}
+.sec-h b{background:var(--branco);border-radius:99px;padding:1px 10px;font-size:12px}
+.badge{position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--branco);color:#fff}
+.badge svg{width:10px;height:10px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.cmp{margin:12px 18px 14px;border:1px solid var(--linha);border-radius:14px;background:var(--branco);overflow:hidden}
+.cmp-t{display:flex;gap:18px;padding:0 14px;border-bottom:1px solid var(--linha);font-size:14px;font-weight:600;color:var(--sec)}
+.cmp-t span{padding:11px 0;display:flex;gap:6px;align-items:center}.cmp-t .on{color:var(--texto);box-shadow:inset 0 -2px var(--texto)}
+.cmp-t svg{width:14px;height:14px}
+.cmp-c{padding:12px 14px;color:var(--muted);font-size:14px;min-height:46px}
+.cmp-b{display:flex;align-items:center;gap:14px;padding:4px 12px 12px;color:var(--sec)}
+.cmp-b .env{margin-left:auto;width:38px;height:38px;border-radius:50%;background:#E7EBF2;color:#101A2C;display:grid;place-items:center}
+.cmp-b .env svg{width:17px;height:17px}
+@media (max-width:760px){
+  html,body{height:100%;overflow:hidden;background:var(--branco)}
+  body{font-size:14.5px}
+  .tbm{display:flex;position:fixed;top:0;left:0;right:0;height:60px;z-index:20;align-items:center;gap:10px;padding:0 12px 0 14px;background:var(--branco);border-bottom:1px solid var(--linha)}
+  .tbm img{width:34px;height:34px;border-radius:9px}
+  .tbm .chip{font-size:11px;font-weight:700;color:#F5D98F;background:#2E2410;border:1px solid #5A4614;padding:2px 9px;border-radius:99px}
+  .tbm h1{font:800 20px var(--display);letter-spacing:-.01em;flex:1}
+  .tbm .mais{width:40px;height:40px;border-radius:12px;background:var(--ceu);color:#fff;display:grid;place-items:center}
+  .faixa-m{display:flex;position:fixed;top:60px;left:0;right:0;z-index:19;height:38px;align-items:center;justify-content:space-between;padding:0 14px;background:var(--sup2);border-bottom:1px solid var(--linha);font-size:12.5px;font-weight:600}
+  .faixa-m a{color:var(--sec);text-decoration:none}.faixa-m a.cta{color:#8DB2FF}
+  .app{display:block;height:100%;padding-top:98px;padding-bottom:64px}
+  .app>.lista{height:100%}
+  .app.m-conv,.app.m-det{padding-top:0;padding-bottom:0}
+  .app.m-conv ~ .tbm,.app.m-det ~ .tbm{display:none}
+  .rail{position:fixed;left:0;right:0;bottom:0;z-index:20;flex-direction:row;justify-content:space-between;gap:4px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:#0A0F18;border-right:0;border-top:1px solid var(--linha);height:64px}
   .rail .logo{display:none}
-  .lista{border-right:0;border-bottom:1px solid var(--linha)}
-  .itens{max-height:260px}
-  .conversa{min-height:360px}
-  .fio{max-height:420px}
-  .painel{border-left:0;border-top:1px solid var(--linha)}
-  .agenda,.funil{padding:16px}.funil{flex-direction:column}.col{min-width:0;width:100%}
+  .rail button{flex:1;width:auto;height:46px;position:relative}
+  .rail button[aria-current="page"]{background:rgba(47,111,237,.22);color:#7FA6FF}
+  .rail .bolha{position:absolute;top:2px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:99px;background:var(--ambar);color:#241700;font-size:10px;font-weight:800;display:grid;place-items:center}
+  .app.m-conv .rail,.app.m-det .rail{display:none}
+  .lista{height:100%;border:0}.lista .topo{display:none}
+  .itens{flex:1;overflow:auto}
+  .app.m-conv .lista,.app.m-det .lista,.app.m-lista .conversa,.app.m-lista .painel,.app.m-conv .painel{display:none}
+  .conversa{height:100dvh;min-height:0}
+  .conv-topo{background:var(--papel);padding:calc(10px + env(safe-area-inset-top)) 12px 10px 6px}
+  .voltar-m,.det-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:var(--texto)}
+  .det-btn{margin-left:auto;border:1px solid var(--linha2)}
+  .voltar-m svg,.det-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .fio{padding:14px}
+  .cmp{margin:8px 12px calc(10px + env(safe-area-inset-bottom))}
+  .app.m-det .conversa{display:none}
+  .app.m-det .painel{display:block;height:100dvh;border:0;padding-top:0}
+  .sheet-x{display:flex;align-items:center;gap:10px;position:sticky;top:-18px;margin:-18px -18px 14px;padding:calc(12px + env(safe-area-inset-top)) 12px 12px;background:var(--branco);border-bottom:1px solid var(--linha);font-weight:700;z-index:2}
+  .sheet-x .voltar-m{margin-left:-6px}
+  .agenda,.funil{height:100%;overflow:auto;padding:16px}.funil{flex-direction:column}.col{min-width:0;width:100%}
+  .rodape{display:none}
+  .toast{bottom:78px}body[data-m=m-conv] .toast,body[data-m=m-det] .toast{bottom:auto;top:72px}
+  .app.m-conv ~ .faixa-m,.app.m-det ~ .faixa-m{display:none}
+  .conv-topo>div:not(.av){min-width:0}.conv-topo .ng,.conv-topo .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+@media (min-width:761px){.faixa-m{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="toast" id="toast" hidden></div>
 <div class="app" id="app"></div>
+<header class="tbm"><img alt="AbertoCore" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3Cpath d='M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z' fill='%231E3050'/%3E%3C/svg%3E"><span class="chip">Demo</span><h1 id="tbt"></h1><span class="mais" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></header>
+<div class="faixa-m" id="faixa"><a class="lk-volta" href="#"></a><a class="cta lk-quero" href="#"></a></div>
 <div class="rodape"><a id="volta" href="#"></a><a class="cta" id="quero" href="#"></a></div>
 <script>
 /* Simulador do AbertoCore para as demonstrações. Lê o pedido guardado pelas páginas de agendamento/orçamento
@@ -124,7 +170,10 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
   var N=S.negocio,C=S.cliente,I=S.item,P=S.sinal,en=N.l==='en',ag=N.tipo==='agendamento';
   function t(pt,e){return en?e:pt}
   var CANAL={whatsapp:{n:'WhatsApp',c:'var(--wa)'},instagram:{n:'Instagram',c:'var(--ig)'},email:{n:t('E-mail','Email'),c:'var(--em)'},site:{n:'Site',c:'var(--ceu)'}};
-  var vista='conversas',sel='novo';
+  var IC={"x":"<rect x=\"5\" y=\"11\" width=\"14\" height=\"9\" rx=\"2\"/><path d=\"M8 11V8a4 4 0 0 1 8 0v3\"/>","conversas": "<path d=\"M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z\"/>", "funil": "<path d=\"M3 5h18l-7 8.5V20l-4-2v-4.5z\"/>", "agenda": "<rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15\" rx=\"2.5\"/><path d=\"M8 3v4M16 3v4M3.5 10h17\"/>", "painel": "<path d=\"M4 20V10M10 20V4M16 20v-7M22 20H2\"/>", "cfg": "<circle cx=\"12\" cy=\"12\" r=\"3.2\"/><path d=\"M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8\"/>"};function ic(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+IC[k]+'</svg>'}
+  var CHI={whatsapp:'<path d="M5 19l1-3.5A7 7 0 1 1 9 18z"/>',instagram:'<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.6"/>',email:'<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4 7l8 6 8-6"/>',site:'<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16M12 4c-3 3-3 13 0 16"/>'};
+  function bdg(c){return '<span class="badge" style="background:'+CANAL[c].c+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+CHI[c]+'</svg></span>'}
+  var vista='conversas',sel='novo',aberta=false,det=false;
   var usd=function(v){return '$'+v};
   function ini(n){return n.split(' ').map(function(p){return p[0]}).slice(0,2).join('').toUpperCase()}
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -158,26 +207,26 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
     return {tx:t('Sinal aguardando','Deposit pending'),tg:'a'};
   }
   function rail(){return '<nav class="rail" aria-label="Menu"><img class="logo" alt="AbertoCore" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 96 96\'%3E%3Crect width=\'96\' height=\'96\' rx=\'24\' fill=\'%231E3050\'/%3E%3Cpath d=\'M24 74V46a24 24 0 0 1 48 0V74Z\' fill=\'%23FFB020\'/%3E%3Cpath d=\'M33 74V46.5a15 15 0 0 1 30 0V74Z\' fill=\'%232F6FED\'/%3E%3Cpath d=\'M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z\' fill=\'%231E3050\'/%3E%3C/svg%3E">'+
-    [['conversas','💬',t('Conversas','Chats')],['funil','⏳',t('Funil','Funnel')],['agenda','📅',t('Agenda','Calendar')]].map(function(x){return '<button data-v="'+x[0]+'" aria-label="'+x[2]+'" '+(vista===x[0]?'aria-current="page"':'')+'>'+x[1]+'</button>'}).join('')+'</nav>'}
+    [['conversas','conversas',t('Conversas','Chats')],['funil','funil',t('Funil','Funnel')],['agenda','agenda',t('Agenda','Calendar')],['x','painel',t('Painel','Dashboard')],['x','cfg',t('Configurações','Settings')]].map(function(x){return '<button data-v="'+x[0]+'" aria-label="'+x[2]+'" '+(vista===x[0]?'aria-current="page"':'')+'>'+ic(x[1])+(x[1]==='conversas'?'<span class="bolha">'+(1+outros.length)+'</span>':'')+'</button>'}).join('')+'</nav>'}
   function lista(){
     var st=statusSinal();
-    var novo='<button class="item" data-s="novo" aria-selected="'+(sel==='novo')+'"><div class="av">'+ini(C.nome)+'<i style="background:'+CANAL[C.canal].c+'"></i></div><div class="it-t"><div class="it-n">'+esc(C.nome)+'<small>'+hora(S.ts)+'</small></div><div class="it-p">'+esc(ag?t('Novo agendamento · '+I.dia+' '+I.hora,'New booking · '+I.dia+' '+I.hora):t('Novo orçamento · '+I.servico,'New quote · '+I.servico))+'</div><div class="tags"><span class="tag">Lead</span><span class="tag">'+t('Novo contato','New contact')+'</span><span class="tag '+st.tg+'">'+st.tx+'</span></div></div><span class="nao">1</span></button>';
-    var ou=outros.map(function(o){return '<button class="item" data-s="'+o.id+'" aria-selected="'+(sel===o.id)+'"><div class="av">'+ini(o.nome)+'<i style="background:'+CANAL[o.canal].c+'"></i></div><div class="it-t"><div class="it-n">'+o.nome+'<small>'+o.h+'</small></div><div class="it-p">'+CANAL[o.canal].n+' · '+o.txt+'</div><div class="tags"><span class="tag">'+o.tag+'</span><span class="tag">'+o.etapa+'</span></div></div></button>'}).join('');
-    return '<section class="lista"><div class="topo"><h1>'+t('Conversas','Chats')+'</h1><p>WhatsApp, Instagram, '+t('e-mail e site numa caixa só','email and website in one inbox')+'</p><span class="demo">'+t('Demonstração · nada aqui é real','Demo · nothing here is real')+'</span></div><div class="abas"><span class="on">'+t('Entrada','Inbox')+' <b>'+(1+outros.length)+'</b></span><span>'+t('Prospecção','Prospecting')+'</span></div><div class="itens">'+novo+ou+'</div></section>';
+    var novo='<button class="item" data-s="novo" aria-selected="'+(sel==='novo')+'"><div class="av">'+ini(C.nome)+''+bdg(C.canal)+'</div><div class="it-t"><div class="it-n">'+esc(C.nome)+'<small>'+hora(S.ts)+'</small></div><div class="it-p">'+esc(ag?t('Novo agendamento · '+I.dia+' '+I.hora,'New booking · '+I.dia+' '+I.hora):t('Novo orçamento · '+I.servico,'New quote · '+I.servico))+'</div><div class="tags"><span class="tag">Lead</span><span class="tag">'+t('Novo contato','New contact')+'</span><span class="tag '+st.tg+'">'+st.tx+'</span></div></div><span class="nao">1</span></button>';
+    var ou=outros.map(function(o){return '<button class="item" data-s="'+o.id+'" aria-selected="'+(sel===o.id)+'"><div class="av">'+ini(o.nome)+''+bdg(o.canal)+'</div><div class="it-t"><div class="it-n">'+o.nome+'<small>'+o.h+'</small></div><div class="it-p">'+CANAL[o.canal].n+' · '+o.txt+'</div><div class="tags"><span class="tag">'+o.tag+'</span><span class="tag">'+o.etapa+'</span></div></div></button>'}).join('');
+    return '<section class="lista"><div class="topo"><h1>'+t('Conversas','Chats')+'</h1><p>WhatsApp, Instagram, '+t('e-mail e site numa caixa só','email and website in one inbox')+'</p><span class="demo">'+t('Demonstração · nada aqui é real','Demo · nothing here is real')+'</span></div><div class="abas"><span class="on">'+t('Entrada','Inbox')+' <b>'+(1+outros.length)+'</b></span><span>'+t('Prospecção','Prospecting')+'</span></div><div class="itens"><div class="sec-h">'+t('Para responder','To answer')+'<b>'+(1+outros.length)+'</b></div>'+novo+ou+'</div></section>';
   }
   function conversa(){
-    if(sel!=='novo'){var o=outros.filter(function(x){return x.id===sel})[0];return '<section class="conversa"><div class="conv-topo"><div class="av">'+ini(o.nome)+'</div><div><div class="nm">'+o.nome+'</div><div class="ng">'+N.nome+' · '+CANAL[o.canal].n+'</div></div></div><div class="fio"><div class="m cli">'+o.txt+'</div></div><div class="resp">'+t('Escreva sua resposta (/ atalhos)','Write your reply (/ shortcuts)')+'</div></section>'}
-    return '<section class="conversa"><div class="conv-topo"><div class="av">'+ini(C.nome)+'<i style="background:'+CANAL[C.canal].c+'"></i></div><div><div class="nm">'+esc(C.nome)+'</div><div class="ng">'+esc(N.nome)+' · '+CANAL[C.canal].n+' · '+esc(C.contato)+'</div></div></div><div class="fio">'+
-      msgs().map(function(m){if(m.k==='dia')return '<span class="dia">'+m.txt+'</span>';return '<div class="m '+m.k+'">'+(m.sel?'<b class="sel">✨ '+m.sel+'</b><br>':'')+esc(m.txt)+'</div>'}).join('')+'</div><div class="resp">'+t('Escreva sua resposta (/ atalhos)','Write your reply (/ shortcuts)')+'</div></section>';
+    if(sel!=='novo'){var o=outros.filter(function(x){return x.id===sel})[0];return '<section class="conversa"><div class="conv-topo"><button class="voltar-m" data-b="lista" aria-label="'+t('Voltar','Back')+'"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><div class="av">'+ini(o.nome)+'</div><div><div class="nm">'+o.nome+'</div><div class="ng">'+N.nome+' · '+CANAL[o.canal].n+'</div></div><button class="det-btn" data-b="det" aria-label="'+t('Detalhes do contato','Contact details')+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></button></div><div class="fio"><div class="m cli">'+o.txt+'</div></div>'+'<div class="cmp"><div class="cmp-t"><span class="on">'+t('Responder','Reply')+'</span><span>'+ic('x')+t('Nota privada','Private note')+'</span></div><div class="cmp-c">'+t('Escreva sua resposta (/ atalhos)','Write your reply (/ shortcuts)')+'</div><div class="cmp-b"><span>＋</span><span>☺</span><span style="color:var(--ambar)">✦</span><span class="env"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></span></div></div>'+'</section>'}
+    return '<section class="conversa"><div class="conv-topo"><button class="voltar-m" data-b="lista" aria-label="'+t('Voltar','Back')+'"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><div class="av">'+ini(C.nome)+''+bdg(C.canal)+'</div><div><div class="nm">'+esc(C.nome)+'</div><div class="ng">'+esc(N.nome)+' · '+CANAL[C.canal].n+' · '+esc(C.contato)+'</div></div><button class="det-btn" data-b="det" aria-label="'+t('Detalhes do contato','Contact details')+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></button></div><div class="fio">'+
+      msgs().map(function(m){if(m.k==='dia')return '<span class="dia">'+m.txt+'</span>';return '<div class="m '+m.k+'">'+(m.sel?'<b class="sel">✨ '+m.sel+'</b><br>':'')+esc(m.txt)+'</div>'}).join('')+'</div>'+'<div class="cmp"><div class="cmp-t"><span class="on">'+t('Responder','Reply')+'</span><span>'+ic('x')+t('Nota privada','Private note')+'</span></div><div class="cmp-c">'+t('Escreva sua resposta (/ atalhos)','Write your reply (/ shortcuts)')+'</div><div class="cmp-b"><span>＋</span><span>☺</span><span style="color:var(--ambar)">✦</span><span class="env"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></span></div></div>'+'</section>';
   }
   function painel(){
-    if(sel!=='novo'){var o=outros.filter(function(x){return x.id===sel})[0];return '<aside class="painel"><div class="perfil"><div class="av">'+ini(o.nome)+'</div><h2>'+o.nome+'</h2><div class="sub">'+CANAL[o.canal].n+'</div></div><div class="lb">'+t('Classificação','Type')+'</div><div class="seg"><span class="on">Lead</span><span>'+t('Cliente','Client')+'</span></div><div class="lb">'+t('Etapa do funil','Funnel stage')+'</div><div class="campo">'+o.etapa+'</div></aside>'}
+    if(sel!=='novo'){var o=outros.filter(function(x){return x.id===sel})[0];return '<aside class="painel"><div class="sheet-x"><button class="voltar-m" data-b="conv" aria-label="'+t('Voltar','Back')+'"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>'+t('Detalhes do contato','Contact details')+'</div><div class="perfil"><div class="av">'+ini(o.nome)+'</div><h2>'+o.nome+'</h2><div class="sub">'+CANAL[o.canal].n+'</div></div><div class="lb">'+t('Classificação','Type')+'</div><div class="seg"><span class="on">Lead</span><span>'+t('Cliente','Client')+'</span></div><div class="lb">'+t('Etapa do funil','Funnel stage')+'</div><div class="campo">'+o.etapa+'</div></aside>'}
     var etapa=ag?t('Agendado','Booked'):t('Novo orçamento','New quote');
     var pg='';
     if(P.forma==='zelle')pg='<div class="lb">'+t('Sinal','Deposit')+'</div><div class="pag"><b>'+usd(P.valor)+' · Zelle</b><br>'+(P.status==='confirmado'?t('Recebimento confirmado por você.','Receipt confirmed by you.'):t('A cliente informou o envio. Aguardando você conferir na conta.','Client reported sending it. Waiting for you to check your account.'))+(P.status==='confirmado'?'':'<button class="ok" id="conf">'+t('Confirmar recebimento','Confirm receipt')+'</button>')+'</div>';
     else if(P.forma==='cartao')pg='<div class="lb">'+t('Sinal','Deposit')+'</div><div class="pag"><b>'+usd(P.valor)+' · '+t('Cartão (Stripe)','Card (Stripe)')+'</b><br>'+t('Pago e confirmado automaticamente.','Paid and confirmed automatically.')+'</div>';
     else pg='<div class="lb">'+t('Sinal','Deposit')+'</div><div class="pag"><b>'+t('Pagar no local','Pay on site')+'</b><br>'+t('Sem sinal antecipado.','No upfront deposit.')+'</div>';
-    return '<aside class="painel"><div class="perfil"><div class="av">'+ini(C.nome)+'<i style="background:'+CANAL[C.canal].c+'"></i></div><h2>'+esc(C.nome)+'</h2><div class="sub">'+esc(N.nome)+' · '+CANAL[C.canal].n+'</div><div class="sub">'+esc(C.contato)+'</div></div>'+
+    return '<aside class="painel"><div class="sheet-x"><button class="voltar-m" data-b="conv" aria-label="'+t('Voltar','Back')+'"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>'+t('Detalhes do contato','Contact details')+'</div><div class="perfil"><div class="av">'+ini(C.nome)+''+bdg(C.canal)+'</div><h2>'+esc(C.nome)+'</h2><div class="sub">'+esc(N.nome)+' · '+CANAL[C.canal].n+'</div><div class="sub">'+esc(C.contato)+'</div></div>'+
       '<div class="bts"><span class="bt">✏️ '+t('Editar','Edit')+'</span><span class="bt">✕ '+t('Ignorar','Ignore')+'</span><span class="bt">'+t('Arquivar','Archive')+'</span></div>'+
       '<div class="lb">'+t('Classificação','Type')+'</div><div class="seg"><span class="on">Lead</span><span>'+t('Cliente','Client')+'</span></div>'+
       '<div class="lb">'+t('Etapa do funil','Funnel stage')+'</div><div class="campo">'+etapa+'</div>'+
@@ -197,17 +246,22 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
     var out=[[outros[1],1],[outros[0],0],[outros[2],2]];
     return '<section class="funil">'+cols.map(function(c,i){var cards=(i===(ag?1:0)?nc:'')+outros.filter(function(o,k){return (ag?[0,1,2][k]:[1,0,2][k])===i&&!(i===(ag?1:0)&&false)}).map(function(o){return '<div class="card"><b>'+o.nome+'</b><br>'+o.txt+'</div>'}).join('');return '<div class="col"><h3>'+c+'</h3>'+cards+'</div>'}).join('')+'</section>';
   }
+  var TIT={conversas:t('Conversas','Chats'),funil:t('Funil','Funnel'),agenda:t('Agenda','Calendar')};
   function desenha(){
     var h=rail();
     if(vista==='conversas')h+=lista()+conversa()+painel();else if(vista==='agenda')h+=agenda();else h+=funil();
-    document.getElementById('app').innerHTML=h;
-    document.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){vista=b.getAttribute('data-v');desenha()}});
-    document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){sel=b.getAttribute('data-s');desenha()}});
+    var ap=document.getElementById('app');ap.innerHTML=h;
+    ap.className='app '+(vista==='conversas'?(det?'m-det':aberta?'m-conv':'m-lista'):'m-'+vista);
+    document.getElementById('tbt').textContent=TIT[vista];document.body.setAttribute('data-m',ap.className.split(' ')[1]);
+    var st=ap.querySelector('.itens');if(st&&window._sc)st.scrollTop=window._sc;
+    document.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){var v=b.getAttribute('data-v');if(v==='x'){aviso(t('Disponível no AbertoCore completo.','Available in the full AbertoCore.'));return}vista=v;aberta=false;det=false;desenha()}});
+    document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){sel=b.getAttribute('data-s');aberta=true;desenha()}});
+    document.querySelectorAll('[data-b]').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-b');if(k==='lista'){aberta=false;det=false}else if(k==='det')det=true;else det=false;desenha()}});
     var cf=document.getElementById('conf');if(cf)cf.onclick=function(){P.status='confirmado';S.sinal=P;try{sessionStorage.setItem('abertocore-sim',JSON.stringify(S))}catch(e){}desenha();aviso(t('Recebimento confirmado. A IA avisou a cliente por '+CANAL[C.canal].n+'.','Receipt confirmed. The AI notified the client via '+CANAL[C.canal].n+'.'))};
   }
   function aviso(x){var e=document.getElementById('toast');e.textContent=x;e.hidden=false;setTimeout(function(){e.hidden=true},4200)}
-  document.getElementById('volta').textContent='← '+t('Voltar ao site','Back to site');document.getElementById('volta').href=N.volta||'../';
-  document.getElementById('quero').textContent=t('Quero isso no meu negócio','I want this for my business');document.getElementById('quero').href='https://wa.me/5511991233627?text='+encodeURIComponent(t('Oi! Testei a demonstração da '+N.nome+' e quero isso no meu negócio.','Hi! I tried the '+N.nome+' demo and want this for my business.'));
+  document.querySelectorAll('.lk-volta,#volta').forEach(function(a){a.textContent='← '+t('Voltar ao site','Back to site');a.href=N.volta||'../'});
+  document.querySelectorAll('.lk-quero,#quero').forEach(function(a){a.textContent=t('Ver a proposta','See the proposal')+' →';a.href='../proposta/?n='+(/amanda/i.test(N.nome)?'amanda':'ibraim')});
   document.title='AbertoCore · '+N.nome;
   desenha();
   aviso((ag?'📅 ':'📝 ')+t(ag?'Novo agendamento':'Novo orçamento',ag?'New booking':'New quote request')+' · '+C.nome);

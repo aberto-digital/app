@@ -88,6 +88,13 @@
   </section>
 </main>
 <footer>© Superman Tattoo · <span data-pt="Site de demonstração criado pela abertodigital" data-en="Demo site created by abertodigital">Site de demonstração criado pela abertodigital</span></footer>
+<div class="lb" id="lb" role="dialog" aria-label="Foto" aria-hidden="true"><button type="button" id="lbx" aria-label="Fechar">×</button><img id="lbi" alt=""></div>
 <script src="idioma.js"></script>
+<script>
+(function(){var lb=document.getElementById('lb'),im=document.getElementById('lbi');
+document.querySelectorAll('.grade figure').forEach(function(f){f.setAttribute('tabindex','0');function abre(){var i=f.querySelector('img');im.src=i.src;im.alt=i.alt;lb.classList.add('on');lb.setAttribute('aria-hidden','false')}f.onclick=abre;f.onkeydown=function(e){if(e.key==='Enter')abre()}});
+function fecha(){lb.classList.remove('on');lb.setAttribute('aria-hidden','true')}
+lb.onclick=fecha;document.getElementById('lbx').onclick=fecha;document.addEventListener('keydown',function(e){if(e.key==='Escape')fecha()})})();
+</script>
 </body>
 </html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Agendar · Amanda Belas Unhas</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<div class="demo">Demonstração · nenhum agendamento é real</div>
+<header class="nav">
+  <a class="brand" href="../">Amanda <i>Belas Unhas</i></a>
+  <nav><a href="../" data-pt="Voltar ao site" data-en="Back to site">Voltar ao site</a></nav>
+  <button class="lang" id="lang" type="button" aria-label="Idioma / Language">EN</button>
+</header>
+<main class="ag">
+  <h1 data-pt="Agende seu horário em 1 minuto" data-en="Book your appointment in 1 minute">Agende seu horário em 1 minuto</h1>
+  <p class="sub" data-pt="Escolha o serviço, o dia e o horário. Você recebe a confirmação e o lembrete no WhatsApp." data-en="Pick the service, day and time. You get a confirmation and a reminder on WhatsApp.">Escolha o serviço, o dia e o horário. Você recebe a confirmação e o lembrete no WhatsApp.</p>
+
+  <section class="passo"><h3 data-pt="1. Serviço" data-en="1. Service">1. Serviço</h3><div class="op" id="serv"></div></section>
+  <section class="passo"><h3 data-pt="2. Dia" data-en="2. Day">2. Dia</h3><div class="op" id="dia"></div></section>
+  <section class="passo"><h3 data-pt="3. Horário" data-en="3. Time">3. Horário</h3><div class="op" id="hora"></div></section>
+  <section class="passo"><h3 data-pt="4. Seus dados" data-en="4. Your details">4. Seus dados</h3>
+    <label for="nome" data-pt="Nome" data-en="Name">Nome</label><input id="nome" autocomplete="name">
+    <label for="tel" data-pt="WhatsApp" data-en="WhatsApp">WhatsApp</label><input id="tel" inputmode="tel" autocomplete="tel" placeholder="(843) 000-0000">
+  </section>
+  <div class="resumo" id="resumo" aria-live="polite"></div>
+  <button class="btn" id="conf" type="button" style="margin-top:14px;width:100%" data-pt="Confirmar agendamento" data-en="Confirm booking">Confirmar agendamento</button>
+  <div class="ok" id="ok" role="status"><h2 data-pt="Horário reservado!" data-en="You're booked!">Horário reservado!</h2><p id="okt"></p><p class="note" data-pt="Na versão real, este horário entra na agenda do AbertoCore e a IA envia o lembrete no WhatsApp." data-en="In the real version this slot lands in the AbertoCore calendar and the AI sends the WhatsApp reminder.">Na versão real, este horário entra na agenda do AbertoCore e a IA envia o lembrete no WhatsApp.</p></div>
+</main>
+<a class="ia" href="../#contato" data-pt="💬 Falar com a IA" data-en="💬 Chat with the AI">💬 Falar com a IA</a>
+<script src="../idioma.js"></script>
+<script>
+(function(){
+  var S=[{pt:'Alongamento em gel',en:'Gel extensions',p:120},{pt:'Manutenção do alongamento',en:'Extension refill',p:85},{pt:'Esmaltação em gel',en:'Gel polish',p:55},{pt:'Tratamento para unhas roídas',en:'Care for bitten nails',p:95}];
+  var H=['09:00','10:30','13:00','14:30','16:00','17:30'];
+  var st={s:null,d:null,h:null}, $=function(i){return document.getElementById(i)};
+  function L(){return window.DemoLang()}
+  function dias(){var o=[],d=new Date();for(var i=1;o.length<6;i++){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+i);if(x.getDay()===0)continue;o.push(x)}return o}
+  var D=dias();
+  function btns(el,list,key,label){el.innerHTML='';list.forEach(function(it,i){var b=document.createElement('button');b.type='button';b.textContent=label(it);b.setAttribute('aria-pressed',st[key]===i?'true':'false');b.onclick=function(){st[key]=i;desenha()};el.appendChild(b)})}
+  function fmt(x){return x.toLocaleDateString(L()==='en'?'en-US':'pt-BR',{weekday:'short',day:'2-digit',month:'short'})}
+  function desenha(){
+    btns($('serv'),S,'s',function(s){return s[L()]+' · $'+s.p});
+    btns($('dia'),D,'d',fmt);
+    btns($('hora'),H,'h',function(h){return h});
+    var r=$('resumo'),ok=st.s!=null&&st.d!=null&&st.h!=null;
+    r.innerHTML=ok?'<p><b>'+S[st.s][L()]+'</b> · $'+S[st.s].p+'</p><p>'+fmt(D[st.d])+' · '+H[st.h]+'</p>':'<p>'+(L()==='en'?'Choose service, day and time to see the summary.':'Escolha serviço, dia e horário para ver o resumo.')+'</p>';
+  }
+  $('conf').onclick=function(){
+    if(st.s==null||st.d==null||st.h==null||!$('nome').value.trim()){$('resumo').innerHTML='<p>'+(L()==='en'?'Fill in service, day, time and name.':'Preencha serviço, dia, horário e nome.')+'</p>';return}
+    $('okt').textContent=$('nome').value.trim()+' · '+S[st.s][L()]+' · '+fmt(D[st.d])+' · '+H[st.h];
+    $('ok').style.display='block';$('ok').scrollIntoView({behavior:'smooth'});
+  };
+  document.addEventListener('idioma',desenha);
+  desenha();
+})();
+</script>
+</body>
+</html>

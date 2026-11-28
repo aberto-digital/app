@@ -1,5 +1,5 @@
 /* Preços por região e seletor Brasil / EUA das demonstrações.
-   A região vem do link (?r=br ou ?r=us), depois da última escolha guardada no navegador; sem nada, as demos usam EUA.
+   A região vem do link (?r=br ou ?r=us). A escolha guardada no navegador só vale em modo admin; sem nada, as demos usam EUA.
    Valores do Brasil são os do sistema (core/dados.js). Valores dos EUA: do plano de negócios (EUA, em dólar). Pacote extra de IA dos EUA: +2.000 ações US$ 29 e +5.000 US$ 69 (definido em 28/11/2026). */
 (function(){
   var PRECOS={
@@ -9,8 +9,8 @@
       pacotes:{Start:{i:590,m:59},'Presença':{i:1290,m:129},Completo:{i:2900,m:349}}}
   };
   var KEY='demo-regiao';
-  function ler(){var r=null;try{r=new URLSearchParams(location.search).get('r')}catch(e){}if(r!=='br'&&r!=='us'){try{r=localStorage.getItem(KEY)}catch(e){}}return r==='br'||r==='us'?r:'us'}
-  function grava(r){try{localStorage.setItem(KEY,r)}catch(e){}}
+  function ler(){var r=null;try{r=new URLSearchParams(location.search).get('r')}catch(e){}if(r!=='br'&&r!=='us'){try{if(localStorage.getItem('demo-admin')==='1')r=localStorage.getItem(KEY)}catch(e){}}return r==='br'||r==='us'?r:'us'}
+  function grava(r){try{if(localStorage.getItem('demo-admin')==='1')localStorage.setItem(KEY,r)}catch(e){}}
   function fmt(v,r){var P=PRECOS[r];return P.moeda+' '+v.toLocaleString(P.loc,{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})}
   /* O seletor de região é só do Julio: fica escondido para quem recebe o link. ?admin=1 liga (e lembra), ?admin=0 desliga. */
   (function(){var a=null;try{a=new URLSearchParams(location.search).get('admin')}catch(e){}

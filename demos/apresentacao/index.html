@@ -277,7 +277,7 @@ footer{scroll-snap-align:end}
 </main>
 <footer><div class="wrap"><span>© abertodigital · demonstração com informações públicas do perfil</span><span>Valores e fotos de exemplo</span></div></footer>
 
-<script src="../precos.js?v=2"></script>
+<script src="../precos.js?v=3"></script>
 <script>
 (function(){
   var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';
@@ -408,7 +408,6 @@ footer{scroll-snap-align:end}
   var rg=window.Regiao.ler();
   function regiao(){window.Regiao.grava(rg);[].forEach.call(document.querySelectorAll('#rg button'),function(b){b.setAttribute('aria-pressed',b.dataset.r===rg)});
     var lk=$('lkProp');if(lk)lk.href='../proposta/?n='+n+'&r='+rg+(EN?'&l=en':'');
-    var P=window.Regiao.PRECOS[rg].pacotes.Start;var tx=$('propTx');if(tx)tx.textContent=EN?'Plans for the '+(rg==='br'?'Brazil':'US')+', from '+window.Regiao.fmt(P.m*.7,rg)+' per month (12-month plan).':'Planos para '+(rg==='br'?'o Brasil':'os EUA')+', a partir de '+window.Regiao.fmt(P.m*.7,rg)+' por mês (plano de 12 meses).';
     try{var u=new URL(location.href);u.searchParams.set('r',rg);history.replaceState(null,'',u)}catch(x){}}
   $('rg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;rg=b.dataset.r;regiao()});
   regiao();

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="estilo.css?v=3">
 </head>
 <body>
 <div class="demo">Demonstração · site de exemplo com informações públicas do perfil</div>
@@ -27,7 +27,7 @@
 <footer class="rodape-site"><span>© 2026 Superman Tattoo · Carolina do Sul, EUA</span><span class="feito"><span data-pt="Site de demonstração feito com carinho por" data-en="Demo site made with care by">Site de demonstração feito com carinho por</span> <b>abertodigital</b></span></footer>
 <a class="bolha" href="#contato" aria-label="Chat"><span class="pt">💬</span> <span data-pt="Fale com a IA" data-en="Chat with the AI">Fale com a IA</span></a>
 <div class="lb" id="lb" role="dialog" aria-label="Foto" aria-hidden="true"><button type="button" id="lbx" aria-label="Fechar">×</button><img id="lbi" alt=""></div>
-<script src="idioma.js"></script>
+<script src="idioma.js?v=3"></script>
 <script>(function(){var lb=document.getElementById("lb"),im=document.getElementById("lbi");document.querySelectorAll(".grade figure").forEach(function(f){f.setAttribute("tabindex","0");function abre(){var i=f.querySelector("img");im.src=i.src;im.alt=i.alt;lb.classList.add("on");lb.setAttribute("aria-hidden","false")}f.onclick=abre;f.onkeydown=function(e){if(e.key==="Enter")abre()}});function fecha(){lb.classList.remove("on");lb.setAttribute("aria-hidden","true")}lb.onclick=fecha;document.getElementById("lbx").onclick=fecha;document.addEventListener("keydown",function(e){if(e.key==="Escape")fecha()})})();</script>
 </body>
 </html>

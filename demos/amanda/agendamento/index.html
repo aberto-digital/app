@@ -17,14 +17,17 @@
 </header>
 <main class="ag">
   <h1 data-pt="Agende seu horário em 1 minuto" data-en="Book your appointment in 1 minute">Agende seu horário em 1 minuto</h1>
-  <p class="sub" data-pt="Escolha o serviço, o dia e o horário. Você recebe a confirmação e o lembrete no WhatsApp." data-en="Pick the service, day and time. You get a confirmation and a reminder on WhatsApp.">Escolha o serviço, o dia e o horário. Você recebe a confirmação e o lembrete no WhatsApp.</p>
+  <p class="sub" data-pt="Escolha o serviço, o dia e o horário. Você recebe a confirmação e o lembrete pelo canal que escolher." data-en="Pick the service, day and time. You get a confirmation and a reminder on the channel you choose.">Escolha o serviço, o dia e o horário. Você recebe a confirmação e o lembrete no WhatsApp.</p>
 
+  <section class="passo" id="perfil" hidden></section>
   <section class="passo"><h3 data-pt="1. Serviço" data-en="1. Service">1. Serviço</h3><div class="op" id="serv"></div></section>
   <section class="passo"><h3 data-pt="2. Dia" data-en="2. Day">2. Dia</h3><div class="op" id="dia"></div></section>
   <section class="passo"><h3 data-pt="3. Horário" data-en="3. Time">3. Horário</h3><div class="op" id="hora"></div></section>
   <section class="passo"><h3 data-pt="4. Seus dados" data-en="4. Your details">4. Seus dados</h3>
     <label for="nome" data-pt="Nome" data-en="Name">Nome</label><input id="nome" autocomplete="name">
-    <label for="tel" data-pt="WhatsApp" data-en="WhatsApp">WhatsApp</label><input id="tel" inputmode="tel" autocomplete="tel" placeholder="(843) 000-0000">
+    <p class="note" style="margin:6px 0" data-pt="Por onde você quer receber a confirmação e os lembretes?" data-en="Where would you like to get your confirmation and reminders?">Por onde você quer receber a confirmação e os lembretes?</p>
+    <div class="op" id="canal" style="margin-bottom:10px"></div>
+    <label for="tel" id="tel-rot"></label><input id="tel" autocomplete="off">
   </section>
   <div class="resumo" id="resumo" aria-live="polite"></div>
   <button class="btn" id="conf" type="button" style="margin-top:14px;width:100%" data-pt="Confirmar agendamento" data-en="Confirm booking">Confirmar agendamento</button>
@@ -32,11 +35,12 @@
 </main>
 <a class="ia" href="../#contato" data-pt="💬 Falar com a IA" data-en="💬 Chat with the AI">💬 Falar com a IA</a>
 <script src="../idioma.js"></script>
+<script src="../../perfil.js"></script>
 <script>
 (function(){
   var S=[{pt:'Alongamento em gel',en:'Gel extensions',p:120,dur:150},{pt:'Manutenção do alongamento',en:'Extension refill',p:85,dur:120},{pt:'Esmaltação em gel',en:'Gel polish',p:55,dur:75},{pt:'Tratamento para unhas roídas',en:'Care for bitten nails',p:95,dur:120}];
   var H=['09:00','10:30','13:00','14:30','16:00','17:30'];
-  var st={s:null,d:null,h:null}, $=function(i){return document.getElementById(i)};
+  var st={s:null,d:null,h:null,c:'whatsapp'}, KEY='demo-cliente-amanda', $=function(i){return document.getElementById(i)};
   function L(){return window.DemoLang()}
   function dias(){var o=[],d=new Date();for(var i=1;o.length<6;i++){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+i);if(x.getDay()===0)continue;o.push(x)}return o}
   var D=dias();
@@ -46,14 +50,28 @@
     btns($('serv'),S,'s',function(s){return s[L()]+' · $'+s.p});
     btns($('dia'),D,'d',fmt);
     btns($('hora'),H,'h',function(h){return h});
+    var C=window.Perfil.CANAIS;$('canal').innerHTML='';C.forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c[L()];b.setAttribute('aria-pressed',st.c===c.id?'true':'false');b.onclick=function(){st.c=c.id;desenha()};$('canal').appendChild(b)});
+    var cc=window.Perfil.canal(st.c);$('tel-rot').textContent=cc.rot[L()];$('tel').type=cc.tipo;$('tel').placeholder=cc.ph;
+    perfil();
     var r=$('resumo'),ok=st.s!=null&&st.d!=null&&st.h!=null;
     r.innerHTML=ok?'<p><b>'+S[st.s][L()]+'</b> · $'+S[st.s].p+'</p><p>'+fmt(D[st.d])+' · '+H[st.h]+'</p>':'<p>'+(L()==='en'?'Choose service, day and time to see the summary.':'Escolha serviço, dia e horário para ver o resumo.')+'</p>';
   }
+  function perfil(){
+    var p=window.Perfil.ler(KEY),el=$('perfil');
+    if(!p){el.hidden=true;return}
+    var en=L()==='en',hist=(p.hist||[]).slice(-3).reverse().map(function(x){return '<li>'+x.servico+' · '+x.dia+' '+x.hora+'</li>'}).join('');
+    el.hidden=false;
+    el.innerHTML='<h3>'+(en?'Welcome back, ':'Olá de volta, ')+p.nome.split(' ')[0]+'!</h3><p class="note" style="margin:0 0 8px">'+(en?'Your profile: ':'Seu perfil: ')+window.Perfil.canal(p.canal)[L()]+' · '+p.contato+'</p>'+(hist?'<p class="note" style="margin:0">'+(en?'Your latest visits':'Suas últimas visitas')+'</p><ul class="note" style="margin:4px 0 8px;padding-left:18px">'+hist+'</ul>':'')+'<button type="button" class="lang" id="sair">'+(en?'Not you? Sign out':'Não é você? Sair')+'</button>';
+    $('sair').onclick=function(){window.Perfil.sair(KEY);$('nome').value='';$('tel').value='';perfil()};
+    if(!$('nome').value){$('nome').value=p.nome;st.c=p.canal;$('tel').value=p.contato}
+  }
   $('conf').onclick=function(){
     if(st.s==null||st.d==null||st.h==null||!$('nome').value.trim()){$('resumo').innerHTML='<p>'+(L()==='en'?'Fill in service, day, time and name.':'Preencha serviço, dia, horário e nome.')+'</p>';return}
-    var nome=$('nome').value.trim(), tel=$('tel').value.trim()||'(843) 000-0000', x=D[st.d], iso=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+    var nome=$('nome').value.trim(), tel0=$('tel').value.trim()||window.Perfil.canal(st.c).ph, tel=window.Perfil.canal(st.c).id==='whatsapp'?tel0:window.Perfil.canal(st.c).pt+' · '+tel0, x=D[st.d], iso=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
     var cfg={m:'agendamento',n:'estetica',nome:'Amanda Belas Unhas',logo:'',cor:'#B07A6E',cidade:'Goose Creek',l:L()};
     var est={cfg:cfg,agendamento:{num:102,servico:{id:'demo',nome:S[st.s][L()],dur:S[st.s].dur,preco:S[st.s].p,img:'💅'},prof:{id:'amanda',nome:'Amanda'},dia:iso,hora:H[st.h],cliente:{nome:nome,tel:tel},sinal:{valor:0,forma:'local',pago:false},ts:Date.now()},chat:[]};
+    var old=window.Perfil.ler(KEY)||{hist:[]};old.hist=(old.hist||[]).concat([{servico:S[st.s][L()],dia:fmt(D[st.d]),hora:H[st.h]}]).slice(-10);
+    window.Perfil.grava(KEY,{nome:nome,canal:st.c,contato:tel0,hist:old.hist});
     try{sessionStorage.setItem('abertocore-experiencia',JSON.stringify(est))}catch(e){}
     var q=new URLSearchParams({m:'agendamento',n:'estetica',nome:cfg.nome,cor:cfg.cor,cidade:cfg.cidade,l:L()});
     var url='../../../experiencia/painel.html?'+q.toString();

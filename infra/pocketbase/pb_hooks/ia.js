@@ -126,7 +126,11 @@ function contextoEmpresa(app, empresaId) {
   try {
     const cfg = cfgDaEmpresa(app, empresaId)
     const f = cfg && cfg.getString("fonte")
-    if (f) playbook = (playbook ? playbook + "\n\n" : "") + "BASE DA PLANILHA (vale mais que o resto se houver conflito; linhas com \"Pode usar?\" = Não são proibidas):\n" + f
+    const K = require(`${__hooks}/conhecimento.js`)
+    // conhecimento aprovado no app; depois de importar a planilha, ela deixa de ser lida (não duplica)
+    const kp = K.paraPrompt(app, empresaId)
+    if (kp) playbook = (playbook ? playbook + "\n\n" : "") + kp
+    if (f && !K.temImportada(app, empresaId)) playbook = (playbook ? playbook + "\n\n" : "") + "BASE DA PLANILHA (vale mais que o resto se houver conflito; linhas com \"Pode usar?\" = Não são proibidas):\n" + f
   } catch (e) {}
   return { nome: nome || "a empresa", base: base, etapas: etapas, finais: finais, desc: desc, playbook: playbook }
 }
@@ -627,5 +631,5 @@ module.exports = {
   podeConfigurar, situacao, precisaCfg, postaChat, chatDaEmpresa,
   ETAPAS, MODELO_PADRAO, lerDados, cfgDaEmpresa, chamaGemini, chama, analisaContato, internaLigada, aplicaAnalise, ultimaDoCliente, rodaCrm,
   perguntar, resumoDia, enviaResumoEmail, rodaResumoDia, usoDoMes, contextoEmpresa, conversa, registraUso,
-  urlsFonte, validaUrlFonte, atualizaFonte, rodaFontes, custos, franquia, franquiaDetalhe, iaPausada, avisaFranquias, PACOTES_IA, mesBR, assistir,
+  urlsFonte, validaUrlFonte, csvLinhas, atualizaFonte, rodaFontes, custos, franquia, franquiaDetalhe, iaPausada, avisaFranquias, PACOTES_IA, mesBR, assistir,
 }

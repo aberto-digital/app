@@ -1,127 +1,364 @@
 <!doctype html>
-<html lang="pt-BR" data-tema="escuro">
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AbertoCore · Apresentação</title>
+<title>abertodigital · Apresentação</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--papel:#0D131D;--card:#161E2B;--sup:#1C2636;--linha:#243044;--texto:#E7EBF2;--sec:#A2ACBE;--muted:#7F8AA0;--ceu:#2F6FED;--ambar:#FFB020;--dor:#E8806F;--ok:#3DBE7A;--display:"Archivo",system-ui,sans-serif;--corpo:Inter,system-ui,sans-serif}
-*{box-sizing:border-box;margin:0}
-html,body{height:100%}
-body{background:var(--papel);color:var(--texto);font:16px/1.5 var(--corpo);-webkit-font-smoothing:antialiased;overflow:hidden}
+:root{--ink:#101A2C;--navy:#1E3050;--slate:#384358;--ambar:#FFB020;--ceu:#2F6FED;--pessego:#FFA586;--papel:#F6F7F9;--texto:#101A2C;--sec:#5B6678;--muted:#AEB6C6;--linha:#D5DAE3;--display:"Archivo",system-ui,sans-serif;--corpo:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--wm-aberto:var(--papel)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--corpo);color:var(--texto);background:var(--papel);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit}
-button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-:focus-visible{outline:2px solid var(--ceu);outline-offset:3px}
-.topo{position:fixed;inset:0 0 auto 0;display:flex;justify-content:space-between;align-items:center;padding:16px max(20px,4vw);z-index:5;font:700 14px var(--display);letter-spacing:.02em}
-.topo span{color:var(--sec);font:500 13px var(--corpo)}
-.palco{position:fixed;inset:0}
-.sl{position:absolute;inset:0;padding:84px max(20px,6vw) 96px;display:flex;flex-direction:column;justify-content:center;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .35s,transform .35s,visibility .35s;overflow:auto}
-.sl.on{opacity:1;visibility:visible;transform:none}
-.in{max-width:1080px;width:100%;margin:0 auto}
-.eyebrow{font:600 12px var(--corpo);letter-spacing:.14em;text-transform:uppercase;color:var(--ambar);margin-bottom:14px}
-h1,h2{font-family:var(--display);font-stretch:92%;font-weight:800;line-height:1.04;letter-spacing:-.02em}
-h1{font-size:clamp(32px,5vw,60px);max-width:20ch}
-h2{font-size:clamp(28px,4.2vw,50px);max-width:20ch;margin-bottom:28px}
-.lead{font-size:clamp(17px,2vw,21px);color:var(--sec);max-width:52ch;margin-top:22px}
-.btn{display:inline-block;background:var(--ceu);color:#fff;font-weight:700;padding:14px 24px;border-radius:12px;text-decoration:none;margin-top:32px}
-.btn.alt{background:none;border:1px solid var(--linha);margin-left:10px}
+:focus-visible{outline:3px solid var(--ambar);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--display);font-weight:850;line-height:.98;letter-spacing:-.02em}
+h1{font-stretch:70%;font-size:clamp(2.6rem,6vw,5.2rem)}
+h2{font-stretch:72%;font-size:clamp(2.1rem,4.4vw,3.6rem)}
+em{font-style:normal;color:var(--ambar)}
+.rotulo{color:var(--ambar);font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+.botao{display:inline-flex;align-items:center;gap:8px;background:var(--ambar);color:var(--ink);font-weight:700;text-decoration:none;padding:13px 22px;border-radius:999px;transition:background .2s,transform .2s;white-space:nowrap}
+.botao:hover{background:#ffc04d;transform:translateY(-1px)}
+.botao.fantasma{background:transparent;color:var(--papel);box-shadow:inset 0 0 0 1px var(--slate)}
+.botao.fantasma:hover{background:var(--navy)}
+.botao.grande{padding:18px 30px;font-size:1.05rem}
+/* cabeçalho */
+header{position:sticky;top:0;z-index:40;background:rgba(16,26,44,.92);backdrop-filter:blur(10px);color:var(--papel)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:70px;gap:14px}
+.logo{height:34px;width:auto;display:block}
+.nav nav{display:flex;gap:24px}.nav nav a{font-size:.94rem;color:var(--muted);text-decoration:none}.nav nav a:hover{color:var(--papel)}
+.rg{display:flex;gap:2px;padding:3px;border:1px solid var(--slate);border-radius:99px;margin-left:auto;margin-right:6px}.rg button{background:none;border:0;color:var(--muted);font:700 .78rem var(--corpo);padding:6px 11px;border-radius:99px;cursor:pointer}.rg button[aria-pressed=true]{background:var(--ambar);color:var(--ink)}
+.prog{position:absolute;left:0;bottom:0;height:3px;width:100%;background:linear-gradient(90deg,var(--ambar),var(--ceu));transform-origin:left;transform:scaleX(0)}
+/* canais */
+.ch{display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 7px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.92rem;color:var(--papel)}
+.lg{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;flex:none;color:#fff;font:800 .8rem var(--display)}
+.lg svg{width:19px;height:19px;display:block}
+/* revelar */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.rv.on{opacity:1;transform:none}
+/* abertura */
+.hero{background:var(--ink);color:var(--papel);margin-top:-70px;padding:calc(70px + 9vh) 0 90px;position:relative;overflow:hidden;min-height:100svh;display:flex;align-items:center}
+.hero:before{content:"";position:absolute;width:900px;height:900px;right:-260px;top:-200px;background:radial-gradient(closest-side,rgba(47,111,237,.35),transparent);pointer-events:none}
+.hero-g{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;position:relative}
+.hero h1 .l2{color:var(--ambar)}
+.hero .apoio{color:var(--muted);font-size:1.15rem;max-width:560px;margin-top:24px}
+.hero .chs{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
+.arco-box{position:relative;aspect-ratio:1;max-width:460px;width:100%;margin-left:auto}
+.arco-box svg.arco{width:100%;height:100%;filter:drop-shadow(0 30px 60px rgba(47,111,237,.35))}
+.arco-box .porta{transform-origin:33px 74px;animation:abre 3.2s .6s cubic-bezier(.6,0,.2,1) both}
+@keyframes abre{from{transform:scaleX(1)}to{transform:scaleX(.18)}}
+.orb{position:absolute;animation:flut 6s ease-in-out infinite;animation-delay:var(--a,0s)}
+@keyframes flut{50%{transform:translateY(-12px)}}
+.rolar{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;display:grid;justify-items:center;gap:8px}
+.rolar i{width:1px;height:34px;background:linear-gradient(var(--ambar),transparent);animation:desce 1.8s infinite}
+@keyframes desce{from{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}to{transform:scaleY(0);transform-origin:bottom}}
 /* jornada */
-.jor{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px}
-.jor div{background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:20px}
-.jor b{display:block;font:800 13px var(--display);color:var(--ambar);margin-bottom:10px}
-.jor h3{font:700 19px var(--display);margin-bottom:6px}
-.jor p{font-size:14px;color:var(--sec)}
-.jor .dono{border-color:var(--ceu);background:linear-gradient(180deg,rgba(47,111,237,.16),var(--card))}
-.jor .dono b{color:#8DB2FF}
-/* dor x solução */
-.dx{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.col{border-radius:18px;padding:24px;border:1px solid var(--linha);background:var(--card)}
-.col.s{border-color:rgba(47,111,237,.55);background:linear-gradient(180deg,rgba(47,111,237,.14),var(--card))}
-.col h3{font:700 12px var(--corpo);letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;color:var(--dor)}
-.col.s h3{color:#8DB2FF}
-.col ul{list-style:none;padding:0}
-.col li{padding:9px 0 9px 26px;position:relative;font-size:15.5px;border-top:1px solid var(--linha)}
-.col li:first-child{border-top:0}
-.col li:before{content:"×";position:absolute;left:0;color:var(--dor);font-weight:700}
-.col.s li:before{content:"✓";color:var(--ok)}
-.ver{margin-top:18px;font-size:14px;color:var(--sec)}
-.ver b{color:var(--ambar);font-weight:600}
+.sec{padding:120px 0}
+.jor-t{max-width:760px}
+.jor-t h2{margin-bottom:18px}.jor-t p{color:var(--sec);font-size:1.1rem}
+.trilha{position:relative;margin-top:64px}
+.trilha:before{content:"";position:absolute;left:0;right:0;top:28px;height:3px;background:var(--linha);border-radius:3px}
+.trilha .fio{position:absolute;left:0;top:28px;height:3px;background:linear-gradient(90deg,var(--ambar),var(--ceu));border-radius:3px;width:calc(var(--p,0)*100%)}
+.passos{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;position:relative}
+.pn{background:#fff;border:1px solid var(--linha);border-radius:20px;padding:22px;transition:transform .3s,box-shadow .3s;margin-top:56px}
+.pn:hover{transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(16,26,44,.35)}
+.pn .no{position:absolute;margin-top:-84px;width:58px;height:58px;border-radius:50%;background:var(--ink);color:var(--ambar);display:grid;place-items:center;font:850 1.5rem var(--display);border:4px solid var(--papel)}
+.pn h3{font-stretch:78%;font-size:1.55rem;margin-bottom:10px}
+.pn ul{list-style:none;color:var(--sec);font-size:.95rem}.pn li{padding:3px 0 3px 16px;position:relative}.pn li:before{content:"";position:absolute;left:0;top:.8em;width:6px;height:6px;border-radius:50%;background:var(--ambar)}
+.pn.dono{background:var(--navy);color:var(--papel);border-color:var(--navy)}.pn.dono ul{color:var(--muted)}.pn.dono .no{background:var(--ceu);color:#fff}
+.pn small{display:inline-block;margin-top:12px;font-size:.78rem;font-weight:700;color:var(--ceu);letter-spacing:.06em;text-transform:uppercase}.pn.dono small{color:#8DB2FF}
+/* caos -> um canal */
+.pino{height:320vh;background:var(--ink);color:var(--papel);position:relative}
+.pino .cena{position:sticky;top:0;height:100svh;overflow:hidden}
+.cena:before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 50% 62%,rgba(47,111,237,.28),transparent)}
+.cena .tit{position:absolute;left:0;right:0;top:calc(70px + 5vh);text-align:center;padding:0 24px}
+.cena .tit h2{position:absolute;left:0;right:0;transition:opacity .4s,transform .4s}
+.cena .tit .a{opacity:1}.cena .tit .b{opacity:0;transform:translateY(14px)}
+.cena.junto .tit .a{opacity:0;transform:translateY(-14px)}.cena.junto .tit .b{opacity:1;transform:none}
+.tool{position:absolute;left:0;top:0;display:flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);will-change:transform,opacity;white-space:nowrap}
+.tool b{display:block;font-size:.92rem;line-height:1.2}.tool span.t{display:block;font-size:.74rem;color:var(--muted);line-height:1.2}
+.tool .lg{width:36px;height:36px;border-radius:11px}.tool .lg svg{width:22px;height:22px}
+.nucleo{position:absolute;left:50%;top:60%;width:min(360px,86vw);transform:translate(-50%,-50%) scale(.82);background:linear-gradient(160deg,#1E3050,#101A2C);border:1px solid rgba(255,255,255,.14);border-radius:26px;padding:22px;box-shadow:0 40px 80px -30px rgba(47,111,237,.6);opacity:.5;will-change:transform,opacity}
+.nucleo .cab{display:flex;align-items:center;gap:10px;margin-bottom:14px}.nucleo .cab svg{width:34px;height:34px}.nucleo .cab b{font:850 1.3rem var(--display);font-stretch:78%}
+.nucleo .lin{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06);margin-top:8px;font-size:.92rem}
+.nucleo .lin i{font-style:normal;font-size:.72rem;font-weight:700;color:var(--ink);background:var(--ambar);border-radius:99px;padding:2px 10px}
+.nucleo .rod{margin-top:14px;text-align:center;color:var(--muted);font-size:.8rem}
+/* capítulos */
+.cap{padding:110px 0;position:relative}
+.cap.escuro{background:var(--navy);color:var(--papel)}
+.cap-g{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.cap.inv .cap-g>:first-child{order:2}
+.cap h2{margin-bottom:26px}
+.dx{display:grid;gap:12px}
+.bx{border-radius:18px;padding:18px 20px;border:1px solid var(--linha);background:#fff}
+.cap.escuro .bx{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}
+.bx.s{border-color:var(--ceu);background:linear-gradient(180deg,rgba(47,111,237,.1),#fff)}
+.cap.escuro .bx.s{background:linear-gradient(180deg,rgba(47,111,237,.28),rgba(47,111,237,.06))}
+.bx h4{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;color:#c0532f}.bx.s h4{color:var(--ceu)}.cap.escuro .bx.s h4{color:#8DB2FF}.cap.escuro .bx h4{color:var(--pessego)}
+.bx ul{list-style:none}.bx li{padding:6px 0 6px 28px;position:relative;font-size:1rem}
+.bx li:before{content:"×";position:absolute;left:0;top:5px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(192,83,47,.14);color:#c0532f;font-weight:800;font-size:.8rem}
+.bx.s li:before{content:"✓";background:rgba(47,111,237,.16);color:var(--ceu)}.cap.escuro .bx.s li:before{color:#8DB2FF}
+.bx:not(.s) li{color:var(--sec);text-decoration:line-through;text-decoration-color:transparent;transition:text-decoration-color .6s .5s}.bx:not(.s).on li{text-decoration-color:rgba(192,83,47,.55)}
+.cap.escuro .bx:not(.s) li{color:var(--muted)}
+/* mocks */
+.mock{position:relative;min-height:440px;display:grid;place-items:center}
+.card-m{background:#fff;color:var(--ink);border-radius:22px;border:1px solid var(--linha);box-shadow:0 30px 60px -30px rgba(16,26,44,.45)}
+.cap.escuro .card-m{border-color:rgba(255,255,255,.12)}
+.busca{width:min(440px,100%);padding:16px}
+.busca .in{display:flex;align-items:center;gap:10px;padding:11px 16px;border:1px solid var(--linha);border-radius:99px;font-size:.95rem;color:var(--sec)}
+.res{margin-top:14px;padding:14px;border-radius:16px;background:var(--papel);display:grid;grid-template-columns:62px 1fr;gap:12px;align-items:center}
+.res img{width:62px;height:62px;border-radius:14px;object-fit:cover}
+.res b{display:block;font-size:1rem}.res small{color:var(--sec)}.res .est{color:var(--ambar);letter-spacing:2px}
+.res .bt{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}.res .bt span{font-size:.8rem;font-weight:700;border-radius:99px;padding:6px 12px;background:#fff;border:1px solid var(--linha)}.res .bt span.p{background:var(--ambar);border-color:var(--ambar)}
+.flut{position:absolute;box-shadow:0 18px 40px -20px rgba(0,0,0,.5);animation:flut 7s ease-in-out infinite;animation-delay:var(--a,0s)}
+.fone{width:min(270px,70%);aspect-ratio:9/18;border-radius:34px;background:var(--ink);padding:10px;box-shadow:0 40px 70px -30px rgba(16,26,44,.6);border:1px solid rgba(255,255,255,.12)}
+.fone .tela{height:100%;border-radius:26px;overflow:hidden;background:var(--papel);color:var(--ink);display:flex;flex-direction:column}
+.fone .tela img.h{width:100%;height:46%;object-fit:cover}
+.fone .tela .tx{padding:12px 14px}.fone .tela .tx b{font:850 1.15rem var(--display);font-stretch:78%;display:block;line-height:1.05}.fone .tela .tx small{color:var(--sec);font-size:.72rem}
+.fone .tela .g{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:0 14px}.fone .tela .g img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
+.fone .tela .bb{margin:auto 14px 14px;background:var(--ink);color:#fff;text-align:center;border-radius:99px;padding:9px;font-size:.78rem;font-weight:700}
+.dep{width:230px;padding:14px;font-size:.84rem}.dep .est{color:var(--ambar);letter-spacing:2px}
+.chat{width:min(420px,100%);padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat .top{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--linha)}.chat .top b{display:block;line-height:1.1}.chat .top small{color:var(--sec)}
+.bl{max-width:82%;padding:10px 14px;border-radius:16px;font-size:.92rem;opacity:0;transform:translateY(12px);transition:.5s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.on .bl{opacity:1;transform:none}
+.bl.c{background:var(--papel);align-self:flex-start;border-bottom-left-radius:4px}.bl.i{background:var(--ceu);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.bl.ok{background:#fff;border:1px dashed var(--ceu);align-self:center;max-width:100%;font-size:.82rem;color:var(--sec);text-align:center}
+.ia-sel{font-size:.7rem;font-weight:700;opacity:.8;display:block;margin-bottom:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;background:var(--ambar);color:var(--ink);border-radius:99px;padding:5px 12px}
+.painel{width:min(500px,100%);padding:14px;background:#161E2B;color:#E7EBF2;border-radius:22px;border:1px solid rgba(255,255,255,.12);box-shadow:0 40px 80px -30px rgba(0,0,0,.7)}
+.painel .tp{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 12px;font-weight:700}.painel .tp span{font-size:.7rem;color:#F5D98F;background:#2E2410;border:1px solid #5A4614;border-radius:99px;padding:2px 10px}
+.painel .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.painel .cl{background:#0D131D;border-radius:14px;padding:10px;min-height:190px}.painel .cl h5{font-size:.72rem;color:#A2ACBE;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between}
+.painel .cd{background:#1C2636;border:1px solid #243044;border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:.78rem;opacity:0;transform:translateY(10px);transition:.5s;transition-delay:var(--d,0s)}
+.on .painel .cd{opacity:1;transform:none}
+.painel .cd.n{border-color:var(--ceu);box-shadow:0 0 0 2px rgba(47,111,237,.3)}.painel .cd small{display:block;color:#A2ACBE}
+.painel .tag{display:inline-block;font-size:.66rem;font-weight:700;background:rgba(255,176,32,.18);color:#FFC95C;border-radius:99px;padding:1px 8px;margin-top:4px}
+/* tudo num canal */
+.faixa{background:var(--navy);color:var(--papel);padding:120px 0;position:relative;overflow:hidden}
+.faixa h2{max-width:900px}.faixa .sub{color:var(--muted);max-width:640px;margin-top:16px;font-size:1.1rem}
+.mat{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.mt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:22px;transition:transform .3s,background .3s}
+.mt:hover{transform:translateY(-5px);background:rgba(255,255,255,.09)}
+.mt .antes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.mt .antes .lg{width:26px;height:26px;border-radius:8px;opacity:.55;font-size:.65rem}.mt .antes .lg svg{width:16px;height:16px}
+.mt h3{font-stretch:78%;font-size:1.4rem;margin-bottom:8px}.mt p{color:var(--muted);font-size:.95rem}
+.mt .agora{margin-top:12px;font-size:.88rem;color:#8DB2FF;font-weight:600;display:flex;gap:8px;align-items:flex-start}
 /* roteiro */
-.rot{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.rot a{display:block;background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:22px;text-decoration:none}
-.rot a:hover{border-color:var(--ceu)}
-.rot b{font:800 36px var(--display);color:var(--ceu);display:block;line-height:1}
-.rot h3{font:700 19px var(--display);margin:10px 0 6px}
-.rot p{font-size:14px;color:var(--sec)}
-/* controles */
-.nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:16px max(20px,4vw) max(16px,env(safe-area-inset-bottom));z-index:5;background:linear-gradient(0deg,var(--papel) 55%,transparent)}
-.pts{display:flex;gap:7px}
-.pts i{width:7px;height:7px;border-radius:50%;background:var(--linha);transition:.2s}
-.pts i.on{background:var(--ceu);width:22px;border-radius:9px}
-.setas{display:flex;gap:8px}
-.setas button{border:1px solid var(--linha);border-radius:12px;padding:10px 18px;font-weight:600;background:var(--card)}
-.setas button.go{background:var(--ceu);border-color:var(--ceu);color:#fff}
-.setas button[disabled]{opacity:.35;cursor:default}
-@media(max-width:820px){.jor,.rot,.dx{grid-template-columns:1fr}.sl{justify-content:flex-start;padding:70px max(20px,6vw) 130px}.btn.alt{margin:10px 0 0}}
-@media(prefers-reduced-motion:reduce){.sl{transition:none}}
+.rot{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:56px}
+.rt{background:#fff;border:1px solid var(--linha);border-radius:24px;padding:28px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:transform .3s,box-shadow .3s;position:relative}
+.rt:hover{transform:translateY(-6px);box-shadow:0 30px 50px -30px rgba(16,26,44,.5)}
+.rt b.n{font:850 3.4rem/1 var(--display);font-stretch:70%;color:var(--ceu)}
+.rt h3{font-stretch:78%;font-size:1.6rem}.rt p{color:var(--sec)}.rt .go{margin-top:auto;padding-top:14px;font-weight:700;color:var(--ink)}
+.rt.dest{background:var(--ink);color:var(--papel);border-color:var(--ink)}.rt.dest p{color:var(--muted)}.rt.dest .go{color:var(--ambar)}.rt.dest b.n{color:var(--ambar)}
+.fim{background:var(--ink);color:var(--papel);padding:120px 0;text-align:center}
+.fim h2{max-width:900px;margin:0 auto 18px}.fim p{color:var(--muted);max-width:560px;margin:0 auto 34px;font-size:1.1rem}
+footer{background:var(--ink);color:var(--muted);font-size:.85rem;padding:22px 0 30px;border-top:1px solid var(--slate)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:980px){.hero-g,.cap-g{grid-template-columns:1fr}.arco-box{margin:20px auto 0;max-width:300px}.passos,.mat,.rot{grid-template-columns:1fr 1fr}.cap.inv .cap-g>:first-child{order:0}.nav nav{display:none}.trilha:before,.trilha .fio{display:none}.pn{margin-top:0}.pn .no{position:static;margin:0 0 12px}}
+@media(max-width:620px){#topoCta .l{display:none}.nav .logo{height:26px}.nav{gap:6px}.rg{margin-right:2px}.rg button{padding:6px 9px}.nav .wrap,.wrap{padding:0 16px}.cap-g>*{min-width:0}.passos,.mat,.rot{grid-template-columns:1fr}.sec,.cap,.faixa,.fim{padding:80px 0}.tool .t{display:none}.tool{padding:6px 12px 6px 6px}.mock{min-height:0;padding:10px 0}.pino{height:280vh}.nav .botao{padding:9px 13px;font-size:.85rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rv,.bl,.painel .cd{transition:none;opacity:1;transform:none}.orb,.flut,.arco-box .porta,.rolar i{animation:none}}
 </style>
 </head>
 <body>
-<div class="topo"><div>AbertoCore</div><span id="para"></span></div>
-<main class="palco" id="palco"></main>
-<div class="nav"><div class="pts" id="pts"></div><div class="setas"><button id="ant">Voltar</button><button id="prox" class="go">Avançar</button></div></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="g-icone" transform="scale(0.5833333333333334)">
+      <rect width="96" height="96" rx="24" fill="#1E3050"/>
+      <path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/>
+      <path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/>
+      <path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/>
+    </g>
+    <g id="g-wm">
+      <path style="fill:var(--wm-aberto,#F6F7F9)" d="M81.173828125 43.38671875C84.654296875 43.38671875 86.609375 42.01171875 87.8125 39.798828125H87.8984375V43.0H94.0859375V27.6171875C94.0859375 22.76171875 90.51953125 19.83984375 84.310546875 19.83984375C78.080078125 19.83984375 74.384765625 22.8046875 74.10546875 27.48828125H80.056640625C80.20703125 25.748046875 81.75390625 24.544921875 84.1171875 24.544921875C86.4375 24.544921875 87.833984375 25.705078125 87.833984375 27.380859375V27.53125C87.833984375 28.9921875 86.373046875 29.185546875 82.2265625 29.59375C77.5 30.0234375 73.375 31.484375 73.375 36.59765625C73.375 41.130859375 76.640625 43.38671875 81.173828125 43.38671875ZM82.935546875 38.982421875C80.80859375 38.982421875 79.43359375 38.037109375 79.43359375 36.42578125C79.43359375 34.62109375 81.15234375 33.783203125 83.322265625 33.4609375C85.36328125 33.138671875 87.146484375 32.837890625 87.876953125 32.4296875V34.70703125C87.876953125 37.15625 85.986328125 38.982421875 82.935546875 38.982421875ZM111.152734375 43.47265625C117.082421875 43.47265625 120.97109375 38.74609375 120.97109375 31.634765625C120.97109375 24.673828125 116.996484375 19.83984375 111.195703125 19.83984375C108.25234375 19.83984375 105.975 21.0 104.5140625 23.44921875H104.492578125V10.98828125H98.1546875V43.0H104.406640625V39.51953125H104.428125C105.738671875 42.162109375 108.16640625 43.47265625 111.152734375 43.47265625ZM109.519921875 38.31640625C106.31875 38.31640625 104.191796875 35.6953125 104.191796875 31.634765625C104.191796875 27.595703125 106.31875 24.953125 109.519921875 24.953125C112.5921875 24.953125 114.590234375 27.380859375 114.590234375 31.634765625C114.590234375 35.888671875 112.5921875 38.31640625 109.519921875 38.31640625ZM134.40703125 43.515625C139.90703125 43.515625 144.28984375 40.37890625 145.127734375 35.8671875H139.3484375C138.768359375 37.62890625 137.07109375 38.767578125 134.600390625 38.767578125C131.2703125 38.767578125 129.33671875 36.59765625 129.229296875 33.24609375H145.3640625V31.548828125C145.3640625 24.630859375 140.873828125 19.796875 134.1921875 19.796875C127.68242187499999 19.796875 123.06328124999999 24.759765625 123.06328124999999 31.677734375C123.06328124999999 38.57421875 127.53203124999999 43.515625 134.40703125 43.515625ZM129.272265625 29.20703125C129.616015625 26.37109375 131.48515625 24.609375 134.32109375 24.609375C137.178515625 24.609375 139.069140625 26.37109375 139.39140625 29.20703125ZM148.35859374999998 43.0H154.69648437499998V30.7109375C154.69648437499998 27.294921875 156.60859374999998 25.490234375 159.20820312499998 25.490234375C160.28242187499998 25.490234375 161.46406249999998 25.576171875 161.93671874999998 25.59765625V20.205078125C161.42109374999998 20.18359375 160.79804687499998 20.162109375 160.06757812499998 20.162109375C157.08124999999998 20.162109375 155.36249999999998 21.451171875 154.52460937499998 24.1796875H154.46015624999998V20.3125H148.35859374999998ZM177.41367187499998 20.3125H172.77304687499998V14.125H166.43515624999998V20.3125H162.52499999999998V25.275390625H166.43515624999998V36.984375C166.43515624999998 41.109375 168.73398437499998 43.0 173.71835937499998 43.0H177.41367187499998V38.037109375H174.98593749999998C173.26718749999998 38.037109375 172.77304687499998 37.54296875 172.77304687499998 35.99609375V25.275390625H177.41367187499998ZM190.72070312499997 43.515625C197.61718749999997 43.515625 202.25781249999997 38.7890625 202.25781249999997 31.677734375C202.25781249999997 24.56640625 197.61718749999997 19.796875 190.72070312499997 19.796875C183.84570312499997 19.796875 179.20507812499997 24.56640625 179.20507812499997 31.677734375C179.20507812499997 38.7890625 183.84570312499997 43.515625 190.72070312499997 43.515625ZM190.72070312499997 38.380859375C187.64843749999997 38.380859375 185.58593749999997 35.888671875 185.58593749999997 31.677734375C185.58593749999997 27.4453125 187.66992187499997 24.931640625 190.72070312499997 24.931640625C193.79296874999997 24.931640625 195.87695312499997 27.4453125 195.87695312499997 31.677734375C195.87695312499997 35.888671875 193.81445312499997 38.380859375 190.72070312499997 38.380859375Z"/>
+      <path fill="#FFB020" transform="translate(-10.5 0)" d="M224.96757812499996 43.451171875C227.93242187499996 43.451171875 230.46757812499996 42.18359375 231.99296874999996 39.541015625H232.03593749999996V43.0H236.48320312499996V10.98828125H231.94999999999996V23.599609375H231.90703124999996C230.44609374999996 21.0859375 227.88945312499996 19.861328125 224.94609374999996 19.861328125C219.08085937499996 19.861328125 215.12773437499996 24.65234375 215.12773437499996 31.65625C215.12773437499996 38.681640625 219.05937499999996 43.451171875 224.96757812499996 43.451171875ZM225.89140624999996 39.541015625C222.23906249999996 39.541015625 219.72539062499996 36.76953125 219.72539062499996 31.65625C219.72539062499996 26.521484375 222.23906249999996 23.75 225.89140624999996 23.75C229.75859374999996 23.75 232.25078124999996 26.88671875 232.25078124999996 31.65625C232.25078124999996 36.42578125 229.75859374999996 39.541015625 225.89140624999996 39.541015625ZM241.19648437499995 43.0H245.72968749999995V20.3125H241.19648437499995ZM243.45234374999995 16.40234375C245.06367187499995 16.40234375 246.33124999999995 15.177734375 246.33124999999995 13.630859375C246.33124999999995 12.0625 245.06367187499995 10.837890625 243.45234374999995 10.837890625C241.84101562499995 10.837890625 240.59492187499995 12.0625 240.59492187499995 13.630859375C240.59492187499995 15.177734375 241.84101562499995 16.40234375 243.45234374999995 16.40234375ZM260.347265625 52.28125C266.062109375 52.28125 270.68125 49.57421875 270.68125 42.69921875V20.3125H266.2125V23.771484375H266.191015625C264.665625 21.064453125 262.0875 19.861328125 259.144140625 19.861328125C253.27890624999995 19.861328125 249.32578124999995 24.65234375 249.32578124999995 31.591796875C249.32578124999995 38.509765625 253.25742187499995 43.30078125 259.165625 43.30078125C262.151953125 43.30078125 264.601171875 42.076171875 266.16953125 39.43359375H266.191015625V42.87109375C266.191015625 46.544921875 263.999609375 48.5859375 260.347265625 48.5859375C257.597265625 48.5859375 255.55624999999995 47.447265625 254.97617187499995 45.255859375H250.44296874999995C251.04453124999995 49.703125 254.78281249999995 52.28125 260.347265625 52.28125ZM260.089453125 39.412109375C256.437109375 39.412109375 253.92343749999995 36.662109375 253.92343749999995 31.5703125C253.92343749999995 26.478515625 256.437109375 23.728515625 260.089453125 23.728515625C263.956640625 23.728515625 266.448828125 26.822265625 266.448828125 31.5703125C266.448828125 36.318359375 263.956640625 39.412109375 260.089453125 39.412109375ZM275.39453124999994 43.0H279.92773437499994V20.3125H275.39453124999994ZM277.65039062499994 16.40234375C279.26171874999994 16.40234375 280.52929687499994 15.177734375 280.52929687499994 13.630859375C280.52929687499994 12.0625 279.26171874999994 10.837890625 277.65039062499994 10.837890625C276.03906249999994 10.837890625 274.79296874999994 12.0625 274.79296874999994 13.630859375C274.79296874999994 15.177734375 276.03906249999994 16.40234375 277.65039062499994 16.40234375ZM295.57656249999997 20.3125H290.97890624999997V14.125H286.42421874999997V20.3125H282.42812499999997V24.05078125H286.42421874999997V37.5859375C286.42421874999997 41.23828125 288.46523437499997 43.0 292.71914062499997 43.0H295.57656249999997V39.26171875H293.36367187499997C291.55898437499997 39.26171875 290.97890624999997 38.681640625 290.97890624999997 37.005859375V24.05078125H295.57656249999997ZM305.682421875 43.365234375C309.592578125 43.365234375 311.440234375 41.603515625 312.385546875 39.77734375H312.471484375V43.0H316.940234375V27.4453125C316.940234375 22.826171875 313.52421875 19.861328125 307.93828125 19.861328125C302.26640625 19.861328125 298.592578125 22.912109375 298.377734375 27.23046875H302.825C302.996875 25.146484375 304.9734375 23.578125 307.873828125 23.578125C310.752734375 23.578125 312.45 25.16796875 312.45 27.359375V27.552734375C312.45 29.20703125 311.03203125 29.1640625 306.778125 29.6796875C302.158984375 30.216796875 297.819140625 31.333984375 297.819140625 36.51171875C297.819140625 41.044921875 301.170703125 43.365234375 305.682421875 43.365234375ZM306.60625 39.712890625C303.963671875 39.712890625 302.330859375 38.552734375 302.330859375 36.59765625C302.330859375 34.298828125 304.565234375 33.41796875 307.0359375 33.052734375C309.4421875 32.708984375 311.8484375 32.34375 312.471484375 31.849609375V34.513671875C312.471484375 37.306640625 310.60234375 39.712890625 306.60625 39.712890625ZM326.18671875 10.98828125H321.653515625V43.0H326.18671875Z"/>
+    </g>
+  </defs>
+</svg>
+<header><div class="wrap nav">
+  <a class="marca" href="#topo" aria-label="abertodigital" style="line-height:0"><svg class="logo" viewBox="0 0 320 56" aria-hidden="true"><use href="#g-icone"/><use href="#g-wm"/></svg></a>
+  <nav><a href="#jornada">A jornada</a><a href="#hoje">Hoje</a><a href="#solucao">A solução</a><a href="#pratica">Na prática</a></nav>
+  <div class="rg" id="rg" role="group" aria-label="Região"><button type="button" data-r="us">EUA</button><button type="button" data-r="br">BR</button></div>
+  <a class="botao" id="topoCta" href="#">Ver o site</a>
+</div><div class="prog" id="prog"></div></header>
+
+<main id="topo">
+<section class="hero"><div class="wrap hero-g">
+  <div>
+    <p class="rotulo rv" id="hRot"></p>
+    <h1 class="rv" style="--d:.08s" id="hTit"></h1>
+    <p class="apoio rv" style="--d:.16s" id="hApoio"></p>
+    <div class="chs rv" style="--d:.24s" id="hChs"></div>
+    <div class="cta rv" style="--d:.32s"><a class="botao grande" href="#jornada">Começar a apresentação</a><a class="botao grande fantasma" id="heroSite" href="#">Ir direto ao site</a></div>
+  </div>
+  <div class="arco-box rv" style="--d:.2s" id="arcoBox">
+    <svg class="arco" viewBox="0 0 96 96" aria-hidden="true"><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path class="porta" d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#101A2C"/></svg>
+  </div>
+  <div class="rolar" aria-hidden="true"><span>Role</span><i></i></div>
+</div></section>
+
+<section class="sec" id="jornada"><div class="wrap">
+  <div class="jor-t"><p class="rotulo rv">A jornada</p><h2 class="rv" style="--d:.06s" id="jTit"></h2><p class="rv" style="--d:.12s" id="jTxt"></p></div>
+  <div class="trilha" id="trilha"><div class="fio"></div><div class="passos" id="passos"></div></div>
+</div></section>
+
+<section class="pino" id="hoje"><div class="cena" id="cena">
+  <div class="tit"><h2 class="a" id="caosA"></h2><h2 class="b" id="caosB"></h2></div>
+  <div id="tools"></div>
+  <div class="nucleo" id="nucleo"></div>
+</div></section>
+
+<div id="caps"></div>
+
+<section class="faixa" id="solucao"><div class="wrap">
+  <p class="rotulo rv">Tudo num canal só</p>
+  <h2 class="rv" style="--d:.06s" id="mTit"></h2><p class="sub rv" style="--d:.12s">Cada dor que você resolve hoje com um aplicativo diferente passa a viver na mesma conversa, com a IA fazendo o trabalho repetitivo.</p>
+  <div class="mat" id="mat"></div>
+</div></section>
+
+<section class="sec" id="pratica"><div class="wrap">
+  <p class="rotulo rv">Agora é a sua vez</p>
+  <h2 class="rv" style="--d:.06s" id="pTit"></h2>
+  <div class="rot" id="rot"></div>
+</div></section>
+
+<section class="fim"><div class="wrap">
+  <h2 class="rv" id="fTit"></h2><p class="rv" style="--d:.08s">Em 2 minutos você vive o que a cliente vive e vê como o dono recebe. Depois, a proposta.</p>
+  <a class="botao grande rv" style="--d:.16s" id="fCta" href="#">Experimentar agora</a>
+</div></section>
+</main>
+<footer><div class="wrap"><span>© abertodigital · demonstração com informações públicas do perfil</span><span>Valores e fotos de exemplo</span></div></footer>
+
+<script src="../precos.js?v=1"></script>
 <script>
 (function(){
   var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';
-  var D={
-    amanda:{nome:'Amanda',neg:'Amanda Belas Unhas',nicho:'studio de unhas',site:'../amanda/',ag:'agendamento online',
-      cap:'Como a Amanda é encontrada, escolhida e atendida. E como isso pode ficar bem mais leve.',
-      d1:['Quem busca “unhas em Goose Creek” não encontra o studio com facilidade','O Instagram tem trabalhos lindos, mas nenhum caminho claro para agendar','Sem site, o studio parece menor do que é'],
-      s1:['Perfil no Google e site de uma página, achados na busca da região','Link do site na bio do Instagram e nos anúncios','Tudo em português e em inglês, para as duas comunidades'],
-      d2:['Os trabalhos ficam perdidos no feed, sem preço nem contexto','Poucos depoimentos à vista','A cliente sai sem saber quanto custa nem como agendar'],
-      s2:['Site com fotos grandes, serviços, preços de referência e depoimentos','Presença sólida e igual em todos os canais','A cliente entende o studio em 30 segundos e já agenda'],
-      d3:['Mensagens chegam à noite e só são respondidas no dia seguinte','Vai e volta no WhatsApp para combinar dia, hora e valor','Faltas sem aviso e sinal combinado “de boca”'],
-      s3:['A cliente escolhe serviço, dia e horário sozinha, a qualquer hora','Confirmação pelo canal que ela preferir: WhatsApp, Instagram ou e-mail','Sinal por cartão ou Zelle, lembrete automático e aviso de manutenção'],
-      d4:['Agenda no caderno e conversas espalhadas em três aplicativos','Não sabe quem voltou, quem sumiu nem quanto entrou no mês','Esquece de chamar a cliente na hora da manutenção'],
-      s4:['Agenda, conversas e clientes no mesmo painel','Funil mostra quem pediu, quem confirmou e quem pagou','A IA organiza, responde o simples e lembra a recorrência']},
-    ibraim:{nome:'Ibraim',neg:'Ibraim · Superman Tattoo',nicho:'estúdio de tatuagem',site:'../ibraim/',ag:'orçamento online',
-      cap:'Como o Ibraim é encontrado, escolhido e atendido. E como isso pode ficar bem mais leve.',
-      d1:['Quem busca tatuador em South Carolina encontra outros antes do estúdio','O Instagram mostra o talento, mas não leva a um orçamento','Sem site próprio, depende só do algoritmo'],
-      s1:['Perfil no Google e site de uma página, achados na busca da região','Link do site na bio do Instagram e nos anúncios','Tudo em português e em inglês'],
-      d2:['A galeria fica enterrada no feed, sem estilo organizado','Poucos depoimentos e nada sobre como funciona o processo','Quem está em dúvida desiste antes de perguntar'],
-      s2:['Site com galeria grande por estilo, processo explicado e depoimentos','Presença sólida e igual em todos os canais','O cliente entende o trabalho e já pede o orçamento'],
-      d3:['Todo cliente pergunta “quanto custa?” e espera horas pela resposta','Trocas de fotos de referência perdidas no direct','Sinal combinado solto, com risco de o cliente faltar'],
-      s3:['O cliente escolhe região, tamanho e estilo e já vê uma faixa de valor','Anexa a referência e escolhe o canal da resposta','Sinal por cartão ou Zelle e lembrete automático da sessão'],
-      d4:['Orçamentos, agenda e referências espalhados em vários lugares','Não sabe quais pedidos ficaram sem resposta','Retoques e novas sessões dependem da memória'],
-      s4:['Pedidos, conversas e agenda no mesmo painel','Funil mostra o que pediu orçamento, o que fechou e o que pagou sinal','A IA organiza, responde o simples e lembra retoque e retorno']}
-  }[n];
-  document.getElementById('para').textContent='Apresentação para '+D.nome;
-  function lis(a){return a.map(function(x){return '<li>'+x+'</li>'}).join('')}
-  function par(tag,t,hoje,sol,ver){return '<div class="in"><p class="eyebrow">'+tag+'</p><h2>'+t+'</h2><div class="dx"><div class="col"><h3>Hoje</h3><ul>'+lis(hoje)+'</ul></div><div class="col s"><h3>Com a AbertoCore</h3><ul>'+lis(sol)+'</ul></div></div><p class="ver">Você vai ver: <b>'+ver+'</b></p></div>'}
-  var S=[
-   '<div class="in"><p class="eyebrow">Para '+D.nome+' · '+D.nicho+'</p><h1>'+D.cap+'</h1><p class="lead">Uma apresentação curta, e depois você usa tudo na prática: o site que sua cliente vê, o painel de quem atende e a proposta.</p><a class="btn" href="#" data-go="1">Começar</a></div>',
-   '<div class="in"><p class="eyebrow">A jornada</p><h2>Do primeiro olhar até a cliente voltar.</h2><div class="jor"><div><b>1</b><h3>É encontrado</h3><p>Instagram, Google, site ou anúncio.</p></div><div><b>2</b><h3>É visitado</h3><p>Portfólio, site, depoimentos, presença sólida.</p></div><div><b>3</b><h3>É contatado</h3><p>Agilidade, cordialidade, agendamento, pagamento, lembretes.</p></div><div class="dono"><b>4 · BASTIDORES</b><h3>Dono se organiza</h3><p>Agenda, funil, pós-venda e recorrência.</p></div></div><p class="lead">Em cada etapa existe um ponto onde o cliente se perde. Vamos olhar um por um.</p></div>',
-   par('1 · Ser encontrado','Quem procura precisa achar você.',D.d1,D.s1,'o site completo de '+D.nome),
-   par('2 · Ser visitado','A primeira impressão decide o contato.',D.d2,D.s2,'a página do site, galeria e depoimentos'),
-   par('3 · Ser contatado','Resposta rápida vira cliente.',D.d3,D.s3,'o '+D.ag+', com escolha de canal e sinal'),
-   par('4 · Se organizar','Menos caderno, mais controle.',D.d4,D.s4,'o painel do AbertoCore recebendo o pedido que você fizer'),
-   '<div class="in"><p class="eyebrow">Agora é a sua vez</p><h2>Três passos, na prática.</h2><div class="rot"><a href="'+D.site+'"><b>1</b><h3>O site e o '+D.ag+'</h3><p>Entre como se fosse o cliente de '+D.nome+' e faça um pedido de verdade.</p></a><a href="'+D.site+'"><b>2</b><h3>O painel do dono</h3><p>Ao concluir o pedido, o AbertoCore abre sozinho, com conversa, agenda e funil.</p></a><a href="../proposta/?n='+n+'"><b>3</b><h3>A proposta</h3><p>Planos e valores para colocar isso para funcionar no seu negócio.</p></a></div><a class="btn" href="'+D.site+'">Ver o site do cliente</a><a class="btn alt" href="../proposta/?n='+n+'">Ir direto à proposta</a></div>'
-  ];
-  var palco=document.getElementById('palco'),pts=document.getElementById('pts'),i=0;
-  S.forEach(function(h,k){var s=document.createElement('section');s.className='sl';s.innerHTML=h;palco.appendChild(s);pts.appendChild(document.createElement('i'))});
-  var sl=palco.children,dots=pts.children,ant=document.getElementById('ant'),prox=document.getElementById('prox');
-  function ir(k){i=Math.max(0,Math.min(S.length-1,k));for(var j=0;j<sl.length;j++){sl[j].classList.toggle('on',j===i);dots[j].classList.toggle('on',j===i);sl[j].setAttribute('aria-hidden',j!==i)}ant.disabled=i===0;prox.textContent=i===S.length-1?'Ver o site':'Avançar';sl[i].scrollTop=0;try{history.replaceState(null,'','?n='+n+'#'+(i+1))}catch(e){}}
-  ant.onclick=function(){ir(i-1)};
-  prox.onclick=function(){if(i===S.length-1)location.href=D.site;else ir(i+1)};
-  document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();prox.click()}else if(e.key==='ArrowLeft'||e.key==='PageUp')ant.click()});
-  document.querySelectorAll('[data-go]').forEach(function(a){a.onclick=function(e){e.preventDefault();ir(+a.getAttribute('data-go'))}});
-  var x0=null;palco.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
-  palco.addEventListener('touchend',function(e){if(x0===null)return;var d=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(d)>70)(d<0?prox:ant).click()});
-  ir((parseInt(location.hash.slice(1),10)||1)-1);
+  var A=n==='amanda';
+  var D=A?{nome:'Amanda',nicho:'studio de unhas',site:'../amanda/',ag:'agendamento',ver:'agendar',
+      fotos:['../amanda/img/n3.png','../amanda/img/n2.png','../amanda/img/n4.png','../amanda/img/n5.png'],
+      busca:'unhas em Goose Creek',res:'Amanda Belas Unhas',ref:'Alongamento em gel · Goose Creek · SC',
+      pergunta:'Quanto custa o alongamento em gel?',resp:'Oi! A partir de $120, leva cerca de 2h30. Quer ver os horários livres?',
+      c2:'Sexta, 2:30 pm',sinal:'Sinal de $30 por Zelle',
+      cols:['Novo contato','Agendado','Pós-atendimento'],cards:[['Fernanda R.','Tem horário sábado?'],['Julia Souza','Alongamento · sex 14:30','Sinal pago'],['Juliana S.','Manutenção em 3 semanas']],
+      d:[['Quem busca “unhas em Goose Creek” não encontra o studio com facilidade','O Instagram tem trabalhos lindos, mas nenhum caminho claro para agendar','Sem site, o studio parece menor do que é'],
+         ['Os trabalhos ficam perdidos no feed, sem preço nem contexto','Poucos depoimentos à vista','A cliente sai sem saber quanto custa nem como agendar'],
+         ['Mensagens chegam à noite e só são respondidas no dia seguinte','Vai e volta no WhatsApp para combinar dia, hora e valor','Faltas sem aviso e sinal combinado “de boca”'],
+         ['Agenda no caderno e conversas espalhadas em vários aplicativos','Não sabe quem voltou, quem sumiu nem quanto entrou','Esquece de chamar a cliente na hora da manutenção']],
+      s:[['Perfil no Google e site de uma página, achados na busca da região','Link do site na bio do Instagram e nos anúncios','Tudo em português e em inglês, para as duas comunidades'],
+         ['Site com fotos grandes, serviços, preços de referência e depoimentos','Presença sólida e igual em todos os canais','A cliente entende o studio em 30 segundos e já agenda'],
+         ['A cliente escolhe serviço, dia e horário sozinha, a qualquer hora','Confirmação pelo canal que ela preferir: WhatsApp, Instagram ou e-mail','Sinal por cartão ou Zelle, lembrete automático e aviso de manutenção'],
+         ['Agenda, conversas e clientes no mesmo painel','O funil mostra quem pediu, confirmou e pagou','A IA organiza, responde o simples e lembra a recorrência']]}
+   :{nome:'Ibraim',nicho:'estúdio de tatuagem',site:'../ibraim/',ag:'orçamento',ver:'pedir orçamento',
+      fotos:['../ibraim/img/t1.png','../ibraim/img/t2.png','../ibraim/img/t3.png','../ibraim/img/t4.png'],
+      busca:'tatuador em South Carolina',res:'Superman Tattoo · Ibraim',ref:'Preto e cinza, colorida e fechamentos · SC',
+      pergunta:'Quanto custa fechar o braço em preto e cinza?',resp:'Oi! Fechamentos vão de $1.000 a $3.500, em várias sessões. Me conta a ideia e já te passo uma estimativa.',
+      c2:'Sessão sábado, 10 am',sinal:'Sinal de $100 por Zelle',
+      cols:['Novo orçamento','Proposta enviada','Fechado'],cards:[['Lucas P.','Fechamento de braço'],['Camila R.','Fineline · $100–$350','Aguardando sinal'],['Diego S.','Aprovado, pode marcar']],
+      d:[['Quem busca tatuador em South Carolina encontra outros antes do estúdio','O Instagram mostra o talento, mas não leva a um orçamento','Sem site próprio, depende só do algoritmo'],
+         ['A galeria fica enterrada no feed, sem estilo organizado','Poucos depoimentos e nada sobre como funciona o processo','Quem está em dúvida desiste antes de perguntar'],
+         ['Todo cliente pergunta “quanto custa?” e espera horas pela resposta','Fotos de referência perdidas no direct','Sinal combinado solto, com risco de o cliente faltar'],
+         ['Orçamentos, agenda e referências espalhados em vários lugares','Não sabe quais pedidos ficaram sem resposta','Retoques e novas sessões dependem da memória']],
+      s:[['Perfil no Google e site de uma página, achados na busca da região','Link do site na bio do Instagram e nos anúncios','Tudo em português e em inglês'],
+         ['Site com galeria grande por estilo, processo explicado e depoimentos','Presença sólida e igual em todos os canais','O cliente entende o trabalho e já pede o orçamento'],
+         ['O cliente escolhe região, tamanho e estilo e já vê uma faixa de valor','Anexa a referência e escolhe o canal da resposta','Sinal por cartão ou Zelle e lembrete automático da sessão'],
+         ['Pedidos, conversas e agenda no mesmo painel','O funil mostra o que pediu orçamento, o que fechou e o que pagou sinal','A IA organiza, responde o simples e lembra retoque e retorno']]};
+  var art=A?'a':'o';
+  var G={
+   wa:['WhatsApp','#1FAF5A','<svg viewBox="0 0 24 24"><path d="M12 3.2a8.7 8.7 0 0 0-7.5 13.1L3.3 20.7l4.5-1.2A8.7 8.7 0 1 0 12 3.2z" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M9.1 7.9c-.3 0-.7.1-.9.5-.3.5-.6 1.2-.4 2.1.4 1.6 2.6 4.2 5.4 5 .9.3 1.8 0 2.3-.6.3-.4.3-.8.2-1l-1.7-.8c-.3-.1-.5 0-.6.2l-.5.6c-.1.1-.3.2-.5.1a5.6 5.6 0 0 1-2.6-2.4c-.1-.2 0-.3.1-.5l.4-.5c.1-.2.1-.4 0-.6l-.7-1.7c-.1-.3-.3-.4-.5-.4z" fill="#fff"/></svg>'],
+   ig:['Instagram','linear-gradient(45deg,#F58529,#DD2A7B 45%,#8134AF 80%)','<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4.6" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16.7" cy="7.3" r="1.2" fill="#fff"/></svg>'],
+   ms:['Messenger','#1877F2','<svg viewBox="0 0 24 24"><path d="M12 3.3c-4.9 0-8.7 3.6-8.7 8.3 0 2.5 1.1 4.7 2.9 6.2v3l2.8-1.6c.9.3 1.9.4 3 .4 4.9 0 8.7-3.6 8.7-8.1S16.9 3.3 12 3.3z" fill="#fff"/><path d="M6.9 14.3l3.4-3.6 1.8 1.8 3.2-1.8-3.3 3.6-1.8-1.8z" fill="#1877F2" stroke="#1877F2" stroke-width="1.2" stroke-linejoin="round"/></svg>'],
+   gg:['Google','#fff','<svg viewBox="0 0 24 24"><path d="M20.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.6z" fill="#4285F4"/><path d="M12 21c2.4 0 4.5-.8 5.9-2.2l-2.9-2.2c-.8.5-1.8.9-3 .9-2.3 0-4.3-1.6-5-3.7H4v2.3A9 9 0 0 0 12 21z" fill="#34A853"/><path d="M7 13.8a5.4 5.4 0 0 1 0-3.5V8H4a9 9 0 0 0 0 8.1z" fill="#FBBC05"/><path d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 4 8l3 2.3c.7-2.1 2.7-3.7 5-3.7z" fill="#EA4335"/></svg>'],
+   mc:['ManyChat','#0084FF','<svg viewBox="0 0 24 24"><path d="M12 4c-4.6 0-8 3-8 7 0 2.1.9 3.9 2.4 5.2L5.8 20l3.6-1.6c.8.2 1.7.3 2.6.3 4.6 0 8-3 8-7S16.600 4 12 4z" fill="#fff"/><circle cx="8.8" cy="11.2" r="1.1" fill="#0084FF"/><circle cx="12" cy="11.2" r="1.1" fill="#0084FF"/><circle cx="15.2" cy="11.2" r="1.1" fill="#0084FF"/></svg>'],
+   em:['E-mail','#5B6678','<svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2.2" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M4.5 7.5l7.5 5.8 7.5-5.8" fill="none" stroke="#fff" stroke-width="1.9"/></svg>'],
+   zl:['Zelle','#6D1ED4','Z'],
+   cl:['Calendly','#006BFF','<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M8 3.5v4M16 3.5v4M4 10h16" stroke="#fff" stroke-width="1.9" fill="none"/></svg>'],
+   pl:['Planilha','#188038','<svg viewBox="0 0 24 24"><rect x="4.5" y="4" width="15" height="16" rx="2" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M4.5 10h15M4.5 15h15M10.5 4v16" stroke="#fff" stroke-width="1.6" fill="none"/></svg>'],
+   cd:['Caderno','#B8860B','<svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2z" fill="none" stroke="#fff" stroke-width="1.9"/><path d="M9.5 9h6M9.5 13h6" stroke="#fff" stroke-width="1.8"/></svg>'],
+   st:['Site','#2F6FED','<svg viewBox="0 0 24 24"><path d="M4 5.5h16v10H10l-4.5 3.5v-3.5H4z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>']
+  };
+  function lg(k,x){var g=G[k];return '<span class="lg" style="background:'+g[1]+(x||'')+'">'+(g[2].charAt(0)==='<'?g[2]:g[2])+'</span>'}
+  function lgz(k){var g=G[k];return '<span class="lg" style="background:'+g[1]+(k==='gg'?';color:#333':'')+'">'+g[2]+'</span>'}
+  var $=function(i){return document.getElementById(i)};
+  // topo
+  $('topoCta').href=D.site;$('topoCta').innerHTML='Ver o site<span class="l"> d'+art+' '+D.nome+'</span>';$('heroSite').href=D.site;$('fCta').href=D.site;
+  $('hRot').textContent='Apresentação para '+D.nome+' · '+D.nicho;
+  $('hTit').innerHTML='Como '+art+' '+D.nome+' é <span class="l2">encontrad'+art+', escolhid'+art+'</span> e atendid'+art+'.';
+  $('hApoio').textContent='Do primeiro olhar até '+(A?'a cliente':'o cliente')+' voltar: o que atrapalha hoje e como ficaria com tudo num canal só.';
+  $('hChs').innerHTML=['wa','ig','ms','gg','st'].map(function(k){return '<span class="ch">'+lgz(k)+'<b>'+G[k][0]+'</b></span>'}).join('');
+  // chips orbitando o arco
+  var ab=$('arcoBox'),pos=[['wa',-8,6],['ig',58,-3],['ms',60,46],['gg',-12,64],['mc',44,88]];
+  pos.forEach(function(p,i){var d=document.createElement('span');d.className='ch orb';d.style.cssText='left:'+p[1]+'%;top:'+p[2]+'%;--a:'+(i*.7)+'s;background:rgba(16,26,44,.85);backdrop-filter:blur(6px)';d.innerHTML=lgz(p[0])+'<b>'+G[p[0]][0]+'</b>';ab.appendChild(d)});
+  // jornada
+  $('jTit').textContent='Cada cliente passa por quatro momentos.';
+  $('jTxt').textContent='Em cada um existe um ponto onde '+(A?'ela':'ele')+' se perde, e outro onde o dono perde tempo. É aí que vamos mexer.';
+  var J=[['Encontrado','Instagram, Google, site ou anúncio','Onde o cliente descobre o negócio',['Perfil no Instagram','Busca no Google','Site e anúncios']],
+         ['Visitado','Portfólio e prova social','Onde ele decide se confia',['Portfólio e trabalhos','Depoimentos','Presença sólida no digital']],
+         ['Contatado','Atendimento do primeiro “oi” ao pagamento','Onde a conversa vira cliente',['Agilidade e cordialidade','Agendamento e pagamento','Lembretes e recorrência']],
+         ['Dono se organiza','Os bastidores','Onde o dono ganha o tempo de volta',['Agenda e funil','Pós-venda','Recorrência e histórico']]];
+  $('passos').innerHTML=J.map(function(j,i){return '<div class="pn'+(i===3?' dono':'')+' rv" style="--d:'+(i*.1)+'s"><span class="no">'+(i+1)+'</span><h3>'+j[0]+'</h3><ul>'+j[3].map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul><small>'+(i===3?'Bastidores':'Etapa '+(i+1)+' de 3')+'</small></div>'}).join('');
+  // caos
+  $('caosA').innerHTML='Dez ferramentas. <em>Nenhuma conversa com a outra.</em>';
+  $('caosB').innerHTML='Agora, <em>um canal só.</em>';
+  var T=[['wa','resposta que demora'],['ig','direct sem fim'],['ms','mais uma caixa'],['mc','fluxo separado'],['gg','avaliações sem resposta'],['em','orçamento soterrado'],['zl','sinal sem controle'],['cl','agenda duplicada'],['pl','clientes soltos'],['cd','retorno esquecido']];
+  $('tools').innerHTML=T.map(function(t){return '<div class="tool" data-k="'+t[0]+'">'+lgz(t[0])+'<div><b>'+G[t[0]][0]+'</b><span class="t">'+t[1]+'</span></div></div>'}).join('');
+  $('nucleo').innerHTML='<div class="cab"><svg viewBox="0 0 96 96"><rect width="96" height="96" rx="24" fill="#1E3050" stroke="rgba(255,255,255,.16)"/><path d="M24 74V46a24 24 0 0 1 48 0V74Z" fill="#FFB020"/><path d="M33 74V46.5a15 15 0 0 1 30 0V74Z" fill="#2F6FED"/><path d="M33 74V46.5A15 15 0 0 1 51 31.8V68.5Z" fill="#1E3050"/></svg><b>AbertoCore</b></div><div class="lin">Conversas<i>WhatsApp · Instagram · e-mail</i></div><div class="lin">Agenda<i>com lembretes</i></div><div class="lin">Funil e clientes<i>com histórico</i></div><div class="lin">Sinal e pagamento<i>cartão · Zelle</i></div><div class="rod">Tudo numa caixa só, com a IA respondendo o simples</div>';
+  // capítulos
+  var CT=[['1 · Ser encontrado','Quem procura precisa <em>achar você.</em>'],['2 · Ser visitado','A primeira impressão <em>decide o contato.</em>'],['3 · Ser contatado','Resposta rápida <em>vira cliente.</em>'],['4 · Se organizar','Menos caderno, <em>mais controle.</em>']];
+  function mock(i){
+    if(i===0)return '<div class="mock"><div class="card-m busca"><div class="in">🔍 '+D.busca+'</div><div class="res"><img src="'+D.fotos[0]+'" alt=""><div><b>'+D.res+'</b><small>'+D.ref+'</small><div class="est">★★★★★</div></div><div class="bt"><span class="p">'+(A?'Agendar online':'Pedir orçamento')+'</span><span>WhatsApp</span><span>Instagram</span></div></div></div><span class="ch flut" style="right:0;top:6%;background:var(--ink);--a:1s">'+lgz('ig')+'<b>link na bio</b></span><span class="ch flut" style="left:0;bottom:8%;background:var(--ink);--a:2s">'+lgz('gg')+'<b>perfil verificado</b></span></div>';
+    if(i===1)return '<div class="mock"><div class="fone"><div class="tela"><img class="h" src="'+D.fotos[0]+'" alt=""><div class="tx"><b>'+(A?'Unhas que você quer mostrar.':'Preto e cinza e colorida.')+'</b><small>'+D.nicho+' · SC</small></div><div class="g"><img src="'+D.fotos[1]+'" alt=""><img src="'+D.fotos[2]+'" alt=""><img src="'+D.fotos[3]+'" alt=""></div><div class="bb">'+(A?'Agendar online':'Pedir orçamento')+'</div></div></div><div class="card-m dep flut" style="right:-2%;top:12%;--a:.5s"><div class="est">★★★★★</div>“'+(A?'Minhas unhas nunca duraram tanto.':'Atendimento top e resultado impecável.')+'”<br><small style="color:var(--sec)">cliente · SC</small></div></div>';
+    if(i===2)return '<div class="mock"><div class="card-m chat"><div class="top"><span class="lg" style="background:var(--ink);width:36px;height:36px;border-radius:50%">'+D.nome.charAt(0)+'</span><div><b>'+D.nome+'</b><small>assistente · responde na hora</small></div></div><div class="bl c" style="--d:.1s">'+D.pergunta+'</div><div class="bl i" style="--d:.9s"><span class="ia-sel">✨ Assistente de IA</span>'+D.resp+'</div><div class="bl c" style="--d:1.8s">'+(A?'Sexta de tarde':'Sábado de manhã')+', por favor!</div><div class="bl i" style="--d:2.6s"><span class="ia-sel">✨ Assistente de IA</span>'+D.c2+' reservado. '+D.sinal+' para garantir.</div><div class="bl ok" style="--d:3.4s">✓ '+(A?'Confirmação por WhatsApp · lembrete 1 dia antes':'Confirmação por Instagram · lembrete antes da sessão')+'</div></div></div>';
+    return '<div class="mock"><div class="painel"><div class="tp">AbertoCore <span>exemplo</span></div><div class="cols">'+D.cols.map(function(c,k){var cd=D.cards[k];return '<div class="cl"><h5>'+c+'<b>1</b></h5><div class="cd'+(k===1?' n':'')+'" style="--d:'+(.2+k*.35)+'s"><b>'+cd[0]+'</b><small>'+cd[1]+'</small>'+(cd[2]?'<span class="tag">'+cd[2]+'</span>':'')+'</div></div>'}).join('')+'</div></div></div>';
+  }
+  $('caps').innerHTML=CT.map(function(c,i){return '<section class="cap'+(i%2?' escuro':'')+(i%2?' inv':'')+'"><div class="wrap cap-g"><div><p class="rotulo rv">'+c[0]+'</p><h2 class="rv" style="--d:.06s">'+c[1]+'</h2><div class="dx"><div class="bx rv" style="--d:.12s"><h4>Hoje</h4><ul>'+D.d[i].map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div><div class="bx s rv" style="--d:.22s"><h4>Com a abertodigital</h4><ul>'+D.s[i].map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div></div></div><div class="rv" style="--d:.15s">'+mock(i)+'</div></div></section>'}).join('');
+  // matriz
+  $('mTit').innerHTML='Toda dor <em>numa conversa só.</em>';
+  var M=[['Responder rápido','Resposta imediata, a qualquer hora, no tom d'+art+' '+D.nome+'.',['wa','ig','ms'],'IA responde e passa só o que precisa de você'],
+         [A?'Agendar sem vai e volta':'Orçar sem vai e volta',A?'A cliente escolhe serviço, dia e horário sozinha.':'O cliente descreve a ideia e já vê uma faixa de valor.',['cl','em'],'Link no site, no Instagram e no WhatsApp'],
+         ['Cobrar o sinal','Cartão ou Zelle, com confirmação no painel.',['zl'],'Você só confere e confirma'],
+         ['Lembrar e reativar','Lembretes antes da data e aviso na hora da recorrência.',['cd','wa'],'A IA chama '+(A?'a cliente':'o cliente')+' na hora certa'],
+         ['Conhecer '+(A?'a cliente':'o cliente'),'Nome, telefone e @instagram sempre salvos, com histórico.',['pl','ig'],'Perfil que reconhece quem volta'],
+         ['Organizar o negócio','Agenda, funil e pós-venda no mesmo painel.',['pl','cd','cl'],'Tudo no AbertoCore']];
+  $('mat').innerHTML=M.map(function(m,i){return '<div class="mt rv" style="--d:'+(i%3*.1)+'s"><div class="antes">'+m[2].map(function(k){return lgz(k)}).join('')+'</div><h3>'+m[0]+'</h3><p>'+m[1]+'</p><div class="agora">→ '+m[3]+'</div></div>'}).join('');
+  // roteiro
+  $('pTit').innerHTML='Viva como <em>'+(A?'a cliente':'o cliente')+'</em>, depois como o dono.';
+  $('rot').innerHTML='<a class="rt dest rv" href="'+D.site+'"><b class="n">1</b><h3>O site e o '+D.ag+'</h3><p>Entre como se fosse '+(A?'a cliente':'o cliente')+' d'+art+' '+D.nome+' e faça um pedido de verdade.</p><span class="go">Começar pelo site →</span></a><div class="rt rv" style="--d:.1s"><b class="n">2</b><h3>O painel do dono</h3><p>Ao concluir, o AbertoCore abre sozinho com a conversa, a agenda e o funil.</p><span class="go">Abre automático</span></div><a class="rt rv" style="--d:.2s" id="lkProp" href="../proposta/?n='+n+'"><b class="n">3</b><h3>A proposta</h3><p id="propTx">Planos e valores para colocar isso para funcionar no seu negócio.</p><span class="go">Ver os planos →</span></a>';
+  $('fTit').innerHTML='Pronto para ver <em>funcionando?</em>';
+  // região (Brasil / EUA): vale para o link da proposta e para o texto de preço
+  var rg=window.Regiao.ler();
+  function regiao(){window.Regiao.grava(rg);[].forEach.call(document.querySelectorAll('#rg button'),function(b){b.setAttribute('aria-pressed',b.dataset.r===rg)});
+    var lk=$('lkProp');if(lk)lk.href='../proposta/?n='+n+'&r='+rg;
+    var P=window.Regiao.PRECOS[rg].pacotes.Start;var tx=$('propTx');if(tx)tx.textContent='Planos para '+(rg==='br'?'o Brasil':'os EUA')+', a partir de '+window.Regiao.fmt(P.m*.7,rg)+' por mês (plano de 12 meses).';
+    try{var u=new URL(location.href);u.searchParams.set('r',rg);history.replaceState(null,'',u)}catch(x){}}
+  $('rg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;rg=b.dataset.r;regiao()});
+  regiao();
+  // revelar
+  var io='IntersectionObserver' in window?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('on');var b=e.target.querySelector('.bx:not(.s)');io.unobserve(e.target)}})},{threshold:.18}):null;
+  document.querySelectorAll('.rv').forEach(function(e){io?io.observe(e):e.classList.add('on')});
+  // risca as dores quando o cartão aparece
+  var io2=io&&new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('on')})},{threshold:.6});
+  document.querySelectorAll('.bx:not(.s)').forEach(function(e){io2&&io2.observe(e)});
+  // rolagem: progresso, trilha e cena que junta tudo
+  var pr=$('prog'),tr=$('trilha'),ce=$('cena'),pino=$('hoje'),nu=$('nucleo'),tl=[].slice.call(document.querySelectorAll('.tool'));
+  var SC=[[.04,.34],[.62,.28],[.84,.5],[.07,.66],[.3,.84],[.56,.9],[.02,.46],[.76,.16],[.18,.2],[.46,.13]];
+  function ease(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
+  function frame(){
+    var h=document.documentElement,max=h.scrollHeight-innerHeight;pr.style.transform='scaleX('+(max>0?scrollY/max:0)+')';
+    var r=tr.getBoundingClientRect();tr.style.setProperty('--p',Math.max(0,Math.min(1,(innerHeight*.75-r.top)/(r.height+innerHeight*.2))));
+    var pr2=pino.getBoundingClientRect(),p=Math.max(0,Math.min(1,-pr2.top/(pino.offsetHeight-innerHeight))),W=ce.clientWidth,H=ce.clientHeight;
+    var cx=W/2,cy=H*.6,e=ease(Math.max(0,Math.min(1,(p-.18)/.55)));
+    tl.forEach(function(t,i){var s=SC[i],tw=t.offsetWidth,th=t.offsetHeight,sx=s[0]*(W-tw),sy=H*.22+s[1]*(H*.78-th-20),dx=sx+Math.sin(p*6+i)*8*(1-e),dy=sy+Math.cos(p*5+i)*8*(1-e);
+      var tx=cx-tw/2+(i%2?1:-1)*20,ty=cy-th/2;var x=dx+(tx-dx)*e,y=dy+(ty-dy)*e,sc=1-.5*e,op=e>.7?Math.max(0,1-(e-.7)/.2):1;
+      t.style.transform='translate('+x+'px,'+y+'px) scale('+sc+')';t.style.opacity=op});
+    nu.style.transform='translate(-50%,-50%) scale('+(.82+.18*e)+')';nu.style.opacity=.5+.5*e;
+    ce.classList.toggle('junto',p>.5);
+    ticking=false}
+  var ticking=false;function req(){if(!ticking){ticking=true;requestAnimationFrame(frame)}}
+  addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
 })();
 </script>
 </body>

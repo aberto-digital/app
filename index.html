@@ -212,6 +212,13 @@
   .abas button[aria-selected="true"]{background:var(--branco);color:var(--ink);box-shadow:0 1px 2px rgba(16,26,44,.12)}
   .abas small{font-size:11px;background:var(--ceu);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
   .itens{overflow:auto;flex:1}
+  .ptr{display:none}
+  /* carregar mais ao chegar no fim da lista */
+  .mais-rod{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 14px 22px;color:var(--sec);font-size:13px;font-weight:600}
+  .mais-rod .spin{display:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--linha2);border-top-color:var(--ceu);animation:ptr-gira .7s linear infinite}
+  .mais-rod.carregando .spin{display:inline-block}
+  .mais-rod.carregando button{display:none}
+  @keyframes ptr-gira{to{transform:rotate(360deg)}}
   .carrossel{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;min-height:0}
   .carrossel::-webkit-scrollbar{display:none}
   .carrossel .pane{flex:0 0 100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;min-height:0;overscroll-behavior-y:contain}
@@ -863,7 +870,9 @@
     .trilho svg{width:23px;height:23px}
     .trilho .rot{display:none}
     .trilho .bolha{top:3px;right:calc(50% - 22px);min-width:16px;height:16px;font-size:10px}
-    html{background:var(--branco)}
+    /* iPhone (app na tela inicial): a página nunca rola sozinha, então o iOS não aplica o efeito de borda translúcida na faixa da barra de status */
+    html{background:var(--branco);overflow:hidden;overscroll-behavior:none}
+    body{background:var(--branco)}
     input,select,textarea{font-size:16px!important}
     .principal{padding-top:calc(60px + env(safe-area-inset-top))}
     .topo{position:fixed;top:0;left:0;right:0;z-index:45;height:calc(60px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0 14px;gap:10px;background:var(--branco);border-bottom:1px solid var(--linha)}
@@ -916,8 +925,17 @@
     .topo .sub{display:none}
     .marca-topo svg{width:36px;height:36px}
     .na-sub .marca-topo{display:none}
-    .lista{transition:transform .28s cubic-bezier(.2,.8,.2,1),margin-bottom .28s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1}
-    .rolou .lista{transform:translateY(calc(-1 * var(--cabl, 104px)));margin-bottom:calc(-1 * var(--cabl, 104px))}
+    /* A lista inteira rola junto: busca e abas saem empurradas pelo dedo e voltam do mesmo jeito (rolagem nativa, sem animação à parte). */
+    .lista{position:relative;z-index:1;display:block;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+    .carrossel{flex:none;align-items:flex-start;overflow-y:hidden}
+    .carrossel .pane{overflow:visible;overscroll-behavior-y:auto}
+    .carrossel .pane:not(.ativa){max-height:100dvh;overflow:hidden}
+    /* puxar para atualizar */
+    .ptr{display:flex;align-items:center;justify-content:center;gap:8px;height:0;overflow:hidden;color:var(--sec);font-size:13px;font-weight:600;background:var(--branco)}
+    .ptr:not(.puxando){transition:height .22s cubic-bezier(.2,.8,.2,1)}
+    .ptr .ptr-ic{width:18px;height:18px;border-radius:50%;border:2px solid var(--linha2);border-top-color:var(--ceu);transition:transform .15s}
+    .ptr[data-e="solte"] .ptr-ic{transform:rotate(180deg)}
+    .ptr[data-e="carregando"] .ptr-ic{animation:ptr-gira .7s linear infinite}
     .app:has(.inbox.mostra-conv) .topo,.app:has(.inbox.mostra-conv) .trilho{display:none}
     .app:has(.inbox.mostra-conv) .principal{padding-top:0}
     .inbox.mostra-conv .conv-topo{padding-top:calc(8px + env(safe-area-inset-top))}
@@ -930,7 +948,8 @@
     .inbox>*{min-width:0}
     .rz{display:none}
     .inbox .conversa{display:none}
-    .inbox.mostra-conv .lista{display:none}
+    /* esconde sem display:none: assim a lista guarda a posição de rolagem e volta no mesmo ponto */
+    .inbox.mostra-conv .lista{visibility:hidden;position:absolute;inset:0;pointer-events:none}
     .inbox.mostra-conv .conversa{display:flex}
     .voltar{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px}
     .voltar svg{width:20px;height:20px}
@@ -1037,7 +1056,7 @@
 
 <script src="core/i18n.js?v=6"></script>
 <script src="core/dados.js?v=3"></script>
-<script src="core/nuvem.js?v=18"></script>
+<script src="core/nuvem.js?v=19"></script>
 <script src="core/audio.js?v=1"></script>
 <script src="experiencia/link.js?v=2"></script>
 <script>
@@ -1394,6 +1413,9 @@
   if (atual === 'chatbot'){ atual = 'assistente'; abaAt = 'chatbot'; }
   if (!VISTAS.some(function(v){ return v.id === atual; })) atual = 'mensagens';
   var sel = Core.param('c') ? +Core.param('c') : null, aba = 'entrada', canaisSel = [], busca = '', respSel = '', etiqSel = [], tipoSel = [], etapaSel = [];
+  /* Lista de conversas: posição de rolagem e quantas conversas aparecem, por aba (sobrevivem a abrir uma conversa e a redesenhar a tela). */
+  var PAG = 30, posLista = {entrada:0, prospeccao:0, finalizado:0}, limLista = {entrada:PAG, prospeccao:PAG, finalizado:PAG}, maisCarregando = {}, atualizandoLista = false, travaAba = 0;
+  function ehMovel(){ return matchMedia('(max-width:760px)').matches; }
   var anexoPend = null; // {cid, arq}: PDF gerado esperando o Julio enviar pela caixa de mensagem (WhatsApp e e-mail)
 
   function naoLidasTotal(){ return S.contatos.reduce(function(a, c){ return a + (c.ignorado ? 0 : (c.naoLidas || 0)); }, 0); }
@@ -1939,6 +1961,7 @@
     var V = $('#vista');
     V.innerHTML = '<div class="inbox' + (convMovel && sel ? ' mostra-conv' : '') + '" id="inbox">' +
       '<section class="lista" aria-label="Conversas">' +
+        '<div class="ptr" id="ptr" role="status" aria-live="polite" data-e="idle"><span class="ptr-ic" aria-hidden="true"></span><span class="ptr-tx"></span></div>' +
         '<label class="busca">' + ic('busca') + '<input id="busca" type="search" placeholder="Buscar por nome, negócio ou telefone" value="' + esc(busca) + '"></label>' +
         '<div class="abas-linha"><div class="abas" role="tablist" id="abas"></div><button class="btn-filtro" id="btnFiltro" aria-expanded="false" aria-label="Filtrar conversas"></button><div class="pop-filtro" id="popFiltro" hidden></div></div>' +
         '<div class="itens carrossel" id="itens">' + ABAS.map(function(a){ return '<div class="pane" data-pane="' + a[0] + '"></div>'; }).join('') + '</div>' +
@@ -1949,9 +1972,13 @@
       '<div class="rz rz-d" id="rzD" role="separator" aria-orientation="vertical" aria-label="Largura dos dados do contato" title="Arraste para mudar a largura (duplo clique volta ao padrão)" tabindex="0"></div>' +
     '</div>';
     ligaLargura();
-    $('#busca').addEventListener('input', function(e){ busca = e.target.value; desenhaLista(); });
+    $('#busca').addEventListener('input', function(e){ busca = e.target.value; limLista = {entrada:PAG, prospeccao:PAG, finalizado:PAG}; desenhaLista(); });
     $('#itens').addEventListener('click', function(e){ if (e.target.closest('#vazioNovo')) modalContato(); });
-    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){ aba = b.getAttribute('data-a'); desenhaAbas(); vaiParaAba(aba, true); } });
+    $('#abas').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b){
+      aba = b.getAttribute('data-a'); travaAba = Date.now() + 500; desenhaAbas(); restauraPos();
+      vaiParaAba(aba, false); // direto, sem animação: com listas grandes a animação travava no meio e a aba marcada não era a exibida
+      setTimeout(function(){ vaiParaAba(aba, false); }, 520);
+    } });
     var bf = $('#btnFiltro'), pf = $('#popFiltro');
     bf.onclick = function(e){ e.stopPropagation(); var abre = pf.hidden; pf.hidden = !abre; bf.setAttribute('aria-expanded', abre); };
     pf.addEventListener('click', function(e){ e.stopPropagation(); });
@@ -1973,26 +2000,81 @@
       if (e.target === itens){
         clearTimeout(tCar);
         tCar = setTimeout(function(){
+          if (Date.now() < travaAba) return; // troca por toque na aba: quem manda é o toque, não a posição no meio do caminho
           var i = Math.round(itens.scrollLeft / Math.max(itens.clientWidth, 1)), a = (ABAS[i] || ABAS[0])[0];
-          if (a !== aba){ aba = a; desenhaAbas(); }
+          if (a !== aba){ aba = a; desenhaAbas(); restauraPos(); }
         }, 60);
         return;
       }
-      barraRolagem(e.target, 'rolou');
+      aoRolarLista(e.target);
     }, {passive:true, capture:true});
-    window.addEventListener('resize', function(){ vaiParaAba(aba, false); medeCabLista(); });
-    medeCabLista();
+    var lis = $('.lista'); lis.addEventListener('scroll', function(){ aoRolarLista(lis); }, {passive:true});
+    $('#itens').addEventListener('click', function(e){ var m = e.target.closest('[data-mais-btn]'); if (m) carregaMais(m.closest('[data-mais]').getAttribute('data-mais')); });
+    ligaPuxar(lis);
+    window.addEventListener('resize', function(){ vaiParaAba(aba, false); });
     $('#itens').addEventListener('click', function(e){ var b = e.target.closest('.item'); if (!b) return; if (b.hasAttribute('data-ia')) abreIA(); else abre(+b.getAttribute('data-id')); });
     if (Core.param('ia') === '1' && iaLogado()) sel = 'ia';
     if (sel === 'ia' && !iaLogado()) sel = null;
     if (sel !== 'ia' && (!sel || !contato(sel))) { var p = filtrados()[0]; sel = p ? p.id : (S.contatos[0] ? S.contatos[0].id : null); }
     desenhaLista(); desenhaConversa(); desenhaDetalhe();
     vaiParaAba(aba, false);
+    restauraPos(true);
   }
-  function medeCabLista(){
-    var lis = document.querySelector('.lista'), it = $('#itens'); if (!lis || !it) return;
-    var h = it.offsetParent === lis ? it.offsetTop : Math.round(it.getBoundingClientRect().top - lis.getBoundingClientRect().top);
-    if (h > 0) lis.style.setProperty('--cabl', h + 'px');
+  /* ---- rolagem da lista (celular: a lista toda rola; computador: cada aba rola sozinha) ---- */
+  function restauraPos(todas){
+    if (ehMovel()){ var l = $('.lista'); if (l) l.scrollTop = posLista[aba] || 0; }
+    else if (todas) ABAS.forEach(function(a){ var p = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (p) p.scrollTop = posLista[a[0]] || 0; });
+  }
+  function aoRolarLista(el){
+    var k = el.classList.contains('pane') ? el.getAttribute('data-pane') : aba;
+    posLista[k] = el.scrollTop;
+    if (el.scrollHeight - el.clientHeight - el.scrollTop < 500) carregaMais(k);
+  }
+  /* Mostra mais conversas quando a rolagem chega perto do fim. */
+  function carregaMais(k){
+    if (maisCarregando[k]) return;
+    var rod = document.querySelector('.pane[data-pane="' + k + '"] [data-mais]'); if (!rod) return;
+    maisCarregando[k] = true; rod.classList.add('carregando');
+    setTimeout(function(){ maisCarregando[k] = false; limLista[k] += PAG; desenhaLista(); }, 350);
+  }
+  /* Puxar para baixo no topo da lista atualiza as conversas (celular). */
+  var PTR_TXT = {puxe:'Puxe para atualizar', solte:'Solte para atualizar', carregando:'Atualizando…', pronto:'Atualizado', idle:''};
+  function ptrMostra(h, e, puxando){
+    var el = $('#ptr'); if (!el) return;
+    el.classList.toggle('puxando', !!puxando); el.style.height = h + 'px'; el.setAttribute('data-e', e);
+    el.querySelector('.ptr-tx').textContent = PTR_TXT[e] || '';
+  }
+  function atualizaConversas(){
+    var p = (window.Nuvem && Nuvem.logado() && Nuvem.atualizar) ? Nuvem.atualizar() : Promise.resolve();
+    return p.then(function(){ desenhaNav(); desenhaLista(); });
+  }
+  function ligaPuxar(lis){
+    var t0 = null;
+    lis.addEventListener('touchstart', function(e){
+      t0 = (!ehMovel() || atualizandoLista || lis.scrollTop > 0 || e.touches.length !== 1) ? null : {x:e.touches[0].clientX, y:e.touches[0].clientY, d:0, on:false};
+    }, {passive:true});
+    lis.addEventListener('touchmove', function(e){
+      if (!t0) return;
+      var t = e.touches[0], dx = t.clientX - t0.x, dy = t.clientY - t0.y;
+      if (!t0.on){
+        if ((Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) || dy < -8){ t0 = null; return; } // rolagem normal ou troca de aba
+        if (dy < 8) return;
+        t0.on = true;
+      }
+      if (lis.scrollTop > 0){ t0 = null; ptrMostra(0, 'idle'); return; }
+      if (e.cancelable) e.preventDefault();
+      t0.d = Math.min(dy * 0.5, 96);
+      ptrMostra(t0.d, t0.d >= 64 ? 'solte' : 'puxe', true);
+    }, {passive:false});
+    function solta(){
+      var t = t0; t0 = null; if (!t || !t.on) return;
+      if (t.d < 64){ ptrMostra(0, 'idle'); return; }
+      atualizandoLista = true; ptrMostra(52, 'carregando'); var ini = Date.now();
+      atualizaConversas().catch(function(){}).then(function(){
+        setTimeout(function(){ ptrMostra(44, 'pronto'); setTimeout(function(){ atualizandoLista = false; ptrMostra(0, 'idle'); }, 500); }, Math.max(0, 700 - (Date.now() - ini)));
+      });
+    }
+    lis.addEventListener('touchend', solta, {passive:true}); lis.addEventListener('touchcancel', solta, {passive:true});
   }
   function filtrados(a){
     var q = busca.trim().toLowerCase();
@@ -2025,7 +2107,11 @@
       if (a[0] === 'finalizado') return '<button role="tab" class="aba-ic" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '" aria-label="Arquivados" title="Arquivados">' + ic('arquivo') + '</button>';
       return '<button role="tab" data-a="' + a[0] + '" aria-selected="' + (aba === a[0]) + '">' + a[1] + (a[0] === 'entrada' && cont.entrada ? '<small>' + cont.entrada + '</small>' : '') + (a[0] === 'prospeccao' && cont.prospeccao ? '<small class="cinza">' + cont.prospeccao + '</small>' : '') + '</button>';
     }).join('');
-    var abaSel = $('#abas [aria-selected="true"]'); if (abaSel && abaSel.scrollIntoView) abaSel.scrollIntoView({inline:'nearest', block:'nearest'});
+    $$('.pane').forEach(function(p){ p.classList.toggle('ativa', p.getAttribute('data-pane') === aba); });
+    var abaSel = $('#abas [aria-selected="true"]'); if (abaSel){ // só ajusta a rolagem horizontal das abas: scrollIntoView também mexeria na rolagem da lista
+      var barra = abaSel.parentNode, ini = abaSel.offsetLeft - barra.offsetLeft, fim = ini + abaSel.offsetWidth;
+      if (ini < barra.scrollLeft) barra.scrollLeft = ini; else if (fim > barra.scrollLeft + barra.clientWidth) barra.scrollLeft = fim - barra.clientWidth;
+    }
   }
   /* ---------- Ligação (aba Prospecção) ----------
      O funil não muda: cada tentativa fica em c.lig.t e o retorno usa o próprio c.followup. */
@@ -2163,22 +2249,25 @@
     var avisoSug = nSug ? '<button type="button" class="sug-junta" data-sugj>🔗 <span><b>' + nSug + (nSug === 1 ? ' par de contatos parece' : ' pares de contatos parecem') + ' a mesma pessoa.</b> Revisar e juntar</span></button>' : '';
     ABAS.forEach(function(a){
       var pane = document.querySelector('.pane[data-pane="' + a[0] + '"]'); if (!pane) return;
-      var L = filtrados(a[0]), y = pane.scrollTop;
+      var L = filtrados(a[0]), y = pane.scrollTop, lisEl = ehMovel() ? $('.lista') : null, yl = lisEl ? lisEl.scrollTop : 0;
+      var lim = limLista[a[0]] || PAG, resto = lim, fatia = function(v){ var r = v.slice(0, Math.max(resto, 0)); resto -= r.length; return r; };
       var html = '';
       if (a[0] === 'entrada' && L.length){
         var resp = L.filter(function(c){ return c.status === 'entrada'; }), esp = L.filter(function(c){ return c.status === 'esperando'; });
-        html = (resp.length ? '<div class="div-lista">Para responder <span>' + resp.length + '</span></div>' + resp.map(itemContato).join('') : '<div class="div-lista">Para responder <span>0</span></div><div class="vazio peq">Ninguém esperando sua resposta.</div>') +
-          (esp.length ? '<div class="div-lista esp">Aguardando retorno do cliente <span>' + esp.length + '</span></div><div class="grupo-esp">' + esp.map(itemContato).join('') + '</div>' : '');
+        html = (resp.length ? '<div class="div-lista">Para responder <span>' + resp.length + '</span></div>' + fatia(resp).map(itemContato).join('') : '<div class="div-lista">Para responder <span>0</span></div><div class="vazio peq">Ninguém esperando sua resposta.</div>') +
+          (esp.length ? '<div class="div-lista esp">Aguardando retorno do cliente <span>' + esp.length + '</span></div><div class="grupo-esp">' + fatia(esp).map(itemContato).join('') + '</div>' : '');
       }
       if (a[0] === 'prospeccao' && L.length){
         var rotG = ['Retornar agora', 'Ligar', 'Voltam em outro dia', 'Esgotados (' + LIG_MAX + ' tentativas)'], grp = [[], [], [], []];
         L.forEach(function(c){ grp[ligGrupo(c)].push(c); });
-        html = ligResumo() + grp.map(function(g, i){ return g.length ? '<div class="div-lista' + (i >= 2 ? ' esp' : '') + '">' + rotG[i] + ' <span>' + g.length + '</span></div>' + g.map(itemContato).join('') : ''; }).join('');
+        html = ligResumo() + grp.map(function(g, i){ return g.length ? '<div class="div-lista' + (i >= 2 ? ' esp' : '') + '">' + rotG[i] + ' <span>' + g.length + '</span></div>' + fatia(g).map(itemContato).join('') : ''; }).join('');
       }
-      pane.innerHTML = (a[0] === 'entrada' ? fixo : '') + ((a[0] === 'entrada' || a[0] === 'prospeccao') ? avisoSug : '') + (html ? html : L.length ? L.map(itemContato).join('') :
+      pane.innerHTML = (a[0] === 'entrada' ? fixo : '') + ((a[0] === 'entrada' || a[0] === 'prospeccao') ? avisoSug : '') + (html ? html : L.length ? fatia(L).map(itemContato).join('') :
         (S.contatos.length ? '<div class="vazio">Nenhuma conversa ' + {entrada:'na entrada', esperando:'esperando o cliente', finalizado:'arquivada', prospeccao:'em prospecção'}[a[0]] + '.' + (a[0] === 'prospeccao' ? '<br>Importe uma lista de leads em <b>Ajustes</b>.' : '') + '</div>' :
           '<div class="vazio">Nenhum contato ainda.<br>Cadastre o primeiro cliente ou lead.<br><button class="btn pri" id="vazioNovo">' + ic('mais') + 'Novo contato</button></div>'));
-      pane.scrollTop = y;
+      var mostradas = lim - resto;
+      if (L.length > mostradas) pane.insertAdjacentHTML('beforeend', '<div class="mais-rod" data-mais="' + a[0] + '"><span class="spin" aria-hidden="true"></span><button type="button" class="btn peq" data-mais-btn>Mostrar mais conversas (' + (L.length - mostradas) + ')</button></div>');
+      pane.scrollTop = y; if (lisEl) lisEl.scrollTop = yl;
       var sj = pane.querySelector('[data-sugj]'); if (sj) sj.onclick = modalSugJuntar;
     });
   }
@@ -3539,7 +3628,7 @@
         else if (oculta && (fundo < 30 || rolar.soma > 60)) app.classList.remove(classe);
         return;
       }
-      if (!oculta && rolar.soma > 40 && y > 80 && max > 220){ if (classe === 'rolou') medeCabLista(); app.classList.add(classe); rolar.trava = Date.now() + 450; rolar.soma = 0; }
+      if (!oculta && rolar.soma > 40 && y > 80 && max > 220){ app.classList.add(classe); rolar.trava = Date.now() + 450; rolar.soma = 0; }
       else if (oculta && (rolar.soma < -40 || y < 20)){ app.classList.remove(classe); rolar.trava = Date.now() + 450; rolar.soma = 0; }
     });
   }

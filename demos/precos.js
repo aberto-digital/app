@@ -1,6 +1,6 @@
 /* Preços por região e seletor Brasil / EUA das demonstrações.
    A região vem do link (?r=br ou ?r=us), depois da última escolha guardada no navegador; sem nada, as demos usam EUA.
-   Valores do Brasil são os do sistema (core/dados.js). Valores dos EUA: do plano de negócios (EUA, em dólar). Pacote extra de IA dos EUA (+2.000 ações US$ 29, +5.000 US$ 69): sugestão, confirmar. */
+   Valores do Brasil são os do sistema (core/dados.js). Valores dos EUA: do plano de negócios (EUA, em dólar). Pacote extra de IA dos EUA: +2.000 ações US$ 29 e +5.000 US$ 69 (definido em 28/11/2026). */
 (function(){
   var PRECOS={
     br:{rot:'Brasil',moeda:'R$',loc:'pt-BR',iaExtra:39,

@@ -7,6 +7,13 @@
 <title>Orçamento · Superman Tattoo</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../estilo.css?v=3">
+<style>.emb .nav,.emb .ia,.emb .sub{display:none}
+.emb .demo{font-size:11px;padding:4px 10px}
+.emb body{background:var(--c-bg,#fff)}
+.emb .chat{padding:20px 18px 24px;max-width:none}
+.emb .chat h1{font-size:30px;padding-right:44px}
+</style>
+<script>if(/[?&]modal=1/.test(location.search))document.documentElement.classList.add('emb')</script>
 </head>
 <body>
 <div class="demo">Demonstração · nenhum orçamento é real</div>
@@ -20,8 +27,9 @@
   <div class="fio" id="fio" aria-live="polite"></div>
   <div id="area"></div>
 </main>
-<a class="ia" href="../#contato" data-pt="💬 WhatsApp" data-en="💬 WhatsApp">💬 WhatsApp</a>
+<a class="ia" href="#" data-chat data-pt="💬 Falar com o Ibraim" data-en="💬 Chat with Ibraim">💬 Falar com o Ibraim</a>
 <script src="../idioma.js?v=3"></script>
+<script src="../../chat.js?v=1" data-site="ibraim"></script>
 <script src="../../perfil.js?v=3"></script>
 <script>
 /* Conversa em passos: região, tamanho, estilo, cor, referência, contato. A estimativa usa uma tabela simples de exemplo, em dólar. */
@@ -57,7 +65,7 @@
     try{sessionStorage.setItem('abertocore-sim',JSON.stringify(S0))}catch(e){}
     return '../../abertocore/index.html';
   }
-  function fim(n,w){var url=irPainel(n,w);area.innerHTML='<a class="btn" href="'+url+'">'+t('Ver no AbertoCore','See in AbertoCore')+'</a>';setTimeout(function(){location.href=url},4500);ia(t('Pedido enviado, '+n+'! O Ibraim vai olhar a sua ideia e a IA te chama no WhatsApp com os horários disponíveis.','Request sent, '+n+'! Ibraim will review your idea and the AI will message you on WhatsApp with available times.'));
+  function fim(n,w){var url=irPainel(n,w);area.innerHTML='<a class="btn" target="_top" href="'+url+'">'+t('Ver no AbertoCore','See in AbertoCore')+'</a>';setTimeout(function(){(window.top||window).location.href=url},4500);ia(t('Pedido enviado, '+n+'! O Ibraim vai olhar a sua ideia e a IA te chama no WhatsApp com os horários disponíveis.','Request sent, '+n+'! Ibraim will review your idea and the AI will message you on WhatsApp with available times.'));
     ia(t('Agora veja como o Ibraim recebe este pedido no AbertoCore: lead no funil, com região, tamanho, estilo e a faixa de valor.','Now see how Ibraim receives this request in AbertoCore: a lead in the funnel with area, size, style and price range.'))}
   document.addEventListener('idioma',function(){if(!passo){passo=1}});
   inicio();

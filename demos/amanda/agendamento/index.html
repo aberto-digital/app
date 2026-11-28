@@ -7,6 +7,19 @@
 <title>Agendar · Amanda Belas Unhas</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../estilo.css?v=4">
+<style>.emb .nav,.emb .ia,.emb .sub{display:none}
+.emb .demo{font-size:11px;padding:4px 10px}
+.emb body{background:var(--c-bg,#fff)}
+.emb .ag{padding:20px 20px 110px;max-width:none}
+.emb .ag h1{font-size:28px;padding-right:44px;margin-bottom:4px}
+.emb .stp{display:none}.emb .stp.on{display:block}
+.emb .passo{margin:10px 0}
+.stn{display:none}
+.emb .stn{display:flex;align-items:center;gap:12px;position:fixed;left:0;right:0;bottom:0;padding:14px 20px calc(14px + env(safe-area-inset-bottom));background:var(--c-bg,#fff);border-top:1px solid var(--c-line,#ddd);z-index:5}
+.stn .btn{margin:0;padding:11px 18px}.stn .bar{flex:1;height:4px;border-radius:4px;background:var(--c-line,#ddd);overflow:hidden}.stn .bar i{display:block;height:100%;background:var(--c-btn,#333);transition:width .25s}
+.stn .btn.alt{background:none}.stmsg{color:#b3402f;font-size:13px;min-height:18px;margin:6px 0 0}
+</style>
+<script>if(/[?&]modal=1/.test(location.search))document.documentElement.classList.add('emb')</script>
 </head>
 <body>
 <div class="demo">Demonstração · nenhum agendamento é real</div>
@@ -35,10 +48,11 @@
   </section>
   <div class="resumo" id="resumo" aria-live="polite"></div>
   <button class="btn" id="conf" type="button" style="margin-top:14px;width:100%" data-pt="Confirmar agendamento" data-en="Confirm booking">Confirmar agendamento</button>
-  <div class="ok" id="ok" role="status"><h2 data-pt="Horário reservado!" data-en="You're booked!">Horário reservado!</h2><p id="okt"></p><p class="note" data-pt="Agora veja como a Amanda recebe este agendamento no AbertoCore." data-en="Now see how Amanda receives this booking in AbertoCore.">Agora veja como a Amanda recebe este agendamento no AbertoCore.</p><a class="btn" id="ver" href="#" data-pt="Ver no AbertoCore" data-en="See in AbertoCore">Ver no AbertoCore</a></div>
+  <div class="ok" id="ok" role="status"><h2 data-pt="Horário reservado!" data-en="You're booked!">Horário reservado!</h2><p id="okt"></p><p class="note" data-pt="Agora veja como a Amanda recebe este agendamento no AbertoCore." data-en="Now see how Amanda receives this booking in AbertoCore.">Agora veja como a Amanda recebe este agendamento no AbertoCore.</p><a class="btn" id="ver" target="_top" href="#" data-pt="Ver no AbertoCore" data-en="See in AbertoCore">Ver no AbertoCore</a></div>
 </main>
-<a class="ia" href="../#contato" data-pt="💬 Falar com a IA" data-en="💬 Chat with the AI">💬 Falar com a IA</a>
+<a class="ia" href="#" data-chat data-pt="💬 Falar com a Amanda" data-en="💬 Chat with Amanda">💬 Falar com a Amanda</a>
 <script src="../idioma.js?v=4"></script>
+<script src="../../chat.js?v=1" data-site="amanda"></script>
 <script src="../../perfil.js?v=4"></script>
 <script>
 (function(){
@@ -84,10 +98,36 @@
     var url='../../abertocore/index.html';
     $('okt').textContent=nome+' · '+S[st.s][L()]+' · '+fmt(D[st.d])+' · '+H[st.h];
     $('ok').style.display='block';$('ok').scrollIntoView({behavior:'smooth'});
-    $('ver').href=url;setTimeout(function(){location.href=url},3500);
+    $('ver').href=url;setTimeout(function(){(window.top||window).location.href=url},3500);
   };
   document.addEventListener('idioma',desenha);
   desenha();
+  /* Modo modal (computador): um passo por vez */
+  if(document.documentElement.classList.contains('emb')){
+    var ps=document.querySelectorAll('main.ag > .passo'),r=$('resumo'),cf=$('conf');
+    var G=[[ps[0],ps[1]],[ps[2],ps[3]],[ps[4]],[ps[5]],[r,cf]],i=0,en=function(){return L()==='en'};
+    G.forEach(function(g,k){g.forEach(function(e){e.classList.add('stp');e.setAttribute('data-k',k)})});
+    var nav=document.createElement('div');nav.className='stn';nav.innerHTML='<button class="btn alt" type="button" id="stv"></button><div class="bar"><i></i></div><button class="btn" type="button" id="stc"></button>';document.body.appendChild(nav);
+    var msg=document.createElement('p');msg.className='stmsg';msg.id='stmsg';document.querySelector('main.ag').appendChild(msg);
+    function ok(k){var e=en();
+      if(k===0&&st.s==null)return e?'Choose a service.':'Escolha um serviço.';
+      if(k===1&&st.d==null)return e?'Choose a day.':'Escolha um dia.';
+      if(k===1&&st.h==null)return e?'Choose a time.':'Escolha um horário.';
+      if(k===2&&!$('nome').value.trim())return e?'Enter your name.':'Informe seu nome.';
+      if(k===3&&st.p==='zelle'&&!$('zok').checked)return e?'Tick the box after sending the Zelle.':'Marque a caixa depois de enviar o Zelle.';
+      return ''}
+    function mostra(){document.querySelectorAll('.stp').forEach(function(e){e.classList.toggle('on',+e.getAttribute('data-k')===i)});
+      /* passo 0 = serviço, 1 = dia e horário, 2 = dados, 3 = sinal, 4 = resumo */
+      $('stv').textContent=en()?'Back':'Voltar';$('stv').style.visibility=i===0?'hidden':'visible';
+      $('stc').textContent=en()?'Continue':'Continuar';$('stc').style.display=i===G.length-1?'none':'';
+      nav.querySelector('.bar i').style.width=((i+1)/G.length*100)+'%';msg.textContent=''}
+    $('stc').onclick=function(){var m=ok(i);if(m){msg.textContent=m;return}i=Math.min(G.length-1,i+1);mostra()};
+    $('stv').onclick=function(){i=Math.max(0,i-1);mostra()};
+    document.addEventListener('idioma',mostra);
+    cf.addEventListener('click',function(){setTimeout(function(){if($('ok').style.display==='block'){nav.style.display='none';document.querySelectorAll('.stp').forEach(function(e){e.classList.remove('on')});msg.textContent=''}},0)});
+    mostra();
+  }
+
 })();
 </script>
 </body>

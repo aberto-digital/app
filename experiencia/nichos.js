@@ -237,6 +237,32 @@
         { nome: 'Sérgio N.', canal: 'Site', txt: { pt: 'Aprovado, pode fazer.', en: 'Approved, go ahead.' } },
       ],
     },
+    tattoo: {
+      modelo: 'orcamento', cor: '#E8372D',
+      textos: {
+        pt: { titulo: 'Conte a sua ideia e receba uma estimativa', chamada: 'Diga a região do corpo, o tamanho e mande referências. O artista responde com valor e horários.', tipo: 'Estúdio de tatuagem', info: 'Com hora marcada · atendimento em português e inglês' },
+        en: { titulo: 'Tell us your idea and get an estimate', chamada: 'Share the body area, size and references. The artist replies with a price and available times.', tipo: 'Tattoo studio', info: 'By appointment · Portuguese and English' },
+      },
+      perguntas: [
+        { id: 'regiao', rot: { pt: 'Região do corpo', en: 'Body area' }, ph: { pt: 'Ex.: antebraço', en: 'E.g. forearm' } },
+        { id: 'tamanho', rot: { pt: 'Tamanho aproximado', en: 'Approximate size' }, op: { pt: ['Pequena (até 10 cm)', 'Média (10 a 20 cm)', 'Grande (20 a 30 cm)', 'Projeto grande'], en: ['Small (up to 4 in)', 'Medium (4 to 8 in)', 'Large (8 to 12 in)', 'Big project'] } },
+        { id: 'ideia', rot: { pt: 'Qual é a ideia?', en: 'What is the idea?' }, ph: { pt: 'Ex.: leão fineline com coroa', en: 'E.g. fine line lion with a crown' } },
+      ],
+      categorias: [
+        { nome: { pt: 'Estilos', en: 'Styles' }, itens: [
+          { id: 'pretocinza', img: '🖤', nome: { pt: 'Preto e cinza', en: 'Black and grey' }, ds: { pt: 'Sombreado e realismo', en: 'Shading and realism' }, de: 400, ate: 1500, deUsd: 150, ateUsd: 600 },
+          { id: 'colorida', img: '🎨', nome: { pt: 'Colorida', en: 'Color' }, ds: { pt: 'Cores vivas e anime', en: 'Bold color and anime' }, de: 500, ate: 1800, deUsd: 200, ateUsd: 750 },
+          { id: 'chicano', img: '🃏', nome: { pt: 'Chicano', en: 'Chicano' }, ds: { pt: 'Retratos e letras', en: 'Portraits and lettering' }, de: 450, ate: 1600, deUsd: 180, ateUsd: 650 },
+          { id: 'fineline', img: '✒️', nome: { pt: 'Fineline', en: 'Fine line' }, ds: { pt: 'Traço fino e delicado', en: 'Delicate thin lines' }, de: 250, ate: 900, deUsd: 100, ateUsd: 350 },
+          { id: 'fechamento', img: '💪', nome: { pt: 'Fechamento de braço ou perna', en: 'Full sleeve or leg' }, ds: { pt: 'Projeto em várias sessões', en: 'Multi-session project' }, de: 2500, ate: 9000, deUsd: 1000, ateUsd: 3500 },
+        ] },
+      ],
+      exemplos: [
+        { nome: 'Lucas P.', canal: 'Instagram', txt: { pt: 'Quero fechar o braço com preto e cinza.', en: 'I want a black and grey sleeve.' } },
+        { nome: 'Camila R.', canal: 'WhatsApp', txt: { pt: 'Tem horário para fineline no sábado?', en: 'Any fine line slots on Saturday?' } },
+        { nome: 'Diego S.', canal: 'Site', txt: { pt: 'Aprovado, pode marcar.', en: 'Approved, go ahead and book.' } },
+      ],
+    },
     vidracaria: {
       modelo: 'orcamento', cor: '#00838F',
       textos: {

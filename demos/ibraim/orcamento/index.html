@@ -22,10 +22,11 @@
 </main>
 <a class="ia" href="../#contato" data-pt="💬 WhatsApp" data-en="💬 WhatsApp">💬 WhatsApp</a>
 <script src="../idioma.js"></script>
+<script src="../../perfil.js"></script>
 <script>
 /* Conversa em passos: região, tamanho, estilo, cor, referência, contato. A estimativa usa uma tabela simples de exemplo, em dólar. */
 (function(){
-  var fio=document.getElementById('fio'), area=document.getElementById('area'), r={}, passo=0, fotos=[];
+  var KEY='demo-cliente-ibraim', fio=document.getElementById('fio'), area=document.getElementById('area'), r={}, passo=0, fotos=[];
   function L(){return window.DemoLang()}
   function t(pt,en){return L()==='en'?en:pt}
   function ia(x){var d=document.createElement('div');d.className='m';d.textContent=x;fio.appendChild(d)}
@@ -34,7 +35,7 @@
   var REG=[['Antebraço','Forearm',1],['Braço','Upper arm',1.3],['Fechamento de braço','Full sleeve',4],['Perna','Leg',1.6],['Costas','Back',2.4],['Peito','Chest',1.8],['Pescoço ou mão','Neck or hand',1.5]];
   var TAM=[['Pequena · até 10 cm','Small · up to 4 in',150],['Média · 10 a 20 cm','Medium · 4 to 8 in',350],['Grande · 20 a 30 cm','Large · 8 to 12 in',700],['Projeto grande · várias sessões','Big project · several sessions',1500]];
   var EST=[['Preto e cinza','Black and grey',1],['Colorida','Color',1.25],['Realismo','Realism',1.3],['Chicano','Chicano',1.1],['Anime','Anime',1.1],['Fineline','Fine line',0.9]];
-  function inicio(){fio.innerHTML='';passo=0;fotos=[];r={};ia(t('Oi! Eu sou a IA do Ibraim. Vou te ajudar a montar o pedido. Em que região do corpo você quer tatuar?','Hi! I am Ibraim\'s AI. I will help you build your request. Which area of the body is it for?'));opcoes(REG.map(function(x){return [t(x[0],x[1]),x]}),regiao)}
+  function inicio(){fio.innerHTML='';passo=0;fotos=[];r={};var P0=window.Perfil.ler(KEY);if(P0){ia(t('Oi de volta, '+P0.nome.split(' ')[0]+'! Eu te respondo por '+window.Perfil.canal(P0.canal).pt+', como da última vez.','Welcome back, '+P0.nome.split(' ')[0]+'! I will reply on '+window.Perfil.canal(P0.canal).en+', like last time.'))}ia(t('Oi! Eu sou a IA do Ibraim. Vou te ajudar a montar o pedido. Em que região do corpo você quer tatuar?','Hi! I am Ibraim\'s AI. I will help you build your request. Which area of the body is it for?'));opcoes(REG.map(function(x){return [t(x[0],x[1]),x]}),regiao)}
   function regiao(it){r.reg=it[1];ia(t('Qual o tamanho aproximado?','What is the approximate size?'));opcoes(TAM.map(function(x){return [t(x[0],x[1]),x]}),tamanho)}
   function tamanho(it){r.tam=it[1];ia(t('Qual estilo combina mais com a ideia?','Which style fits your idea best?'));opcoes(EST.map(function(x){return [t(x[0],x[1]),x]}),estilo)}
   function estilo(it){r.est=it[1];ia(t('Conta a ideia com as suas palavras e, se tiver, anexe referências.','Describe your idea in your own words and attach references if you have them.'));
@@ -43,10 +44,23 @@
     document.getElementById('seg').onclick=function(){r.ideia=document.getElementById('ideia').value.trim();cli(r.ideia||t('(sem descrição)','(no description)'));resultado()}}
   function resultado(){var base=r.tam[2]*r.reg[2]*r.est[2],min=Math.round(base*0.8/50)*50,max=Math.round(base*1.2/50)*50;r.faixa=[min,max];
     ia(t('Pelo que você contou, a estimativa é esta:','Based on what you shared, the estimate is:'));
-    area.innerHTML='<p class="faixa">$'+min+' – $'+max+'</p><p class="nota">'+t('Estimativa de exemplo. O valor final o Ibraim confirma depois de ver o desenho e as referências.','Sample estimate. Ibraim confirms the final price after seeing the design and references.')+'</p><label class="nota" for="n">'+t('Seu nome','Your name')+'</label><input id="n" type="text" autocomplete="name"><label class="nota" for="w">WhatsApp</label><input id="w" type="tel" autocomplete="tel" placeholder="(843) 000-0000"><button class="btn" id="env" type="button">'+t('Enviar pedido','Send request')+'</button>';
-    document.getElementById('env').onclick=function(){var n=document.getElementById('n').value.trim();if(!n)return;cli(n);fim(n)};window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
-  function fim(n){area.innerHTML='';ia(t('Pedido enviado, '+n+'! O Ibraim vai olhar a sua ideia e a IA te chama no WhatsApp com os horários disponíveis.','Request sent, '+n+'! Ibraim will review your idea and the AI will message you on WhatsApp with available times.'));
-    ia(t('Na versão real, este pedido vira um lead no funil do AbertoCore, com região, tamanho, estilo, referências e a faixa de valor.','In the real version this request becomes a lead in the AbertoCore funnel, with area, size, style, references and the price range.'))}
+    area.innerHTML='<p class="faixa">$'+min+' – $'+max+'</p><p class="nota">'+t('Estimativa de exemplo. O valor final o Ibraim confirma depois de ver o desenho e as referências.','Sample estimate. Ibraim confirms the final price after seeing the design and references.')+'</p><label class="nota" for="n">'+t('Seu nome','Your name')+'</label><input id="n" type="text" autocomplete="name"><p class="nota">'+t('Por onde você quer receber o orçamento e a confirmação?','Where should we send your quote and confirmation?')+'</p><div class="op" id="cn"></div><label class="nota" id="wr" for="w"></label><input id="w" type="text" autocomplete="off"><button class="btn" id="env" type="button">'+t('Enviar pedido','Send request')+'</button>';
+    var P=window.Perfil.ler(KEY);if(P){document.getElementById('n').value=P.nome;r.canal=P.canal;document.getElementById('w').value=P.contato}
+    function canais(){var c=document.getElementById('cn');c.innerHTML='';window.Perfil.CANAIS.forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=x[L()];b.setAttribute('aria-pressed',r.canal===x.id?'true':'false');b.style.background=r.canal===x.id?'#f1ece1':'transparent';b.style.color=r.canal===x.id?'#0a0a0a':'#f1ece1';b.onclick=function(){r.canal=x.id;canais()};c.appendChild(b)});var k=window.Perfil.canal(r.canal||'whatsapp');document.getElementById('wr').textContent=k.rot[L()];document.getElementById('w').type=k.tipo;document.getElementById('w').placeholder=k.ph}
+    if(!r.canal)r.canal='whatsapp';canais();
+    document.getElementById('env').onclick=function(){var n=document.getElementById('n').value.trim();if(!n)return;var k=window.Perfil.canal(r.canal),w=document.getElementById('w').value.trim()||k.ph;cli(n);window.Perfil.grava(KEY,{nome:n,canal:r.canal,contato:w,hist:((P&&P.hist)||[]).concat([{idea:(r.ideia||'-').slice(0,40),faixa:'$'+r.faixa[0]+'-'+r.faixa[1]}]).slice(-10)});fim(n,k.id==='whatsapp'?w:k.pt+' · '+w)};window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
+  function irPainel(n,w){
+    var l=L(),ids=['pretocinza','colorida','chicano','fineline','fechamento'],it={id:ids[Math.max(0,EST.findIndex(function(e){return e[2]===r.est[2]&&e[0]===r.est[0]}))]||'pretocinza'};
+    var cfg={m:'orcamento',n:'tattoo',nome:'Superman Tattoo',logo:'',cor:'#E8372D',cidade:'Carolina do Sul',l:l};
+    var est={cfg:cfg,orcamento:{num:102,tipo:{id:it.id,nome:l==='en'?r.est[1]:r.est[0],img:'🖤',de:r.faixa[0],ate:r.faixa[1]},
+      respostas:[{id:'regiao',p:t('Região do corpo','Body area'),r:l==='en'?r.reg[1]:r.reg[0]},{id:'tamanho',p:t('Tamanho aproximado','Approximate size'),r:l==='en'?r.tam[1]:r.tam[0]},{id:'ideia',p:t('Qual é a ideia?','What is the idea?'),r:(r.ideia||'-').slice(0,120)}],
+      fotos:[],cliente:{nome:n,tel:w||'(843) 000-0000'},ts:Date.now()},chat:[]};
+    try{sessionStorage.setItem('abertocore-experiencia',JSON.stringify(est))}catch(e){}
+    var q=new URLSearchParams({m:'orcamento',n:'tattoo',nome:cfg.nome,cor:cfg.cor,cidade:cfg.cidade,l:l});
+    return '../../../experiencia/painel.html?'+q.toString();
+  }
+  function fim(n,w){var url=irPainel(n,w);area.innerHTML='<a class="btn" href="'+url+'">'+t('Ver no AbertoCore','See in AbertoCore')+'</a>';setTimeout(function(){location.href=url},4500);ia(t('Pedido enviado, '+n+'! O Ibraim vai olhar a sua ideia e a IA te chama no WhatsApp com os horários disponíveis.','Request sent, '+n+'! Ibraim will review your idea and the AI will message you on WhatsApp with available times.'));
+    ia(t('Agora veja como o Ibraim recebe este pedido no AbertoCore: lead no funil, com região, tamanho, estilo e a faixa de valor.','Now see how Ibraim receives this request in AbertoCore: a lead in the funnel with area, size, style and price range.'))}
   document.addEventListener('idioma',function(){if(!passo){passo=1}});
   inicio();
 })();

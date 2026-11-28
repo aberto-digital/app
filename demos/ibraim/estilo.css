@@ -28,8 +28,8 @@ h2{font-size:clamp(36px,6vw,64px)}
 .estilos{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0}
 .estilos li{border:1px solid var(--line);padding:4px 14px;font-size:13px;color:var(--mut);background:var(--card)}
 .nota{color:var(--mut);font-size:13px}
-.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px;margin:16px 0}
-.grade div{aspect-ratio:1;display:flex;align-items:flex-end;padding:10px;font:400 18px 'Bebas Neue';letter-spacing:.05em}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px;margin:16px 0}
+.grade figure{margin:0;position:relative}.grade img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}.grade figcaption{position:absolute;left:0;right:0;bottom:0;padding:24px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.8));font:400 20px 'Bebas Neue';letter-spacing:.05em}
 .sobre{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;border-top:1px solid var(--line)}
 .sobre .logo{aspect-ratio:1;max-width:320px;border:3px solid var(--red);display:grid;place-items:center;font:400 54px/.9 'Bebas Neue';text-align:center;background:linear-gradient(160deg,#17203a,#0a0a0a)}
 .logo span{color:var(--red)}

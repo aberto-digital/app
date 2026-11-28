@@ -327,6 +327,7 @@
   .cab-via .via:hover{color:var(--ceu)}
   .cab-via .via svg{width:15px;height:15px;flex:none}
   .cab-via .via span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cab-via .via.goo{color:var(--sec);cursor:default}.cab-via .via.goo small{font-size:12px}
   .cab-via .via.ig svg{color:var(--ig)}.cab-via .via.wa svg{color:var(--wa)}
   .det-juntar{width:100%;justify-content:center;margin-top:18px}
   .jt-lista{display:grid;gap:6px;max-height:50vh;overflow:auto;margin-top:6px}
@@ -1056,6 +1057,8 @@
   wa:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9c0 3 3 6 6 6l1-1.6-2-1-1 .8c-.8-.4-1.600-1.200-2-2l.8-1-1-2z"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.500 7.500L12 13l8.500-5.500"/>',
   edita:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.500 6.500l4 4"/>',
+  pin:'<path d="M12 21s-6.500-6-6.500-11a6.500 6.500 0 0 1 13 0c0 5-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.300"/>',
+  globo:'<circle cx="12" cy="12" r="8.500"/><path d="M3.500 12h17M12 3.500c2.500 2.600 3.500 5.500 3.500 8.500s-1 5.900-3.500 8.500c-2.500-2.600-3.500-5.500-3.500-8.500s1-5.900 3.500-8.500z"/>',
   msg:'<path d="M4 5h16v11H9l-5 4z"/>',
     funil:'<path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/>',
     agenda:'<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/>',
@@ -1660,17 +1663,12 @@
   function notaG(v){ var n = +String(v).replace(',', '.'); if (n > 1000 && n < 80000 && n % 1 === 0){ var d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return d.getUTCDate() + ',' + (d.getUTCMonth() + 1); } return String(v).replace('.', ','); }
   function blocoLead(c){
     var L = c.lead; if (!L) return '';
-    function linha(r, v, link){ return v ? '<div class="dado"><span>' + r + '</span><span>' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(v) + '</a>' : esc(v)) + '</span></div>' : ''; }
-    var ig = L.insta ? 'https://instagram.com/' + L.insta.replace('@', '') : '', site = L.site && /\.[a-z]{2,}/i.test(L.site) && !/\s/.test(L.site.trim()) ? (/^https?:/.test(L.site) ? L.site : 'https://' + L.site) : '';
-    var end = [L.endereco, L.bairro, L.cidade && L.uf ? L.cidade + '/' + L.uf : L.cidade].filter(Boolean).join(', ');
-    return '<div class="lead-bloco"><div class="grupo-t">Dados do lead</div>' +
-      linha('Prioridade', L.prioridade ? L.prioridade + (L.score ? ' · score ' + L.score : '') : '') + linha('Ramo', L.ramo) +
-      linha('Instagram', L.insta, ig) + linha('Site', L.site, site) + linha('E-mail', L.email, L.email ? 'mailto:' + L.email : '') +
-      linha('Outros telefones', L.telefone && L.telefone !== c.tel ? L.telefone : '') +
-      linha('Endereço', end, end ? 'https://www.google.com/maps/search/' + encodeURIComponent(c.negocio + ' ' + end) : '') +
-      linha('Google', L.notaGoogle ? notaG(L.notaGoogle) + ' ★' + (L.avalGoogle ? ' (' + L.avalGoogle + ' avaliações)' : '') : '') +
-      linha('Seguidores', L.seguidores) + linha('Serviços indicados', L.servicos) + linha('Fonte', L.fonte) +
-      linha('Capturado em', L.capturado) + '</div>';
+    function linha(r, v){ return v ? '<div class="dado"><span>' + r + '</span><span>' + esc(v) + '</span></div>' : ''; }
+    var dt = String(L.capturado || ''), m = dt.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) dt = m[3] + '/' + m[2] + '/' + m[1];
+    var fonte = [L.fonte, dt].filter(Boolean).join(' \u00b7 ');
+    var rows = linha('Prioridade', L.prioridade ? L.prioridade + (L.score ? ' \u00b7 score ' + L.score : '') : '') + linha('Ramo', L.ramo) +
+      (siteValido(c.site) || siteValido(L.site) ? '' : linha('Site', L.site)) + linha('Seguidores', L.seguidores) + linha('Fonte', fonte);
+    return rows ? '<div class="lead-bloco"><div class="grupo-t">Dados do lead</div>' + rows + '</div>' : '';
   }
   function secImportLeads(){
     return '<section class="painel" id="ajImport"><h2>Importar leads</h2><p class="nota-bot">Traga uma lista de prospecção em Excel (.xlsx) ou CSV, no formato padrão da planilha de leads. Os novos entram na aba <b>Prospecção</b>, sem repetir quem já está no AbertoCore e sem enviar nenhuma mensagem.</p>' +
@@ -2994,15 +2992,25 @@
   }
 
   /* Faixa de contato no topo do card: só o que existe (Instagram, WhatsApp/telefone, e-mail). */
+  /* Faixa de contato no topo do card: so o que existe. Junta os dados do contato com os do lead importado. */
+  function endCurto(e){ var p = String(e || '').split(' - ')[0].split(','); return p.slice(0, 2).join(',').trim(); }
+  function siteValido(t){ t = String(t || '').trim(); return t && /\.[a-z]{2,}/i.test(t) && !/\s/.test(t) ? (/^https?:/.test(t) ? t : 'https://' + t) : ''; }
   function viaContato(c){
-    var L = [];
-    function via(cls, icone, txt, href){ L.push('<a class="via ' + cls + '" href="' + href + '"' + (/^https?:/.test(href) ? ' target="_blank" rel="noopener"' : '') + ' title="' + esc(txt) + '">' + ic(icone) + '<span>' + esc(txt) + '</span></a>'); }
-    if (c.usuario) via('ig', 'ig', '@' + c.usuario, 'https://instagram.com/' + encodeURIComponent(c.usuario));
+    var L = [], ld = c.lead || {};
+    function via(cls, icone, txt, href){ L.push('<a class="via ' + cls + '" href="' + esc(href) + '"' + (/^https?:/.test(href) ? ' target="_blank" rel="noopener"' : '') + ' title="' + esc(txt) + '">' + (icone ? ic(icone) : '') + '<span>' + esc(txt) + '</span></a>'); }
+    var usu = c.usuario || String(ld.insta || '').replace(/^.*instagram\.com\//i, '').replace(/^@/, '').replace(/\/.*$/, '');
+    if (usu) via('ig', 'ig', '@' + usu, 'https://instagram.com/' + encodeURIComponent(usu));
     if (c.tel){
       var wa = c.canal === 'WhatsApp' || (c.canais || []).indexOf('WhatsApp') >= 0;
       if (wa) via('wa', 'wa', c.tel, 'https://wa.me/' + foneWa(c.tel)); else via('tel', 'tel', c.tel, 'tel:' + String(c.tel).replace(/[^\d+]/g, ''));
     }
-    if (c.email) via('em', 'mail', c.email, 'mailto:' + c.email);
+    if (ld.telefone && ld.telefone !== c.tel) via('tel', 'tel', ld.telefone, 'tel:' + String(ld.telefone).replace(/[^\d+]/g, ''));
+    var em = c.email || ld.email; if (em) via('em', 'mail', em, 'mailto:' + em);
+    var st = siteValido(c.site) || siteValido(ld.site);
+    if (st) via('site', 'globo', st.replace(/^https?:\/\//, '').replace(/\/$/, ''), st);
+    var end = c.endereco || [ld.endereco, ld.bairro, ld.cidade && ld.uf ? ld.cidade + '/' + ld.uf : ld.cidade].filter(Boolean).join(', ');
+    if (end) via('end', 'pin', endCurto(end) || end, 'https://www.google.com/maps/search/' + encodeURIComponent((c.negocio || '') + ' ' + end));
+    if (ld.notaGoogle) L.push('<span class="via goo" title="Nota no Google">\u2605 ' + esc(notaG(ld.notaGoogle)) + (ld.avalGoogle ? ' <small>(' + esc(ld.avalGoogle) + ')</small>' : '') + '</span>');
     return L.length ? '<div class="cab-via">' + L.join('') + '</div>' : '';
   }
   function desenhaDetalhe(){
@@ -3032,8 +3040,6 @@
       '<div class="campo"><label for="dNota">Anotações</label><textarea id="dNota" rows="3">' + esc(c.nota) + '</textarea></div>' +
       '<button class="btn pri" id="dAgendar" style="width:100%;justify-content:center;margin-bottom:16px">' + ic('agenda') + (BELEZA ? 'Agendar horário' : 'Agendar compromisso') + '</button>' +
       (BELEZA ? blocoFicha(c) : blocoDocs(c)) +
-      (c.site ? '<div class="dado"><span>Site</span><a href="' + esc(/^https?:/.test(c.site) ? c.site : 'https://' + c.site) + '" target="_blank" rel="noopener">' + esc(c.site.replace(/^https?:\/\//, '')) + '</a></div>' : '') +
-      (c.endereco ? '<div class="dado"><span>Endereço</span><a href="https://www.google.com/maps/search/' + encodeURIComponent(c.endereco) + '" target="_blank" rel="noopener">' + esc(c.endereco) + '</a></div>' : '') +
       ((c.canais || []).length > 1 ? '<div class="dado"><span>Canais</span><span>' + c.canais.map(function(k){ return chipCanal(k); }).join(' ') + '</span></div>' : '') +
       blocoLead(c) +
       (evs.length ? '<div class="grupo-t">Próximos compromissos</div>' + evs.map(function(e){ return '<div class="dado"><span>' + esc(e.titulo) + '</span><span>' + dataCurta(e.data) + ' ' + e.hora + '</span></div>'; }).join('') : '') +

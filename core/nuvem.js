@@ -310,6 +310,21 @@
     aplicandoRemoto = true; gravar(CHAVE, S); gravar(CHAVE_SYNC, mapa); aplicandoRemoto = false;
     window.dispatchEvent(new CustomEvent('nuvem:atualizado', { detail: { novas: 0, evento: srv.id } }));
   }
+  /* Puxar para atualizar: busca contatos e eventos no servidor e junta com o que está aqui (mesma regra do tempo real). */
+  function atualizar() {
+    if (!auth) return Promise.resolve(0);
+    return (emCurso || Promise.resolve()).then(function () {
+      return Promise.all([listarTudo('contatos'), listarTudo('eventos')]);
+    }).then(function (r) {
+      r[0].forEach(function (rec) {
+        var m = mapa.contatos && mapa.contatos[rec.local_id], srv = rec.dados || {}; srv.id = rec.local_id;
+        if (m && m.rid === rec.id && m.h === hash(srv)) return; // já está igual: evita reler tudo à toa
+        aplicaContato(rec);
+      });
+      r[1].forEach(aplicaEvento);
+      return r[0].length;
+    });
+  }
   var es = null;
   function tempoReal() {
     if (!auth || !window.EventSource || es) return;
@@ -452,7 +467,7 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciaUI); else iniciaUI();
 
-  window.Nuvem = { entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, juntar: juntarContatos, logado: function () { return !!auth; }, usuario: function () { return auth; }, empresaNome: function () { try { return localStorage.getItem('abertocore-empresa-nome') || ''; } catch (e) { return ''; } },
+  window.Nuvem = { atualizar: atualizar, entrar: entrar, sair: sair, enviar: function () { return enviarAgora(true); }, juntar: juntarContatos, logado: function () { return !!auth; }, usuario: function () { return auth; }, empresaNome: function () { try { return localStorage.getItem('abertocore-empresa-nome') || ''; } catch (e) { return ''; } },
     waConectado: function () { return !!wa.conectado; }, estado: function () { return estado; }, telaLogin: telaLogin,
     req: req, entrarComResposta: entrarComResposta,
     ia: function (metodo, caminho, corpo) { return api(metodo, '/api/abertocore/ia' + (caminho || ''), corpo); }, waNumero: function () { return wa.numero; }, enviarWhatsApp: enviarWhatsApp,

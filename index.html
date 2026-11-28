@@ -870,7 +870,9 @@
     .trilho svg{width:23px;height:23px}
     .trilho .rot{display:none}
     .trilho .bolha{top:3px;right:calc(50% - 22px);min-width:16px;height:16px;font-size:10px}
-    html{background:var(--branco)}
+    /* iPhone (app na tela inicial): a página nunca rola sozinha, então o iOS não aplica o efeito de borda translúcida na faixa da barra de status */
+    html{background:var(--branco);overflow:hidden;overscroll-behavior:none}
+    body{background:var(--branco)}
     input,select,textarea{font-size:16px!important}
     .principal{padding-top:calc(60px + env(safe-area-inset-top))}
     .topo{position:fixed;top:0;left:0;right:0;z-index:45;height:calc(60px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0 14px;gap:10px;background:var(--branco);border-bottom:1px solid var(--linha)}

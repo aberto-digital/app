@@ -25,6 +25,25 @@ const PADRAO = {
 }
 function campo(at, k, max) { return limpa(at[k], max) || PADRAO[k] }
 
+// Dados que o card já tem sobre o contato: a IA não pergunta de novo o que já sabe (nome, @, negócio, site, telefone...).
+function fatosDoContato(d, canalNome) {
+  const L = d.lead && typeof d.lead === "object" ? d.lead : {}
+  const insta = String(d.usuario || L.insta || "").replace(/^@/, "")
+  const linhas = [
+    d.nome ? "Nome: " + limpa(d.nome, 80) : "",
+    d.negocio ? "Negócio: " + limpa(d.negocio, 120) : "",
+    insta ? "Instagram: @" + limpa(insta, 60) : "",
+    (d.site || L.site) ? "Site: " + limpa(d.site || L.site, 120) : "",
+    d.tel ? "Telefone/WhatsApp: " + limpa(d.tel, 30) : "",
+    d.email ? "E-mail: " + limpa(d.email, 80) : "",
+    d.ia && d.ia.resumo ? "Resumo da conversa até aqui: " + limpa(d.ia.resumo, 300) : "",
+    d.ia && d.ia.interesse ? "Interesse: " + limpa(d.ia.interesse, 120) : "",
+  ].filter(Boolean)
+  const regra = "Esta conversa está acontecendo pelo " + canalNome + (canalNome === "Instagram" ? ", direto no perfil da própria pessoa: nunca pergunte o @ nem o perfil de quem está falando" : "") +
+    ". Nunca pergunte de novo nem peça para confirmar nome, @ do Instagram, site, telefone, e-mail ou negócio que já estejam nos dados do contato ou na conversa. Use esses dados naturalmente (por exemplo, cite o negócio ou o @ quando ajudar). Se faltar algo de que você precisa, pergunte só o que falta."
+  return regra + (linhas.length ? "\nDados do contato:\n" + linhas.join("\n") : "")
+}
+
 // Interruptores por recurso (configuracoes.dados.ia.<chave>): ligados por padrão; só "false" desliga.
 // Chaves: prospeccao, site, transcrever, assistente, ajuda, alertas, automacoes (geral das automações do Instagram), interna (geral da IA interna).
 function liga(at, chave) { return !at || at[chave] !== false }
@@ -128,6 +147,7 @@ function decide(app, empresaId, rec, canalNome) {
     at.humano === false ? "" : "Marque chamar_equipe = true quando: " + campo(at, "chamar", 1000) + ". Mesmo assim, responda na mesma mensagem tudo o que as informações abaixo permitem.",
     (d.iaChamou && agora - d.iaChamou < 12 * 3600000) ? "A equipe JÁ foi avisada nesta conversa. Continue respondendo as dúvidas objetivas (preço, opções, prazos, como funciona) com as informações abaixo; não ofereça de novo falar com a equipe e não repita que vai chamar alguém. Se não souber, diga que a equipe responde em breve." : "",
     'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"parar":false,"pessoal":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
+    "", fatosDoContato(d, canalNome),
     "", "Informações do negócio:", limpa(at.base || ctx.base, 3000),
     ctx.playbook ? "\nPlaybook comercial (use quando o assunto for iFood, apps de entrega, Cardápio Web ou concorrentes; argumente com estes fatos, sem despejar tudo de uma vez):\n" + ctx.playbook : "",
   ].filter(Boolean).join("\n")
@@ -177,4 +197,4 @@ function registra(app, rec, r, extra) {
   app.save(rec)
 }
 
-module.exports = { PADRAO, liga, recursoLigado, decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }
+module.exports = { fatosDoContato, PADRAO, liga, recursoLigado, decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }

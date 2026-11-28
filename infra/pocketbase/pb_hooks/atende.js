@@ -9,6 +9,22 @@ function lerDados(rec) {
 }
 function limpa(t, max) { return String(t == null ? "" : t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim().slice(0, max) }
 
+// Textos padrão dos campos do painel (Atendimento automático → IA de atendimento). Campo vazio ou
+// ausente usa estes. ATENÇÃO: o index.html tem uma cópia (IA_PADRAO); mude os dois juntos.
+const PADRAO = {
+  objetivo: "tirar dúvidas, entender o que a pessoa precisa e levar ao próximo passo do negócio (por exemplo, marcar uma conversa ou uma avaliação)",
+  comportamento: [
+    "1. Responda primeiro exatamente o que foi perguntado, com os dados das informações do negócio (preço, prazo, como funciona). Depois faça no máximo UMA pergunta que avance a venda (ex.: qual o negócio, o que já tem hoje, quando quer começar).",
+    "2. Não repita saudação nem apresentação se a conversa já começou. Não use frases vazias como \"Como podemos ajudar?\" depois que o cliente já disse o que quer.",
+    "3. Só diga que é o assistente virtual se for a primeira resposta da conversa ou se perguntarem; a equipe acompanha a conversa.",
+    "4. Se não souber algo, diga que a equipe confirma em seguida.",
+    "5. Conversa pessoal: se a pessoa fala de assunto pessoal ou claramente alheio ao negócio (amigo ou familiar conversando, brincadeira, futebol, saudade, notícia, assunto de outra pessoa) e não demonstrou interesse nos serviços, não ofereça nada, não avance etapa e não faça perguntas de venda: deixe a resposta vazia e marque pessoal = true, para a equipe responder pessoalmente. Só trate como negócio se a pessoa falar do negócio dela, perguntar sobre nossos serviços ou responder a uma oferta nossa de forma clara.",
+  ].join("\n"),
+  chamar: "o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa",
+  nunca: "inventar preços, prazos, descontos ou promessas; prometer resultados; dizer que não consegue ouvir áudio",
+}
+function campo(at, k, max) { return limpa(at[k], max) || PADRAO[k] }
+
 // Interruptores por recurso (configuracoes.dados.ia.<chave>): ligados por padrão; só "false" desliga.
 // Chaves: prospeccao, site, transcrever, assistente, ajuda, alertas, automacoes (geral das automações do Instagram), interna (geral da IA interna).
 function liga(at, chave) { return !at || at[chave] !== false }
@@ -99,19 +115,17 @@ function decide(app, empresaId, rec, canalNome) {
   const tom = { "Formal": "formal e educado", "Animado": "animado e caloroso" }[at.tom] || "próximo e direto"
   const curto = canalNome === "E-mail" ? "até 6 frases, em parágrafos curtos, com saudação e despedida" : "curto (até 3 frases)"
   const sistema = [
-    "Você é " + (at.nome || "o atendente virtual") + ", atendente de " + ctx.nome + " no " + canalNome + ". Responda em português do Brasil, " + curto + ", tom " + tom + ", como alguém da equipe.",
-    "Use só as informações abaixo. Se não souber algo, diga que a equipe confirma em seguida. Nunca invente preços, prazos, descontos ou promessas.",
+    "Você é " + (at.nome || "o atendente virtual") + ", " + (limpa(at.papel, 160) || "atendente de " + ctx.nome) + " no " + canalNome + ". Responda em português do Brasil, " + curto + ", tom " + tom + ", como alguém da equipe.",
+    "Use só as informações abaixo. Nunca invente preços, prazos, descontos ou promessas.",
     d.prospeccao
       ? "Esta conversa começou com uma mensagem NOSSA de prospecção (a pessoa não nos procurou). Objetivo: aquecer o contato com calma. Responda ao que ela disse, mostre interesse genuíno pelo negócio dela, faça no máximo uma pergunta por vez e ofereça a auditoria gratuita ou uma conversa rápida de 15 minutos com a equipe de " + ctx.nome + ". Não despeje preços nem pacotes; fale de preço só se perguntarem, com os valores das informações. Não prometa resultados. Se ela disser que não tem interesse ou pedir para não receber mensagens, agradeça, peça desculpas pelo incômodo, diga que não vai mais mandar mensagens e marque parar = true. Marque chamar_equipe = true quando ela aceitar a auditoria ou a conversa, pedir proposta, preço fechado ou reunião. Se a última mensagem for uma resposta automática da empresa (saudação padrão, cardápio, horário, cartão com telefone ou \"fale pelo WhatsApp\"), não responda: devolva resposta vazia, porque quem decide o próximo passo é a equipe."
-      : "Objetivo: tirar dúvidas, entender o que a pessoa precisa e levar ao próximo passo do negócio (por exemplo, marcar uma conversa ou uma avaliação).",
+      : "Objetivo: " + campo(at, "objetivo", 300) + ".",
+    "Como atender (instruções do negócio, siga na ordem):\n" + campo(at, "comportamento", 3000),
+    "NUNCA faça isto, em nenhuma circunstância: " + campo(at, "nunca", 1000) + ". Se a conversa pedir algo dessa lista, não faça, avise que a equipe responde e marque chamar_equipe = true.",
     at.agendar ? "Pode sugerir marcar um horário; a equipe confirma o horário exato." : "",
     at.horario ? "Horário de atendimento da equipe: " + limpa(at.horario, 300) : "",
-    "Conversa pessoal: se a pessoa está falando de assunto pessoal ou claramente alheio ao negócio (amigo ou familiar conversando, brincadeira, futebol, saudade, notícia, assunto de outra pessoa) e não demonstrou nenhum interesse nos serviços, NÃO ofereça auditoria, reunião, produto nem preço, não avance etapa e não faça perguntas de venda. Nesse caso devolva resposta vazia e pessoal = true, para a equipe responder pessoalmente. Só trate como negócio se a pessoa falar do negócio dela, perguntar sobre nossos serviços ou responder a uma oferta nossa de forma clara.",
-    "Seja assertivo: responda primeiro exatamente o que foi perguntado, com os dados das informações abaixo (preço, prazo, como funciona). Depois faça no máximo UMA pergunta que avance a venda (ex.: qual o negócio, o que já tem hoje, quando quer começar).",
-    "Mensagens marcadas como [áudio transcrito] são áudios do cliente já transcritos: responda ao que ele falou, como se tivesse ouvido. Nunca diga que não consegue ouvir áudio.",
-    "Não repita saudação nem apresentação se a conversa já começou. Não use frases vazias como 'Como podemos ajudar?' depois que o cliente já disse o que quer.",
-    "Só diga que é o assistente virtual se for a primeira resposta da conversa ou se perguntarem; a equipe acompanha a conversa.",
-    at.humano === false ? "" : "Marque chamar_equipe = true quando o cliente quiser fechar, negociar, pedir algo fora das informações, reclamar ou falar com uma pessoa. Mesmo assim, responda na mesma mensagem tudo o que as informações abaixo permitem.",
+    "Mensagens marcadas como [áudio transcrito] são áudios do cliente já transcritos: responda ao que ele falou, como se tivesse ouvido.",
+    at.humano === false ? "" : "Marque chamar_equipe = true quando: " + campo(at, "chamar", 1000) + ". Mesmo assim, responda na mesma mensagem tudo o que as informações abaixo permitem.",
     (d.iaChamou && agora - d.iaChamou < 12 * 3600000) ? "A equipe JÁ foi avisada nesta conversa. Continue respondendo as dúvidas objetivas (preço, opções, prazos, como funciona) com as informações abaixo; não ofereça de novo falar com a equipe e não repita que vai chamar alguém. Se não souber, diga que a equipe responde em breve." : "",
     'Devolva só JSON: {"resposta":"...","chamar_equipe":false,"parar":false,"pessoal":false,"motivo":"","crm":{"resumo":"até 2 frases: o que o cliente quer e em que pé está","interesse":"produto/serviço ou vazio","valor":null,"proximo_retorno":null,"etapa":"uma de ' + JSON.stringify(ctx.etapas || []) + '"}}. Em crm não invente valores nem datas (null se não houver).',
     "", "Informações do negócio:", limpa(at.base || ctx.base, 3000),
@@ -163,4 +177,4 @@ function registra(app, rec, r, extra) {
   app.save(rec)
 }
 
-module.exports = { liga, recursoLigado, decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }
+module.exports = { PADRAO, liga, recursoLigado, decide, registra, cfgAtendimento, aguardaRajada, segundosDeEspera }

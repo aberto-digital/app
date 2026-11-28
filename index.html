@@ -1569,12 +1569,16 @@
     var d = { nome: '', cidade: '', l: 'pt' };
     var base = location.origin + location.pathname.replace(/[^\/]*$/, '') + 'experiencia/';
     function url(n){ var x = L.NICHOS.filter(function(k){ return k.n === n; })[0]; return L.monta(base, { m: x.m, n: x.n, nome: d.nome, cidade: d.cidade, l: d.l === 'en' ? 'en' : '' }); }
+    var apres = [{ n: 'nails-en', rotulo: 'Nail salon / Nails · English (US$)', cor: '#FFB020', u: base.replace(/experiencia\/$/, '') + 'demos/apresentacao/?n=amanda&l=en&r=us' }, { n: 'nails-pt', rotulo: 'Salão de unha · Português (R$)', cor: '#FFB020', u: base.replace(/experiencia\/$/, '') + 'demos/apresentacao/?n=amanda&r=br' }, { n: 'tattoo-pt', rotulo: 'Tatuagem · Português (US$)', cor: '#2F6FED', u: base.replace(/experiencia\/$/, '') + 'demos/apresentacao/?n=ibraim&r=us' }];
     var grupos = [['pedido', 'Pedido', 'Cardápio, carrinho e checkout'], ['agendamento', 'Agendamento', 'Serviço, profissional, dia e horário'], ['orcamento', 'Orçamento', 'Perguntas, fotos e proposta']];
     $('#vista').innerHTML = '<div class="ajustes"><section class="painel"><h2>Links de demonstração</h2>' +
       '<p class="nota-bot">Site modelo com chat de IA de verdade e, depois do envio, a vitrine do AbertoCore do lado da empresa. Abra para mostrar ou copie o link para mandar ao cliente. Para usar a marca de um lead (logo e cor), use o botão na ficha dele.</p>' +
       '<div class="duas"><div class="campo"><label for="dmN">Nome do negócio (opcional)</label><input id="dmN" maxlength="40" placeholder="Seu negócio"></div>' +
       '<div class="campo"><label for="dmC">Cidade (opcional)</label><input id="dmC" maxlength="40" placeholder="Ex.: Arujá"></div></div>' +
       '<div class="campo"><label for="dmL">Idioma</label><select id="dmL"><option value="pt">Português (R$)</option><option value="en">Inglês (US$)</option></select></div>' +
+      '<div class="grupo-t" style="margin-top:14px">Apresentação completa <small style="font-weight:400;color:var(--muted)">· Rolagem, site do cliente, painel e proposta</small></div><div class="docs">' + apres.map(function(x){
+        return '<div class="doc-l"><span><b><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + x.cor + ';margin-right:6px;box-shadow:0 0 0 1px var(--linha)"></i>' + esc(x.rotulo) + '</b></span>' +
+          '<span class="doc-bts"><button type="button" class="btn peq" data-uabre="' + x.n + '">Abrir ↗</button><button type="button" class="btn peq pri" data-ucopia="' + x.n + '">Copiar link</button></span></div>'; }).join('') + '</div>' +
       grupos.map(function(g){
         return '<div class="grupo-t" style="margin-top:14px">' + g[1] + ' <small style="font-weight:400;color:var(--muted)">· ' + g[2] + '</small></div><div class="docs">' +
           L.NICHOS.filter(function(x){ return x.m === g[0]; }).map(function(x){
@@ -1584,6 +1588,11 @@
       }).join('') + '</section></div>';
     function le(){ d.nome = $('#dmN').value.trim(); d.cidade = $('#dmC').value.trim(); d.l = $('#dmL').value; }
     $('#vista').onclick = function(e){
+      var ua = e.target.closest('[data-uabre]'), uc = e.target.closest('[data-ucopia]');
+      if (ua || uc){ var ap = apres.filter(function(x){ return x.n === (ua || uc).getAttribute(ua ? 'data-uabre' : 'data-ucopia'); })[0];
+        if (ua) window.open(ap.u, '_blank', 'noopener');
+        else (navigator.clipboard ? navigator.clipboard.writeText(ap.u) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', ap.u); });
+        return; }
       var a = e.target.closest('[data-dabre]'), c = e.target.closest('[data-dcopia]');
       if (a){ le(); window.open(url(a.getAttribute('data-dabre')), '_blank', 'noopener'); }
       if (c){ le(); var u = url(c.getAttribute('data-dcopia')); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function(){ aviso('Link copiado.'); }, function(){ prompt('Copie o link:', u); }); }

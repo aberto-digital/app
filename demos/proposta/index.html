@@ -70,12 +70,12 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
 <div class="pl" id="pl"></div>
 <p class="nota" id="nota"></p>
 </div>
-<script src="../precos.js?v=2"></script>
+<script src="../precos.js?v=4"></script>
 <script>
 (function(){
   var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';
   var nome=n==='ibraim'?'Ibraim':'Amanda';
-  var EN=n==='amanda'&&q.get('l')==='en',A=n==='amanda',$=function(i){return document.getElementById(i)};
+  var EN=n==='amanda'&&window.Regiao.lang()==='en',A=n==='amanda',$=function(i){return document.getElementById(i)};
   if(EN)document.documentElement.lang='en';
   var T=EN?{rever:'Back to the presentation',eb:'Proposal for '+nome,tit:'What you just saw, running in your nail studio.',lead:'Pick the plan that fits how many clients you handle. You can start small and move up later without redoing anything.',
     v:[['The site','Your client finds you, checks your work and books right there.'],['The conversation','Replies instantly, confirms the time and collects the deposit.'],['The panel','Calendar, chats, clients and funnel in one place.']],
@@ -108,7 +108,7 @@ h1{font:800 clamp(32px,5.4vw,60px)/1.05 var(--display);font-stretch:92%;letter-s
   document.getElementById('seg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;desc=+b.dataset.m;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b)});desenha()});
   function marca(){[].forEach.call(document.querySelectorAll('#reg button'),function(b){b.setAttribute('aria-pressed',b.dataset.r===rg)})}
   document.getElementById('reg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;rg=b.dataset.r;window.Regiao.grava(rg);try{var u=new URL(location.href);u.searchParams.set('r',rg);history.replaceState(null,'',u)}catch(x){}marca();desenha()});
-  $('rever').href='../apresentacao/?n='+n+'&r='+rg+(EN?'&l=en':'');marca();
+  $('rever').href='../apresentacao/?n='+n+'&r='+rg+'&l='+(EN?'en':'pt');marca();
   desenha();
 })();
 </script>

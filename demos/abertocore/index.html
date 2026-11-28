@@ -330,7 +330,7 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
   }
   function aviso(x){var e=document.getElementById('toast');e.textContent=x;e.hidden=false;setTimeout(function(){e.hidden=true},4200)}
   document.querySelectorAll('.lk-volta,#volta').forEach(function(a){a.textContent='← '+t('Voltar ao site','Back to site');a.href=N.volta||'../'});
-  document.querySelectorAll('.lk-quero,#quero').forEach(function(a){a.textContent=t('Ver a proposta','See the proposal')+' →';var rr='us';try{rr=localStorage.getItem('demo-regiao')==='br'?'br':'us'}catch(e){}a.href='../proposta/?n='+(/amanda/i.test(N.nome)?'amanda':'ibraim')+'&r='+rr});
+  document.querySelectorAll('.lk-quero,#quero').forEach(function(a){a.textContent=t('Ver a proposta','See the proposal')+' →';var rr='us';try{var qr=new URLSearchParams(location.search).get('r')||sessionStorage.getItem('demo-r');rr=qr==='br'?'br':qr==='us'?'us':(localStorage.getItem('demo-admin')==='1'&&localStorage.getItem('demo-regiao')==='br'?'br':'us');var ll=sessionStorage.getItem('demo-l')==='en'?'&l=en':'&l=pt'}catch(e){var ll=''}a.href='../proposta/?n='+(/amanda/i.test(N.nome)?'amanda':'ibraim')+'&r='+rr+ll});
   document.title='AbertoCore · '+N.nome;
   desenha();
   aviso((ag?'📅 ':'📝 ')+t(ag?'Novo agendamento':'Novo orçamento',ag?'New booking':'New quote request')+' · '+C.nome);

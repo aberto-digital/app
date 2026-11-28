@@ -38,9 +38,11 @@
   <section class="passo"><h3 data-pt="3. Horário" data-en="3. Time">3. Horário</h3><div class="op" id="hora"></div></section>
   <section class="passo"><h3 data-pt="4. Seus dados" data-en="4. Your details">4. Seus dados</h3>
     <label for="nome" data-pt="Nome" data-en="Name">Nome</label><input id="nome" autocomplete="name">
-    <p class="note" style="margin:6px 0" data-pt="Por onde você quer receber a confirmação e os lembretes?" data-en="Where would you like to get your confirmation and reminders?">Por onde você quer receber a confirmação e os lembretes?</p>
-    <div class="op" id="canal" style="margin-bottom:10px"></div>
-    <label for="tel" id="tel-rot"></label><input id="tel" autocomplete="off">
+    <label for="tel" data-pt="Telefone (WhatsApp)" data-en="Phone (WhatsApp)">Telefone (WhatsApp)</label><input id="tel" type="tel" autocomplete="tel" placeholder="(843) 000-0000">
+    <label for="ig" data-pt="Instagram (@usuario)" data-en="Instagram (@handle)">Instagram (@usuario)</label><input id="ig" autocomplete="off" autocapitalize="none" placeholder="@seu.usuario">
+    <label for="em" data-pt="E-mail (opcional)" data-en="Email (optional)">E-mail (opcional)</label><input id="em" type="email" autocomplete="email" placeholder="voce@email.com">
+    <p class="note" style="margin:6px 0" data-pt="Por onde você prefere receber a confirmação e os lembretes?" data-en="Where do you prefer to get your confirmation and reminders?">Por onde você prefere receber a confirmação e os lembretes?</p>
+    <div class="op" id="canal"></div>
   </section>
   <section class="passo"><h3 data-pt="5. Sinal para garantir o horário" data-en="5. Deposit to secure your spot">5. Sinal para garantir o horário</h3>
     <div class="op" id="pag" style="margin-bottom:10px"></div><p class="note" id="pag-info" style="margin:0" aria-live="polite"></p>
@@ -69,7 +71,6 @@
     btns($('dia'),D,'d',fmt);
     btns($('hora'),H,'h',function(h){return h});
     var C=window.Perfil.CANAIS;$('canal').innerHTML='';C.forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c[L()];b.setAttribute('aria-pressed',st.c===c.id?'true':'false');b.onclick=function(){st.c=c.id;desenha()};$('canal').appendChild(b)});
-    var cc=window.Perfil.canal(st.c);$('tel-rot').textContent=cc.rot[L()];$('tel').type=cc.tipo;$('tel').placeholder=cc.ph;
     perfil();
     var PG=[['cartao',L()==='en'?'Card':'Cartão'],['zelle','Zelle'],['local',L()==='en'?'Pay on site':'Pagar no local']];
     $('pag').innerHTML='';PG.forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=x[1];b.setAttribute('aria-pressed',st.p===x[0]?'true':'false');b.onclick=function(){st.p=x[0];desenha()};$('pag').appendChild(b)});
@@ -83,18 +84,25 @@
     if(!p){el.hidden=true;return}
     var en=L()==='en',hist=(p.hist||[]).slice(-3).reverse().map(function(x){return '<li>'+x.servico+' · '+x.dia+' '+x.hora+'</li>'}).join('');
     el.hidden=false;
-    el.innerHTML='<h3>'+(en?'Welcome back, ':'Olá de volta, ')+p.nome.split(' ')[0]+'!</h3><p class="note" style="margin:0 0 8px">'+(en?'Your profile: ':'Seu perfil: ')+window.Perfil.canal(p.canal)[L()]+' · '+p.contato+'</p>'+(hist?'<p class="note" style="margin:0">'+(en?'Your latest visits':'Suas últimas visitas')+'</p><ul class="note" style="margin:4px 0 8px;padding-left:18px">'+hist+'</ul>':'')+'<button type="button" class="lang" id="sair">'+(en?'Not you? Sign out':'Não é você? Sair')+'</button>';
-    $('sair').onclick=function(){window.Perfil.sair(KEY);$('nome').value='';$('tel').value='';perfil()};
-    if(!$('nome').value){$('nome').value=p.nome;st.c=p.canal;$('tel').value=p.contato}
+    el.innerHTML='<h3>'+(en?'Welcome back, ':'Olá de volta, ')+p.nome.split(' ')[0]+'!</h3><p class="note" style="margin:0 0 8px">'+(en?'Your profile: ':'Seu perfil: ')+window.Perfil.canal(p.canal)[L()]+' · '+(p.contato||p.telefone)+'</p>'+(hist?'<p class="note" style="margin:0">'+(en?'Your latest visits':'Suas últimas visitas')+'</p><ul class="note" style="margin:4px 0 8px;padding-left:18px">'+hist+'</ul>':'')+'<button type="button" class="lang" id="sair">'+(en?'Not you? Sign out':'Não é você? Sair')+'</button>';
+    $('sair').onclick=function(){window.Perfil.sair(KEY);$('nome').value='';$('tel').value='';$('ig').value='';$('em').value='';perfil()};
+    if(!$('nome').value){$('nome').value=p.nome;st.c=p.canal;$('tel').value=p.telefone||(p.canal==='whatsapp'?p.contato:'');$('ig').value=p.instagram||(p.canal==='instagram'?p.contato:'');$('em').value=p.email||(p.canal==='email'?p.contato:'')}
   }
+  function falta(){var en=L()==='en';
+    if(!$('nome').value.trim())return en?'Enter your name.':'Informe seu nome.';
+    if(($('tel').value.replace(/\D/g,'')).length<7)return en?'Enter your phone number.':'Informe seu telefone.';
+    if(st.c==='instagram'&&!window.Perfil.arroba($('ig').value))return en?'Enter your Instagram @ to get replies there.':'Informe seu @ do Instagram para receber por lá.';
+    if(st.c==='email'&&!$('em').value.trim())return en?'Enter your email to get replies there.':'Informe seu e-mail para receber por lá.';
+    return ''}
   $('conf').onclick=function(){
     if(st.s==null||st.d==null||st.h==null||!$('nome').value.trim()){$('resumo').innerHTML='<p>'+(L()==='en'?'Fill in service, day, time and name.':'Preencha serviço, dia, horário e nome.')+'</p>';return}
+    var cm=falta();if(cm){$('resumo').innerHTML='<p>'+cm+'</p>';return}
     if(st.p==='zelle'&&!$('zok').checked){$('resumo').innerHTML='<p>'+(L()==='en'?'Tick the box after sending the Zelle.':'Marque a caixa depois de enviar o Zelle.')+'</p>';return}
-    var nome=$('nome').value.trim(), tel0=$('tel').value.trim()||window.Perfil.canal(st.c).ph, tel=window.Perfil.canal(st.c).id==='whatsapp'?tel0:window.Perfil.canal(st.c).pt+' · '+tel0, x=D[st.d], iso=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
-    var S0={negocio:{nome:'Amanda Belas Unhas',tipo:'agendamento',l:L(),volta:'../',cor:'#B07A6E'},cliente:{nome:nome,canal:st.c,contato:tel0},item:{servico:S[st.s][L()],dia:fmt(D[st.d]),hora:H[st.h],valor:S[st.s].p},sinal:{valor:SINAL,forma:st.p,status:st.p==='zelle'?'aguardando':st.p==='cartao'?'pago':'local'},ts:Date.now()};
+    var nome=$('nome').value.trim(), cli={nome:nome,telefone:window.Perfil.fone($('tel').value),instagram:window.Perfil.arroba($('ig').value),email:$('em').value.trim(),canal:st.c}, tel0=window.Perfil.valorDoCanal(cli,st.c), x=D[st.d], iso=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+    var S0={negocio:{nome:'Amanda Belas Unhas',tipo:'agendamento',l:L(),volta:'../',cor:'#B07A6E'},cliente:{nome:nome,telefone:cli.telefone,instagram:cli.instagram,email:cli.email,canal:st.c,contato:tel0},item:{servico:S[st.s][L()],dia:fmt(D[st.d]),hora:H[st.h],valor:S[st.s].p},sinal:{valor:SINAL,forma:st.p,status:st.p==='zelle'?'aguardando':st.p==='cartao'?'pago':'local'},ts:Date.now()};
     try{sessionStorage.setItem('abertocore-sim',JSON.stringify(S0))}catch(e){}
     var old=window.Perfil.ler(KEY)||{hist:[]};old.hist=(old.hist||[]).concat([{servico:S[st.s][L()],dia:fmt(D[st.d]),hora:H[st.h]}]).slice(-10);
-    window.Perfil.grava(KEY,{nome:nome,canal:st.c,contato:tel0,hist:old.hist});
+    window.Perfil.grava(KEY,{nome:nome,telefone:cli.telefone,instagram:cli.instagram,email:cli.email,canal:st.c,contato:tel0,hist:old.hist});
     var url='../../abertocore/index.html';
     $('okt').textContent=nome+' · '+S[st.s][L()]+' · '+fmt(D[st.d])+' · '+H[st.h];
     $('ok').style.display='block';$('ok').scrollIntoView({behavior:'smooth'});
@@ -113,7 +121,7 @@
       if(k===0&&st.s==null)return e?'Choose a service.':'Escolha um serviço.';
       if(k===1&&st.d==null)return e?'Choose a day.':'Escolha um dia.';
       if(k===1&&st.h==null)return e?'Choose a time.':'Escolha um horário.';
-      if(k===2&&!$('nome').value.trim())return e?'Enter your name.':'Informe seu nome.';
+      if(k===2)return falta();
       if(k===3&&st.p==='zelle'&&!$('zok').checked)return e?'Tick the box after sending the Zelle.':'Marque a caixa depois de enviar o Zelle.';
       return ''}
     function mostra(){document.querySelectorAll('.stp').forEach(function(e){e.classList.toggle('on',+e.getAttribute('data-k')===i)});

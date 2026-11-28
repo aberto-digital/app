@@ -2106,7 +2106,7 @@
     lis.addEventListener('touchend', solta, {passive:true}); lis.addEventListener('touchcancel', solta, {passive:true});
   }
   function filtrados(a){
-    var q = busca.trim().toLowerCase();
+    var q = norm(busca.trim());
     return S.contatos.filter(function(c){
       var st = a || aba;
       var vis = c.ignorado ? st === 'finalizado' : (stDe(c) === st || (st === 'entrada' && stDe(c) === 'esperando'));
@@ -2114,7 +2114,7 @@
         (!respSel || (respSel === 'eu' ? c.resp === MEU_ID : respSel === 'sem' ? !c.resp : c.resp === respSel)) &&
         (!etiqSel.length || etiqSel.some(function(x){ return (c.etiquetas || []).indexOf(x) >= 0; })) &&
         (!tipoSel.length || tipoSel.indexOf(c.tipo) >= 0) && (!etapaSel.length || etapaSel.indexOf(c.etapa) >= 0) &&
-        (!q || (c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).toLowerCase().indexOf(q) >= 0);
+        (!q || norm(c.nome + ' ' + c.negocio + ' ' + c.tel + (c.lead ? ' ' + [c.lead.insta, c.lead.ramo, c.lead.bairro, c.lead.cidade].join(' ') : '')).indexOf(q) >= 0 || textoMsgs(c).indexOf(q) >= 0);
     }).sort(function(x, y){
       if ((a || aba) === 'prospeccao'){
         var gx = ligGrupo(x), gy = ligGrupo(y);
@@ -2247,10 +2247,32 @@
     var lr = $('#lgRes'); if (lr) lr.onclick = function(e){ var b = e.target.closest('button[data-r]'); if (b) registraLigacao(c, b.getAttribute('data-r')); };
     var lp = $('#lgPula'); if (lp) lp.onclick = function(){ proximoLigacao(c); };
   }
+  /* Busca: sem diferença de maiúsculas e acentos, e também dentro do texto das mensagens. */
+  function norm(t){ return String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  var cacheMsgs = new WeakMap(); // texto normalizado das mensagens por contato (refaz só quando chegam mensagens)
+  function textoMsgs(c){
+    var ms = c.msgs || [], k = ms.length, h = cacheMsgs.get(c);
+    if (!h || h.k !== k){ h = {k: k, t: norm(ms.map(function(m){ return m.txt || ''; }).join('\n'))}; cacheMsgs.set(c, h); }
+    return h.t;
+  }
+  /* Quando o termo só aparece numa mensagem, mostra o trecho na lista. */
+  function trechoBusca(c){
+    var q = norm(busca.trim()); if (!q) return '';
+    if (norm(c.nome + ' ' + c.negocio + ' ' + c.tel).indexOf(q) >= 0) return '';
+    var ms = c.msgs || [];
+    for (var i = ms.length - 1; i >= 0; i--){
+      var t = String(ms[i].txt || '').replace(/\s+/g, ' '), j = norm(t).indexOf(q);
+      if (j < 0) continue;
+      var ini = Math.max(0, j - 28), fim = Math.min(t.length, j + q.length + 40);
+      return (ini > 0 ? '…' : '') + t.slice(ini, fim) + (fim < t.length ? '…' : '');
+    }
+    return '';
+  }
   function itemContato(c){
     var u = ultima(c), novo = c.naoLidas > 0 && !c.ignorado;
     var pre = u.de === 'ia' ? 'IA: ' : u.de === 'bot' ? 'Bot: ' : u.de === 'eq' ? 'Você: ' : u.nota ? 'Nota: ' : u.de === 'sis' ? '• ' : '';
     var txt = u.txt.replace(/^Assunto: /, '').replace(/\n+/g, ' ');
+    var achou = trechoBusca(c); if (achou){ pre = 'Achou: '; txt = achou; }
     return '<button class="item" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '">' + avatar(c) +
       '<span class="mid"><span class="l1"><span class="nome">' + esc(c.nome) + '</span><span class="hora' + (novo ? ' nova' : '') + '">' + quando(u.ts) + '</span></span>' +
       '<span class="ult' + (novo ? ' nova' : '') + '" style="display:block">' + esc(pre + txt) + '</span>' +

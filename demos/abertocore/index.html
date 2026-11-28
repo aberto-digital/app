@@ -207,7 +207,7 @@ html:not([data-tema="escuro"]) .m.ia{background:#FFF4DA;border-color:#F5D98F;col
   }
   function aviso(x){var e=document.getElementById('toast');e.textContent=x;e.hidden=false;setTimeout(function(){e.hidden=true},4200)}
   document.getElementById('volta').textContent='← '+t('Voltar ao site','Back to site');document.getElementById('volta').href=N.volta||'../';
-  document.getElementById('quero').textContent=t('Quero isso no meu negócio','I want this for my business');document.getElementById('quero').href='https://wa.me/5511991233627?text='+encodeURIComponent(t('Oi! Testei a demonstração da '+N.nome+' e quero isso no meu negócio.','Hi! I tried the '+N.nome+' demo and want this for my business.'));
+  document.getElementById('quero').textContent=t('Ver a proposta','See the proposal');document.getElementById('quero').href='../proposta/?n='+(/amanda/i.test(N.nome)?'amanda':'ibraim');
   document.title='AbertoCore · '+N.nome;
   desenha();
   aviso((ag?'📅 ':'📝 ')+t(ag?'Novo agendamento':'Novo orçamento',ag?'New booking':'New quote request')+' · '+C.nome);

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="escuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AbertoCore · Apresentação</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%231E3050'/%3E%3Cpath d='M24 74V46a24 24 0 0 1 48 0V74Z' fill='%23FFB020'/%3E%3Cpath d='M33 74V46.5a15 15 0 0 1 30 0V74Z' fill='%232F6FED'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--papel:#0D131D;--card:#161E2B;--sup:#1C2636;--linha:#243044;--texto:#E7EBF2;--sec:#A2ACBE;--muted:#7F8AA0;--ceu:#2F6FED;--ambar:#FFB020;--dor:#E8806F;--ok:#3DBE7A;--display:"Archivo",system-ui,sans-serif;--corpo:Inter,system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--papel);color:var(--texto);font:16px/1.5 var(--corpo);-webkit-font-smoothing:antialiased;overflow:hidden}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ceu);outline-offset:3px}
+.topo{position:fixed;inset:0 0 auto 0;display:flex;justify-content:space-between;align-items:center;padding:16px max(20px,4vw);z-index:5;font:700 14px var(--display);letter-spacing:.02em}
+.topo span{color:var(--sec);font:500 13px var(--corpo)}
+.palco{position:fixed;inset:0}
+.sl{position:absolute;inset:0;padding:84px max(20px,6vw) 96px;display:flex;flex-direction:column;justify-content:center;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .35s,transform .35s,visibility .35s;overflow:auto}
+.sl.on{opacity:1;visibility:visible;transform:none}
+.in{max-width:1080px;width:100%;margin:0 auto}
+.eyebrow{font:600 12px var(--corpo);letter-spacing:.14em;text-transform:uppercase;color:var(--ambar);margin-bottom:14px}
+h1,h2{font-family:var(--display);font-stretch:92%;font-weight:800;line-height:1.04;letter-spacing:-.02em}
+h1{font-size:clamp(32px,5vw,60px);max-width:20ch}
+h2{font-size:clamp(28px,4.2vw,50px);max-width:20ch;margin-bottom:28px}
+.lead{font-size:clamp(17px,2vw,21px);color:var(--sec);max-width:52ch;margin-top:22px}
+.btn{display:inline-block;background:var(--ceu);color:#fff;font-weight:700;padding:14px 24px;border-radius:12px;text-decoration:none;margin-top:32px}
+.btn.alt{background:none;border:1px solid var(--linha);margin-left:10px}
+/* jornada */
+.jor{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px}
+.jor div{background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:20px}
+.jor b{display:block;font:800 13px var(--display);color:var(--ambar);margin-bottom:10px}
+.jor h3{font:700 19px var(--display);margin-bottom:6px}
+.jor p{font-size:14px;color:var(--sec)}
+.jor .dono{border-color:var(--ceu);background:linear-gradient(180deg,rgba(47,111,237,.16),var(--card))}
+.jor .dono b{color:#8DB2FF}
+/* dor x solução */
+.dx{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.col{border-radius:18px;padding:24px;border:1px solid var(--linha);background:var(--card)}
+.col.s{border-color:rgba(47,111,237,.55);background:linear-gradient(180deg,rgba(47,111,237,.14),var(--card))}
+.col h3{font:700 12px var(--corpo);letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;color:var(--dor)}
+.col.s h3{color:#8DB2FF}
+.col ul{list-style:none;padding:0}
+.col li{padding:9px 0 9px 26px;position:relative;font-size:15.5px;border-top:1px solid var(--linha)}
+.col li:first-child{border-top:0}
+.col li:before{content:"×";position:absolute;left:0;color:var(--dor);font-weight:700}
+.col.s li:before{content:"✓";color:var(--ok)}
+.ver{margin-top:18px;font-size:14px;color:var(--sec)}
+.ver b{color:var(--ambar);font-weight:600}
+/* roteiro */
+.rot{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.rot a{display:block;background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:22px;text-decoration:none}
+.rot a:hover{border-color:var(--ceu)}
+.rot b{font:800 36px var(--display);color:var(--ceu);display:block;line-height:1}
+.rot h3{font:700 19px var(--display);margin:10px 0 6px}
+.rot p{font-size:14px;color:var(--sec)}
+/* controles */
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:16px max(20px,4vw) max(16px,env(safe-area-inset-bottom));z-index:5;background:linear-gradient(0deg,var(--papel) 55%,transparent)}
+.pts{display:flex;gap:7px}
+.pts i{width:7px;height:7px;border-radius:50%;background:var(--linha);transition:.2s}
+.pts i.on{background:var(--ceu);width:22px;border-radius:9px}
+.setas{display:flex;gap:8px}
+.setas button{border:1px solid var(--linha);border-radius:12px;padding:10px 18px;font-weight:600;background:var(--card)}
+.setas button.go{background:var(--ceu);border-color:var(--ceu);color:#fff}
+.setas button[disabled]{opacity:.35;cursor:default}
+@media(max-width:820px){.jor,.rot,.dx{grid-template-columns:1fr}.sl{justify-content:flex-start;padding:70px max(20px,6vw) 130px}.btn.alt{margin:10px 0 0}}
+@media(prefers-reduced-motion:reduce){.sl{transition:none}}
+</style>
+</head>
+<body>
+<div class="topo"><div>AbertoCore</div><span id="para"></span></div>
+<main class="palco" id="palco"></main>
+<div class="nav"><div class="pts" id="pts"></div><div class="setas"><button id="ant">Voltar</button><button id="prox" class="go">Avançar</button></div></div>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search),n=q.get('n')==='ibraim'?'ibraim':'amanda';
+  var D={
+    amanda:{nome:'Amanda',neg:'Amanda Belas Unhas',nicho:'studio de unhas',site:'../amanda/',ag:'agendamento online',
+      cap:'Como a Amanda é encontrada, escolhida e atendida. E como isso pode ficar bem mais leve.',
+      d1:['Quem busca “unhas em Goose Creek” não encontra o studio com facilidade','O Instagram tem trabalhos lindos, mas nenhum caminho claro para agendar','Sem site, o studio parece menor do que é'],
+      s1:['Perfil no Google e site de uma página, achados na busca da região','Link do site na bio do Instagram e nos anúncios','Tudo em português e em inglês, para as duas comunidades'],
+      d2:['Os trabalhos ficam perdidos no feed, sem preço nem contexto','Poucos depoimentos à vista','A cliente sai sem saber quanto custa nem como agendar'],
+      s2:['Site com fotos grandes, serviços, preços de referência e depoimentos','Presença sólida e igual em todos os canais','A cliente entende o studio em 30 segundos e já agenda'],
+      d3:['Mensagens chegam à noite e só são respondidas no dia seguinte','Vai e volta no WhatsApp para combinar dia, hora e valor','Faltas sem aviso e sinal combinado “de boca”'],
+      s3:['A cliente escolhe serviço, dia e horário sozinha, a qualquer hora','Confirmação pelo canal que ela preferir: WhatsApp, Instagram ou e-mail','Sinal por cartão ou Zelle, lembrete automático e aviso de manutenção'],
+      d4:['Agenda no caderno e conversas espalhadas em três aplicativos','Não sabe quem voltou, quem sumiu nem quanto entrou no mês','Esquece de chamar a cliente na hora da manutenção'],
+      s4:['Agenda, conversas e clientes no mesmo painel','Funil mostra quem pediu, quem confirmou e quem pagou','A IA organiza, responde o simples e lembra a recorrência']},
+    ibraim:{nome:'Ibraim',neg:'Ibraim · Superman Tattoo',nicho:'estúdio de tatuagem',site:'../ibraim/',ag:'orçamento online',
+      cap:'Como o Ibraim é encontrado, escolhido e atendido. E como isso pode ficar bem mais leve.',
+      d1:['Quem busca tatuador em South Carolina encontra outros antes do estúdio','O Instagram mostra o talento, mas não leva a um orçamento','Sem site próprio, depende só do algoritmo'],
+      s1:['Perfil no Google e site de uma página, achados na busca da região','Link do site na bio do Instagram e nos anúncios','Tudo em português e em inglês'],
+      d2:['A galeria fica enterrada no feed, sem estilo organizado','Poucos depoimentos e nada sobre como funciona o processo','Quem está em dúvida desiste antes de perguntar'],
+      s2:['Site com galeria grande por estilo, processo explicado e depoimentos','Presença sólida e igual em todos os canais','O cliente entende o trabalho e já pede o orçamento'],
+      d3:['Todo cliente pergunta “quanto custa?” e espera horas pela resposta','Trocas de fotos de referência perdidas no direct','Sinal combinado solto, com risco de o cliente faltar'],
+      s3:['O cliente escolhe região, tamanho e estilo e já vê uma faixa de valor','Anexa a referência e escolhe o canal da resposta','Sinal por cartão ou Zelle e lembrete automático da sessão'],
+      d4:['Orçamentos, agenda e referências espalhados em vários lugares','Não sabe quais pedidos ficaram sem resposta','Retoques e novas sessões dependem da memória'],
+      s4:['Pedidos, conversas e agenda no mesmo painel','Funil mostra o que pediu orçamento, o que fechou e o que pagou sinal','A IA organiza, responde o simples e lembra retoque e retorno']}
+  }[n];
+  document.getElementById('para').textContent='Apresentação para '+D.nome;
+  function lis(a){return a.map(function(x){return '<li>'+x+'</li>'}).join('')}
+  function par(tag,t,hoje,sol,ver){return '<div class="in"><p class="eyebrow">'+tag+'</p><h2>'+t+'</h2><div class="dx"><div class="col"><h3>Hoje</h3><ul>'+lis(hoje)+'</ul></div><div class="col s"><h3>Com a AbertoCore</h3><ul>'+lis(sol)+'</ul></div></div><p class="ver">Você vai ver: <b>'+ver+'</b></p></div>'}
+  var S=[
+   '<div class="in"><p class="eyebrow">Para '+D.nome+' · '+D.nicho+'</p><h1>'+D.cap+'</h1><p class="lead">Uma apresentação curta, e depois você usa tudo na prática: o site que sua cliente vê, o painel de quem atende e a proposta.</p><a class="btn" href="#" data-go="1">Começar</a></div>',
+   '<div class="in"><p class="eyebrow">A jornada</p><h2>Do primeiro olhar até a cliente voltar.</h2><div class="jor"><div><b>1</b><h3>É encontrado</h3><p>Instagram, Google, site ou anúncio.</p></div><div><b>2</b><h3>É visitado</h3><p>Portfólio, site, depoimentos, presença sólida.</p></div><div><b>3</b><h3>É contatado</h3><p>Agilidade, cordialidade, agendamento, pagamento, lembretes.</p></div><div class="dono"><b>4 · BASTIDORES</b><h3>Dono se organiza</h3><p>Agenda, funil, pós-venda e recorrência.</p></div></div><p class="lead">Em cada etapa existe um ponto onde o cliente se perde. Vamos olhar um por um.</p></div>',
+   par('1 · Ser encontrado','Quem procura precisa achar você.',D.d1,D.s1,'o site completo de '+D.nome),
+   par('2 · Ser visitado','A primeira impressão decide o contato.',D.d2,D.s2,'a página do site, galeria e depoimentos'),
+   par('3 · Ser contatado','Resposta rápida vira cliente.',D.d3,D.s3,'o '+D.ag+', com escolha de canal e sinal'),
+   par('4 · Se organizar','Menos caderno, mais controle.',D.d4,D.s4,'o painel do AbertoCore recebendo o pedido que você fizer'),
+   '<div class="in"><p class="eyebrow">Agora é a sua vez</p><h2>Três passos, na prática.</h2><div class="rot"><a href="'+D.site+'"><b>1</b><h3>O site e o '+D.ag+'</h3><p>Entre como se fosse o cliente de '+D.nome+' e faça um pedido de verdade.</p></a><a href="'+D.site+'"><b>2</b><h3>O painel do dono</h3><p>Ao concluir o pedido, o AbertoCore abre sozinho, com conversa, agenda e funil.</p></a><a href="../proposta/?n='+n+'"><b>3</b><h3>A proposta</h3><p>Planos e valores para colocar isso para funcionar no seu negócio.</p></a></div><a class="btn" href="'+D.site+'">Ver o site do cliente</a><a class="btn alt" href="../proposta/?n='+n+'">Ir direto à proposta</a></div>'
+  ];
+  var palco=document.getElementById('palco'),pts=document.getElementById('pts'),i=0;
+  S.forEach(function(h,k){var s=document.createElement('section');s.className='sl';s.innerHTML=h;palco.appendChild(s);pts.appendChild(document.createElement('i'))});
+  var sl=palco.children,dots=pts.children,ant=document.getElementById('ant'),prox=document.getElementById('prox');
+  function ir(k){i=Math.max(0,Math.min(S.length-1,k));for(var j=0;j<sl.length;j++){sl[j].classList.toggle('on',j===i);dots[j].classList.toggle('on',j===i);sl[j].setAttribute('aria-hidden',j!==i)}ant.disabled=i===0;prox.textContent=i===S.length-1?'Ver o site':'Avançar';sl[i].scrollTop=0;try{history.replaceState(null,'','?n='+n+'#'+(i+1))}catch(e){}}
+  ant.onclick=function(){ir(i-1)};
+  prox.onclick=function(){if(i===S.length-1)location.href=D.site;else ir(i+1)};
+  document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();prox.click()}else if(e.key==='ArrowLeft'||e.key==='PageUp')ant.click()});
+  document.querySelectorAll('[data-go]').forEach(function(a){a.onclick=function(e){e.preventDefault();ir(+a.getAttribute('data-go'))}});
+  var x0=null;palco.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  palco.addEventListener('touchend',function(e){if(x0===null)return;var d=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(d)>70)(d<0?prox:ant).click()});
+  ir((parseInt(location.hash.slice(1),10)||1)-1);
+})();
+</script>
+</body>
+</html>

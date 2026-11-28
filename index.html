@@ -725,6 +725,7 @@
   .ck-col-d{font-size:12.5px;opacity:.7;margin:2px 2px 10px}
   .ck-form{max-width:720px;margin-bottom:16px}
   @media (max-width:1000px){.ck-cols{grid-template-columns:1fr}.ck-pag{padding:10px 14px 64px}}
+  .ia-st-linha{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}.ia-st-linha .ia-st{margin:0}
   .ck-abas{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
   .ck-aba{border:1px solid var(--linha,#e3e6ec);background:transparent;color:inherit;border-radius:999px;padding:6px 13px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
   .ck-aba[aria-selected="true"]{background:var(--azul,#2F5BD3);border-color:var(--azul,#2F5BD3);color:#fff}
@@ -4193,29 +4194,33 @@
     $('#iaPadrao').onclick = function(){ if (!confirm('Voltar Objetivo, Comportamento, Quando chamar a equipe e O que nunca fazer para os textos padrão?')) return; $('#iaObj').value = IA_PADRAO.objetivo; $('#iaComp').value = IA_PADRAO.comportamento; $('#iaCham').value = IA_PADRAO.chamar; $('#iaNunca').value = IA_PADRAO.nunca; aviso('Textos padrão restaurados. Clique em Salvar atendimento.'); };
     $('#iaSalva').onclick = function(){ A.nome = $('#iaN').value; A.tom = $('#iaT').value; A.espera = +$('#iaE').value; A.horario = $('#iaH').value; A.papel = $('#iaPapel').value; A.objetivo = $('#iaObj').value; A.comportamento = $('#iaComp').value; A.chamar = $('#iaCham').value; A.nunca = $('#iaNunca').value; A.base = $('#iaB').value; salva(); if (window.Nuvem && Nuvem.enviar) Nuvem.enviar(); aviso('Configuração do assistente salva.'); };
 
+    var editaChave = false;
     function desenhaCon(){
       var st = iaSt || {}, el = $('#iaCon'); if (!el) return;
+      var mostra = !st.conectada || editaChave;
       var mod = st.modelo || MODELOS_IA[0].id;
-      el.innerHTML = '<div class="ia-st ' + (st.conectada ? 'on' : '') + '">' + (st.conectada ? ic('ok') + 'Conectada ao Gemini · chave ••••' + esc(st.final || '') : 'Ainda não conectada') + '</div>' +
+      el.innerHTML = '<div class="ia-st-linha"><div class="ia-st ' + (st.conectada ? 'on' : '') + '">' + (st.conectada ? ic('ok') + 'Conectada ao Gemini · chave ••••' + esc(st.final || '') : 'Ainda não conectada') + '</div>' + (st.conectada ? '<button class="btn" id="iaConEdita" type="button">' + (editaChave ? 'Fechar' : 'Editar chave') + '</button>' : '') + '</div>' +
+        (mostra ? (
         '<div class="duas"><div class="campo"><label for="iaProv">Provedor</label><select id="iaProv"><option value="gemini">Google Gemini</option></select><div class="dica">Claude e OpenAI entram depois.</div></div>' +
         '<div class="campo"><label for="iaMod">Modelo</label><select id="iaMod">' + MODELOS_IA.map(function(m){ return '<option value="' + m.id + '"' + (m.id === mod ? ' selected' : '') + '>' + esc(m.nome) + '</option>'; }).join('') +
           (MODELOS_IA.some(function(m){ return m.id === mod; }) ? '' : '<option value="' + esc(mod) + '" selected>' + esc(mod) + '</option>') + '</select></div></div>' +
         '<div class="campo"><label for="iaKey">' + (st.conectada ? 'Trocar a chave da API' : 'Chave da API') + '</label><input id="iaKey" type="password" autocomplete="off" spellcheck="false" placeholder="Cole aqui a chave do Google AI Studio">' +
           '<div class="dica">Pegue em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. A chave vai direto para o servidor e não aparece mais na tela.</div></div>' +
         '<p class="alerta-ia">' + ic('info') + '<span><b>Camada grátis só para testes.</b> Nela o Google pode usar as conversas para melhorar os produtos dele, e pessoas podem revisá-las. Com clientes reais, ative o faturamento no Google Cloud (a mesma chave passa a ser paga e as conversas deixam de ser usadas).</span></p>' +
-        '<div class="botoes-ia"><button class="btn pri" id="iaConSalva">' + (st.conectada ? 'Salvar e testar' : 'Conectar') + '</button>' + (st.conectada ? '<button class="btn" id="iaConRem">Remover chave</button>' : '') + '</div>' +
+        '<div class="botoes-ia"><button class="btn pri" id="iaConSalva">' + (st.conectada ? 'Salvar e testar' : 'Conectar') + '</button>' + (st.conectada ? '<button class="btn" id="iaConRem">Remover chave</button>' : '') + '</div>') : '') +
         (st.uso ? '<p class="uso-ia">Este mês: ' + numBR(st.uso.chamadas) + ' chamadas à IA' + (st.uso.erros ? ' (' + numBR(st.uso.erros) + ' com erro)' : '') + ' · ' + numBR(st.uso.tokens_in) + ' tokens lidos e ' + numBR(st.uso.tokens_out) + ' escritos.</p>' : '') +
         (st.conectada ? '<div class="fonte-ia"><label for="iaFonte"><b>Base de conhecimento na planilha</b></label>' +
           '<p class="nota-bot">Cole o link de <b>Arquivo → Compartilhar → Publicar na web</b> de cada aba (formato .csv), um por linha. A IA relê a planilha a cada hora e segue o que estiver lá.</p>' +
           '<textarea id="iaFonte" rows="3" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&single=true&output=csv">' + esc(st.fonte_url || '') + '</textarea>' +
           (st.fonte_em ? '<p class="uso-ia">Lida às ' + esc(new Date(st.fonte_em).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})) + ' · ' + numBR(st.fonte_linhas || 0) + ' linhas.</p>' : '') +
           '<div class="botoes-ia"><button class="btn" id="iaFonteSalva">Salvar e ler agora</button></div></div>' : '');
-      $('#iaConSalva').onclick = function(){
+      var ed = $('#iaConEdita'); if (ed) ed.onclick = function(){ editaChave = !editaChave; desenhaCon(); };
+      var sv = $('#iaConSalva'); if (sv) sv.onclick = function(){
         var b = this, chave = $('#iaKey').value.trim(), corpo = {modelo:$('#iaMod').value, testar:true};
         if (chave) corpo.chave = chave;
         else if (!st.conectada){ aviso('Cole a chave da API primeiro.'); $('#iaKey').focus(); return; }
         b.disabled = true; b.textContent = 'Testando…';
-        Nuvem.ia('POST', '', corpo).then(function(j){ iaSt = j; stAt('ia', j.conectada); desenhaCon(); desenhaOpcoes(); aviso('IA <b>conectada</b>. O teste com o Gemini funcionou.'); })
+        Nuvem.ia('POST', '', corpo).then(function(j){ iaSt = j; editaChave = false; stAt('ia', j.conectada); desenhaCon(); desenhaOpcoes(); aviso('IA <b>conectada</b>. O teste com o Gemini funcionou.'); })
           .catch(function(err){ b.disabled = false; b.textContent = st.conectada ? 'Salvar e testar' : 'Conectar'; aviso(esc(err.message)); });
       };
       var fs = $('#iaFonteSalva'); if (fs) fs.onclick = function(){
@@ -4225,7 +4230,7 @@
       };
       var rm = $('#iaConRem'); if (rm) rm.onclick = function(){
         if (!confirm('Remover a chave da IA? O CRM automático e o resumo do dia param até você colar outra.')) return;
-        Nuvem.ia('POST', '', {remover:true}).then(function(j){ iaSt = j; stAt('ia', false); desenhaCon(); aviso('Chave removida.'); }).catch(function(err){ aviso(esc(err.message)); });
+        Nuvem.ia('POST', '', {remover:true}).then(function(j){ iaSt = j; editaChave = false; stAt('ia', false); desenhaCon(); aviso('Chave removida.'); }).catch(function(err){ aviso(esc(err.message)); });
       };
     }
     function desenhaOpcoes(){

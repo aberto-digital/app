@@ -80,7 +80,7 @@ main>section{padding:0}
 .abertura{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:56px 0 48px}
 .abertura h1{margin-bottom:18px}
 .ab-t .sub{margin-bottom:6px}
-.nums{display:flex;flex-wrap:wrap;gap:12px 28px;border-top:1px solid var(--c-line);padding-top:18px;margin-top:22px}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 20px;border-top:1px solid var(--c-line);padding-top:18px;margin-top:22px}
 .nums div{font-size:13px;color:var(--c-mut)}
 .nums b{display:block;font:var(--f-num);color:var(--c-fg);font-weight:500}
 .arco{position:relative}
@@ -90,7 +90,7 @@ main>section{padding:0}
 .faixa-i{max-width:1100px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px));display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
 .faixa h2{color:inherit}
 .faixa p{opacity:.85;max-width:46ch}
-.tons{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:14px;list-style:none;padding:0;margin:0}
+.tons{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 10px;list-style:none;padding:0;margin:0}
 .tons li{text-align:center;font-size:12px;opacity:.95}
 .tons i{display:block;width:100%;max-width:68px;aspect-ratio:1;border-radius:50%;margin:0 auto 8px;border:2px solid rgba(255,255,255,.35)}
 .bloco{padding:64px 0}
@@ -99,16 +99,15 @@ main>section{padding:0}
 .linha-h{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .linha-h h2{margin:0;max-width:20ch}
 .ig{font-size:14px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--c-acc);padding-bottom:2px}
-.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.cards3{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}.cards3>*{grid-column:span 2}.cards3>*:nth-child(n+4){grid-column:span 3}@media(max-width:760px){.cards3>*,.cards3>*:nth-child(n+4){grid-column:1/-1}}
 .card2{background:var(--c-card);border:1px solid var(--c-line);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:10px}
 .card2 h3{font:var(--f-h3);margin:0}
 .card2 p{margin:0;color:var(--c-mut);font-size:15px}
 .card2 .bom{color:var(--c-fg);font-size:14px}
 .card2 .rod{margin-top:auto;padding-top:12px;border-top:1px dashed var(--c-line);color:var(--c-acc);font-weight:600;font-size:14px}
-.mason{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;align-items:start}
+.mason{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}@media(max-width:860px){.mason{grid-template-columns:repeat(2,1fr)}.mason figure:last-child{grid-column:1/-1}}
 .mason figure{margin:0;position:relative}
-.mason figure:nth-child(even){margin-top:28px}
-.mason img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:22px;display:block}
+.mason img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:22px;display:block}
 .mason figcaption{position:absolute;left:10px;bottom:10px;background:var(--c-bg);color:var(--c-fg);font-size:12px;font-weight:600;padding:4px 11px;border-radius:99px}
 .nota{color:var(--c-mut);font-size:13px;margin:16px 0 0}
 .como{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center}
